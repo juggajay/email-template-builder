@@ -1,55 +1,51 @@
-# Python
-venv
-venv_linux
-__pycache__
-.ruff_cache
-.pytest_cache
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Next.js
+/.next/
+/out/
+
+# Production
+/build
 
 # Environment files
 .env
-.env.local
-.env.production
+.env*.local
 
-# Node modules
-backend/node_modules/
-frontend/node_modules/
-node_modules/
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Docker volumes and data
-backend/data/
-mongodb_data/
-logs/
+# Local Vercel
+.vercel
 
-# Backend build files
-backend/dist/
-backend/build/
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
 
-# Frontend build files
-frontend/dist/
-frontend/build/
-
-# Docker compose overrides
-docker-compose.override.yml
-
-# IDE files
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
 
-# Test files
-backend/coverage/
-frontend/coverage/
-*.test.js
-test-results/
+# Logs
+logs
+*.log
 
 # Temporary files
-*.tmp
-*.temp
+.tmp/
+tmp/
 .cache/
 
 # AI/LLM specific ignores
@@ -58,15 +54,18 @@ research/temp/
 
 # Legacy files
 dontlookinhere/
-INITIAL.md
 php-agentic-framework/
 
-# Exclude actual implementation but keep examples
-backend/
-frontend/
-docker-compose.yml
-nginx.conf
-test-system.sh
+# Python (if any)
+venv/
+venv_linux/
+__pycache__/
+.ruff_cache/
+.pytest_cache/
 
-# Keep example files - these override the above exclusions
-!PRPs/ai-powered-crm-system.md
+# Docker
+docker-compose.override.yml
+
+# Test files
+test-results/
+coverage/
