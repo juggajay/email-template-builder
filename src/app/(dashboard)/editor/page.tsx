@@ -6,6 +6,8 @@ import { EmailEditor } from '@/components/editor/email-editor';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 
+export const dynamic = 'force-dynamic';
+
 export default function EditorPage() {
   const [templateId, setTemplateId] = useState<string | null>(null);
   const { user } = useAuth();

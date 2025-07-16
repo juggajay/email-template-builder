@@ -20,6 +20,8 @@ import {
   ArrowDown
 } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 interface AnalyticsData {
   totalExports: number;
   exportsThisMonth: number;
@@ -45,6 +47,15 @@ export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <Loading size="lg" text="Loading..." />;
+  }
 
   useEffect(() => {
     if (user) {

@@ -20,6 +20,8 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import type { EmailTemplate, UserTemplate } from '@/types';
 
+export const dynamic = 'force-dynamic';
+
 interface DashboardStats {
   totalTemplates: number;
   totalExports: number;

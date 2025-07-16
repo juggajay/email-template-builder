@@ -19,6 +19,8 @@ import {
 } from 'lucide-react';
 import { getStripe } from '@/lib/stripe/client';
 
+export const dynamic = 'force-dynamic';
+
 const plans = [
   {
     name: 'Free',

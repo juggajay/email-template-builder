@@ -22,6 +22,8 @@ import {
   Trash2
 } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 const profileSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),

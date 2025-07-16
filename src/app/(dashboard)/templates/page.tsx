@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
+export const dynamic = 'force-dynamic';
+
 export default function FileTextsPage() {
   const [viewMode, setViewMode] = useState<'public' | 'my-templates'>('public');
 
