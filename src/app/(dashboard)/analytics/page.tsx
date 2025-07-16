@@ -161,8 +161,8 @@ export default function AnalyticsPage() {
           <p className="text-gray-600 mb-6">
             Upgrade to Pro or Agency plan to access detailed analytics and insights
           </p>
-          <Button asChild>
-            <a href="/billing">Upgrade Now</a>
+          <Button onClick={() => window.location.href = '/billing'}>
+            Upgrade Now
           </Button>
         </div>
       </div>
