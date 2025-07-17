@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { EmailEditor } from '@/components/editor/email-editor';
 import { createClient } from '@/lib/supabase/client';
@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/use-auth';
 
 export const dynamic = 'force-dynamic';
 
-export default function EditorPage() {
+function EditorContent() {
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [initialDesign, setInitialDesign] = useState<any>(null);
   const { user } = useAuth();
@@ -130,5 +130,20 @@ export default function EditorPage() {
       onSave={handleSave}
       onExport={handleExport}
     />
+  );
+}
+
+export default function EditorPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading editor...</p>
+        </div>
+      </div>
+    }>
+      <EditorContent />
+    </Suspense>
   );
 }
