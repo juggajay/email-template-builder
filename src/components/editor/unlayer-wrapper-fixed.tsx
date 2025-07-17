@@ -187,17 +187,8 @@ export function UnlayerWrapperFixed({
           setIsLoading(false);
           editorRef.current = window.unlayer;
           
-          // Load style fix script
-          styleScript = document.createElement('script');
-          styleScript.src = '/fix-percentage-style.js';
-          styleScript.async = true;
-          document.body.appendChild(styleScript);
-          
-          // Load drag-drop fix script
-          const dragScript = document.createElement('script');
-          dragScript.src = '/fix-drag-drop.js';
-          dragScript.async = true;
-          document.body.appendChild(dragScript);
+          // Don't load fix scripts - they cause cross-origin errors
+          // The Unlayer iframe is on a different domain and cannot be accessed
           
           if (onReady) {
             onReady();

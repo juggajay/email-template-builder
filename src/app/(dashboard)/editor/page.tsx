@@ -7,6 +7,7 @@ import { UnlayerWrapper } from '@/components/editor/unlayer-wrapper';
 import { UnlayerWrapperSimple } from '@/components/editor/unlayer-wrapper-simple';
 import { UnlayerWrapperFixed } from '@/components/editor/unlayer-wrapper-fixed';
 import { UnlayerWrapperFast } from '@/components/editor/unlayer-wrapper-fast';
+import { UnlayerWrapperClean } from '@/components/editor/unlayer-wrapper-clean';
 import { MobileEditorWrapper } from '@/components/editor/mobile-editor-wrapper';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
@@ -260,7 +261,7 @@ function EditorContent() {
       <div className="flex-1 p-4 overflow-hidden">
         <div className="h-full max-w-full mx-auto bg-white rounded-lg shadow-lg overflow-hidden relative">
           {isReady ? (
-            <UnlayerWrapperFixed
+            <UnlayerWrapperClean
               initialDesign={initialDesign}
               onReady={() => console.log('[EditorPage] Unlayer ready')}
               onDesignLoad={() => console.log('[EditorPage] Design loaded')}

@@ -2,10 +2,19 @@
 (function() {
   console.log('[DragDropFix] Initializing drag-drop fix...');
   
+  let retryCount = 0;
+  const maxRetries = 3;
+  
   function enableDragAndDrop() {
+    if (retryCount >= maxRetries) {
+      console.log('[DragDropFix] Stopped after max retries');
+      return;
+    }
+    
     const iframe = document.querySelector('#unlayer-editor-fixed iframe, #unlayer-editor iframe');
     if (!iframe) {
       console.log('[DragDropFix] No iframe found, retrying...');
+      retryCount++;
       setTimeout(enableDragAndDrop, 1000);
       return;
     }
@@ -139,7 +148,12 @@
       console.log('[DragDropFix] Drag-drop fix applied');
       
     } catch (e) {
+      if (e.name === 'SecurityError') {
+        console.log('[DragDropFix] Cannot access cross-origin iframe. Stopping.');
+        return; // Don't retry for cross-origin errors
+      }
       console.error('[DragDropFix] Error:', e);
+      retryCount++;
       setTimeout(enableDragAndDrop, 2000);
     }
   }

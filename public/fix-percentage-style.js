@@ -1,13 +1,24 @@
 // Fix for white-on-white percentage text in Unlayer
 (function() {
+  let retryCount = 0;
+  const maxRetries = 3;
+  
   function fixPercentageStyles() {
+    // Stop if we've tried too many times
+    if (retryCount >= maxRetries) {
+      console.log('[PercentageFix] Stopped after max retries');
+      return;
+    }
+    
     const iframe = document.querySelector('#unlayer-editor-fixed iframe, #unlayer-editor iframe, #simple-unlayer-editor iframe');
     if (!iframe) {
+      retryCount++;
       setTimeout(fixPercentageStyles, 500);
       return;
     }
     
     try {
+      // This will throw an error if cross-origin
       const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
       
       // Create style element
@@ -50,8 +61,13 @@
         console.log('Percentage styles fixed');
       }
     } catch (e) {
+      if (e.name === 'SecurityError') {
+        console.log('[PercentageFix] Cannot access cross-origin iframe. Stopping.');
+        return; // Don't retry for cross-origin errors
+      }
       console.error('Error fixing percentage styles:', e);
-      // Retry in case iframe isn't ready
+      retryCount++;
+      // Only retry if not a security error
       setTimeout(fixPercentageStyles, 1000);
     }
   }
