@@ -29,6 +29,7 @@ export function UnlayerWrapperFixed({
   useEffect(() => {
     let mounted = true;
     let script: HTMLScriptElement | null = null;
+    let styleScript: HTMLScriptElement | null = null;
 
     const loadUnlayer = async () => {
       if (window.unlayer) {
@@ -153,6 +154,12 @@ export function UnlayerWrapperFixed({
           setIsLoading(false);
           editorRef.current = window.unlayer;
           
+          // Load style fix script
+          styleScript = document.createElement('script');
+          styleScript.src = '/fix-percentage-style.js';
+          styleScript.async = true;
+          document.body.appendChild(styleScript);
+          
           if (onReady) {
             onReady();
           }
@@ -266,6 +273,9 @@ export function UnlayerWrapperFixed({
       if (script && script.parentNode) {
         document.head.removeChild(script);
       }
+      if (styleScript && styleScript.parentNode) {
+        document.body.removeChild(styleScript);
+      }
     };
   }, []);
 
@@ -297,7 +307,9 @@ export function UnlayerWrapperFixed({
       <div 
         id="unlayer-editor-fixed" 
         style={{ 
-          height: '600px',
+          height: 'calc(100vh - 200px)',
+          minHeight: '600px',
+          maxHeight: '900px',
           width: '100%',
           display: isLoading ? 'none' : 'block',
           backgroundColor: '#f5f5f5'
@@ -336,9 +348,9 @@ export function UnlayerWrapperFixed({
         </div>
       )}
 
-      {/* Toolbar */}
+      {/* Toolbar - positioned outside editor to not overlap */}
       {!isLoading && !error && (
-        <div className="absolute top-4 right-4 z-10 flex gap-2">
+        <div className="editor-toolbar-save">
           <button
             onClick={handleSaveDesign}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2 shadow-lg"
