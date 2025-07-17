@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { EmailEditor } from '@/components/editor/email-editor';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
+import { getTemplateDesign } from '@/lib/template-designs';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,12 +37,13 @@ function EditorContent() {
         .single();
 
       if (data && !error) {
-        // Set the initial design if it exists, otherwise use HTML
+        // Set the initial design if it exists
         if (data.json_design) {
           setInitialDesign(data.json_design);
-        } else if (data.html_content) {
-          // If no JSON design, we'll let the editor load with HTML
-          setInitialDesign({ html: data.html_content });
+        } else {
+          // Generate a design based on the template name/category
+          const design = getTemplateDesign(data.name);
+          setInitialDesign(design);
         }
       }
     } catch (error) {
