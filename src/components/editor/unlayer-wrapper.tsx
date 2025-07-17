@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import './editor-styles.css';
 
 declare global {
   interface Window {
@@ -95,28 +96,56 @@ export function UnlayerWrapper({
         window.unlayer.init({
           id: 'unlayer-editor',
           displayMode: 'email',
-          projectId: process.env.NEXT_PUBLIC_UNLAYER_PROJECT_ID,
           appearance: {
             theme: 'modern_light',
             panels: {
-              tools: { dock: 'left' },
-              properties: { dock: 'right' }
+              tools: { 
+                dock: 'left',
+                collapsible: true
+              },
+              properties: { 
+                dock: 'right',
+                collapsible: true
+              }
             }
           },
+          locale: 'en-US',
           features: {
+            colorPicker: true,
+            undoRedo: true,
             stockImages: true,
             textEditor: {
+              spellChecker: true,
               tables: true,
-              emojis: true
-            }
+              emojis: true,
+              cleanPaste: true,
+              autoLink: true
+            },
+            imageEditor: true,
+            userUploads: true
           },
           tools: {
+            form: {
+              enabled: true
+            },
             button: {
+              enabled: true,
               properties: {
                 buttonColors: {
-                  value: '#3182ce'
+                  defaultValue: '#3182ce'
                 }
               }
+            }
+          },
+          options: {
+            backgroundColor: '#ffffff',
+            defaultFonts: {
+              'Helvetica': 'Helvetica, Arial, sans-serif',
+              'Arial': 'Arial, Helvetica, sans-serif',
+              'Georgia': 'Georgia, serif',
+              'Tahoma': 'Tahoma, Geneva, sans-serif',
+              'Times New Roman': 'Times New Roman, Times, serif',
+              'Verdana': 'Verdana, Geneva, sans-serif'
             }
           },
           mergeTags: {
