@@ -95,6 +95,9 @@ export function UnlayerWrapperFixed({
               }
             }
           },
+          // Enable sorting and repositioning
+          sortable: true,
+          moveable: true,
           features: {
             stockImages: true,
             // Enable all features to ensure nothing is blocked
@@ -110,7 +113,12 @@ export function UnlayerWrapperFixed({
             // Make sure blocks are enabled
             blocks: {
               enabled: true
-            }
+            },
+            // Enable drag and drop repositioning
+            dragDrop: true,
+            rowMove: true,
+            columnMove: true,
+            contentMove: true
           },
           // Ensure all default tools are enabled
           tools: {
@@ -130,6 +138,18 @@ export function UnlayerWrapperFixed({
           // Set content restrictions to none
           contentRestrictions: {
             enabled: false
+          },
+          // Enable editor options for better control
+          editor: {
+            minRows: 1,
+            maxRows: null,
+            autoSelectOnDrop: true
+          },
+          // Ensure drag and drop is enabled
+          options: {
+            allowDragDrop: true,
+            allowRowDragDrop: true,
+            allowContentDragDrop: true
           },
           // Merge tags for personalization
           mergeTags: {
@@ -159,6 +179,12 @@ export function UnlayerWrapperFixed({
           styleScript.src = '/fix-percentage-style.js';
           styleScript.async = true;
           document.body.appendChild(styleScript);
+          
+          // Load drag-drop fix script
+          const dragScript = document.createElement('script');
+          dragScript.src = '/fix-drag-drop.js';
+          dragScript.async = true;
+          document.body.appendChild(dragScript);
           
           if (onReady) {
             onReady();
@@ -250,13 +276,30 @@ export function UnlayerWrapperFixed({
           console.log('[UnlayerFixed] Design updated', data);
         });
 
-        // Listen for block drag events
+        // Listen for various drag events
         window.unlayer.addEventListener('block:drag:start', (data: any) => {
           console.log('[UnlayerFixed] Block drag started', data);
         });
 
         window.unlayer.addEventListener('block:drag:end', (data: any) => {
           console.log('[UnlayerFixed] Block drag ended', data);
+        });
+        
+        // Additional event listeners for debugging
+        window.unlayer.addEventListener('row:drag:start', (data: any) => {
+          console.log('[UnlayerFixed] Row drag started', data);
+        });
+        
+        window.unlayer.addEventListener('row:drag:end', (data: any) => {
+          console.log('[UnlayerFixed] Row drag ended', data);
+        });
+        
+        window.unlayer.addEventListener('content:drag:start', (data: any) => {
+          console.log('[UnlayerFixed] Content drag started', data);
+        });
+        
+        window.unlayer.addEventListener('content:drag:end', (data: any) => {
+          console.log('[UnlayerFixed] Content drag ended', data);
         });
 
       } catch (err) {
