@@ -333,23 +333,40 @@ export function UnlayerWrapperFixed({
   }, []);
 
   const handleExport = () => {
-    if (!editorRef.current) return;
+    console.log('[UnlayerFixed] handleExport called');
+    if (!editorRef.current) {
+      console.error('[UnlayerFixed] No editor reference');
+      return;
+    }
 
+    console.log('[UnlayerFixed] Calling exportHtml...');
     editorRef.current.exportHtml((data: any) => {
       const { design, html } = data;
-      console.log('[UnlayerFixed] Exported:', { design, html });
+      console.log('[UnlayerFixed] Exported:', { 
+        designSize: JSON.stringify(design).length,
+        htmlSize: html.length 
+      });
       
       if (onSave) {
+        console.log('[UnlayerFixed] Calling onSave callback...');
         onSave(design, html);
+      } else {
+        console.warn('[UnlayerFixed] No onSave callback provided');
       }
     });
   };
 
   const handleSaveDesign = () => {
-    if (!editorRef.current) return;
+    console.log('[UnlayerFixed] Save button clicked');
+    if (!editorRef.current) {
+      console.error('[UnlayerFixed] No editor reference');
+      alert('Editor not ready. Please wait and try again.');
+      return;
+    }
 
+    console.log('[UnlayerFixed] Getting design...');
     editorRef.current.saveDesign((design: any) => {
-      console.log('[UnlayerFixed] Design saved:', design);
+      console.log('[UnlayerFixed] Design obtained:', design);
       handleExport();
     });
   };
