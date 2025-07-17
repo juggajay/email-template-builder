@@ -118,22 +118,70 @@ export function UnlayerWrapperFast({
             }
           }
         },
+        // Enable sorting and repositioning
+        sortable: true,
+        moveable: true,
+        // Mobile-specific options
+        mobile: {
+          enabled: isMobile,
+          breakpoint: 768
+        },
         // Load only essential features initially
         features: {
           stockImages: false, // Load on demand
           undoRedo: true,
           preview: true,
+          export: true,
+          userUploads: true,
+          imageEditor: true,
+          backgroundImage: true,
+          colorPicker: true,
+          gradients: true,
+          linkPicker: true,
+          blocks: {
+            enabled: true
+          },
+          // Enable drag and drop repositioning
+          dragDrop: true,
+          rowMove: true,
+          columnMove: true,
+          contentMove: true,
           textEditor: {
             tables: true,
             emojis: false // Load on demand
           }
         },
-        // Disable non-essential tools initially
+        // Enable all essential tools
         tools: {
+          text: { enabled: true },
+          image: { enabled: true },
+          button: { enabled: true },
+          divider: { enabled: true },
+          spacer: { enabled: true },
+          social: { enabled: true },
+          html: { enabled: true },
+          columns: { enabled: true },
+          // Disable only truly non-essential tools
           form: { enabled: false },
           video: { enabled: false },
           timer: { enabled: false },
           menu: { enabled: false }
+        },
+        // Set content restrictions to none
+        contentRestrictions: {
+          enabled: false
+        },
+        // Enable editor options for better control
+        editor: {
+          minRows: 1,
+          maxRows: null,
+          autoSelectOnDrop: true
+        },
+        // Ensure drag and drop is enabled
+        options: {
+          allowDragDrop: true,
+          allowRowDragDrop: true,
+          allowContentDragDrop: true
         },
         // Performance optimizations
         performance: {
@@ -185,6 +233,21 @@ export function UnlayerWrapperFast({
       };
 
       window.unlayer.addEventListener('editor:ready', handleReady);
+      
+      // Load fix scripts after editor is ready
+      window.unlayer.addEventListener('editor:ready', () => {
+        // Load style fix script
+        const styleScript = document.createElement('script');
+        styleScript.src = '/fix-percentage-style.js';
+        styleScript.async = true;
+        document.body.appendChild(styleScript);
+        
+        // Load drag-drop fix script
+        const dragScript = document.createElement('script');
+        dragScript.src = '/fix-drag-drop.js';
+        dragScript.async = true;
+        document.body.appendChild(dragScript);
+      });
 
       // Cleanup
       return () => {
