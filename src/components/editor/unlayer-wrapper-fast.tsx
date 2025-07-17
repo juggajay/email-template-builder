@@ -151,7 +151,7 @@ export function UnlayerWrapperFast({
             emojis: false // Load on demand
           }
         },
-        // Enable all essential tools
+        // Enable all tools (9 essential ones)
         tools: {
           text: { enabled: true },
           image: { enabled: true },
@@ -160,10 +160,10 @@ export function UnlayerWrapperFast({
           spacer: { enabled: true },
           social: { enabled: true },
           html: { enabled: true },
+          video: { enabled: true },
           columns: { enabled: true },
-          // Disable only truly non-essential tools
+          // Disable non-essential tools
           form: { enabled: false },
-          video: { enabled: false },
           timer: { enabled: false },
           menu: { enabled: false }
         },
@@ -204,6 +204,17 @@ export function UnlayerWrapperFast({
         setIsLoading(false);
         editorRef.current = window.unlayer;
         
+        // Load fix scripts
+        const styleScript = document.createElement('script');
+        styleScript.src = '/fix-percentage-style.js';
+        styleScript.async = true;
+        document.body.appendChild(styleScript);
+        
+        const dragScript = document.createElement('script');
+        dragScript.src = '/fix-drag-drop.js';
+        dragScript.async = true;
+        document.body.appendChild(dragScript);
+        
         // Enable additional features after initial load
         (window as any).requestIdleCallback(() => {
           if (window.unlayer.enableFeature) {
@@ -233,21 +244,6 @@ export function UnlayerWrapperFast({
       };
 
       window.unlayer.addEventListener('editor:ready', handleReady);
-      
-      // Load fix scripts after editor is ready
-      window.unlayer.addEventListener('editor:ready', () => {
-        // Load style fix script
-        const styleScript = document.createElement('script');
-        styleScript.src = '/fix-percentage-style.js';
-        styleScript.async = true;
-        document.body.appendChild(styleScript);
-        
-        // Load drag-drop fix script
-        const dragScript = document.createElement('script');
-        dragScript.src = '/fix-drag-drop.js';
-        dragScript.async = true;
-        document.body.appendChild(dragScript);
-      });
 
       // Cleanup
       return () => {

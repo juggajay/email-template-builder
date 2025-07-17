@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
-import { UnlayerWrapperFast } from './unlayer-wrapper-fast';
+import { UnlayerWrapperFixed } from './unlayer-wrapper-fixed';
 import './mobile-styles.css';
 
 interface MobileEditorWrapperProps {
@@ -124,7 +124,7 @@ export function MobileEditorWrapper({
       <div className="flex-1 overflow-hidden editor-main-content">
         <div className="h-full editor-container">
           <div className="h-full bg-white rounded-lg shadow-lg overflow-hidden relative editor-wrapper">
-            <UnlayerWrapperFast
+            <UnlayerWrapperFixed
               initialDesign={initialDesign}
               onReady={() => console.log('[MobileEditor] Ready')}
               onDesignLoad={() => console.log('[MobileEditor] Design loaded')}
