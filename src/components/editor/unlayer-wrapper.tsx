@@ -129,7 +129,7 @@ export function UnlayerWrapper({
             onReady();
           }
 
-          // Load initial design if provided
+          // Load initial design if provided, otherwise load blank design
           if (initialDesign) {
             console.log('[UnlayerWrapper] Loading initial design...');
             try {
@@ -140,6 +140,52 @@ export function UnlayerWrapper({
               }
             } catch (err) {
               console.error('[UnlayerWrapper] Error loading design:', err);
+            }
+          } else {
+            console.log('[UnlayerWrapper] No initial design, loading blank template');
+            // Load a minimal blank design to ensure editor is visible
+            const blankDesign = {
+              body: {
+                id: '',
+                rows: [],
+                headers: [],
+                footers: [],
+                values: {
+                  backgroundColor: '',
+                  backgroundImage: {
+                    url: '',
+                    fullWidth: true,
+                    repeat: false,
+                    center: true,
+                    cover: false
+                  },
+                  contentWidth: '600px',
+                  contentAlign: 'center',
+                  fontFamily: {
+                    label: 'Arial',
+                    value: 'arial,helvetica,sans-serif'
+                  },
+                  preheaderText: '',
+                  linkStyle: {
+                    body: true,
+                    linkColor: '#0000ee',
+                    linkHoverColor: '#0000ee',
+                    linkUnderline: true,
+                    linkHoverUnderline: true
+                  },
+                  _meta: {
+                    htmlID: 'u_body',
+                    htmlClassNames: 'u_body'
+                  }
+                }
+              },
+              schemaVersion: 8
+            };
+            try {
+              window.unlayer.loadDesign(blankDesign);
+              console.log('[UnlayerWrapper] Blank design loaded');
+            } catch (err) {
+              console.error('[UnlayerWrapper] Error loading blank design:', err);
             }
           }
         });
