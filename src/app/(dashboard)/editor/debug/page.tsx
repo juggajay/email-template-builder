@@ -3,6 +3,19 @@
 import { useEffect, useState } from 'react';
 
 export default function EditorDebugPage() {
+  // Load inspection script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = '/inspect-tiles.js';
+    script.async = true;
+    document.body.appendChild(script);
+    
+    return () => {
+      if (script.parentNode) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
   const [isLoaded, setIsLoaded] = useState(false);
   const [debugInfo, setDebugInfo] = useState<any>({});
 

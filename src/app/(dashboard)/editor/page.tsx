@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import { UnlayerWrapper } from '@/components/editor/unlayer-wrapper';
 import { UnlayerWrapperSimple } from '@/components/editor/unlayer-wrapper-simple';
+import { UnlayerWrapperFixed } from '@/components/editor/unlayer-wrapper-fixed';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { getTemplateDesign } from '@/lib/template-designs';
@@ -215,7 +216,7 @@ function EditorContent() {
       <div className="p-4">
         <div className="max-w-full mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
           {isReady ? (
-            <UnlayerWrapperSimple
+            <UnlayerWrapperFixed
               initialDesign={initialDesign}
               onReady={() => console.log('[EditorPage] Unlayer ready')}
               onDesignLoad={() => console.log('[EditorPage] Design loaded')}

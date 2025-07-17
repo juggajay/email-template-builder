@@ -1,0 +1,355 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import './editor-styles.css';
+
+declare global {
+  interface Window {
+    unlayer: any;
+  }
+}
+
+interface UnlayerWrapperFixedProps {
+  initialDesign?: any;
+  onReady?: () => void;
+  onDesignLoad?: () => void;
+  onSave?: (design: any, html: string) => void;
+}
+
+export function UnlayerWrapperFixed({ 
+  initialDesign, 
+  onReady, 
+  onDesignLoad,
+  onSave 
+}: UnlayerWrapperFixedProps) {
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const editorRef = useRef<any>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    let script: HTMLScriptElement | null = null;
+
+    const loadUnlayer = async () => {
+      if (window.unlayer) {
+        console.log('[UnlayerFixed] Unlayer already loaded');
+        initializeEditor();
+        return;
+      }
+
+      script = document.createElement('script');
+      script.src = 'https://editor.unlayer.com/embed.js';
+      script.async = true;
+
+      script.onload = () => {
+        console.log('[UnlayerFixed] Script loaded');
+        if (mounted) {
+          // Give it a moment to fully initialize
+          setTimeout(initializeEditor, 100);
+        }
+      };
+
+      script.onerror = () => {
+        console.error('[UnlayerFixed] Failed to load script');
+        if (mounted) {
+          setError('Failed to load email editor');
+          setIsLoading(false);
+        }
+      };
+
+      document.head.appendChild(script);
+    };
+
+    const initializeEditor = () => {
+      if (!window.unlayer) {
+        console.error('[UnlayerFixed] Unlayer not found');
+        setError('Editor not available');
+        setIsLoading(false);
+        return;
+      }
+
+      const container = document.getElementById('unlayer-editor-fixed');
+      if (!container) {
+        console.error('[UnlayerFixed] Container element not found');
+        setError('Container not found');
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        console.log('[UnlayerFixed] Initializing Unlayer...');
+        
+        // Initialize with specific configuration that ensures blocks work
+        window.unlayer.init({
+          id: 'unlayer-editor-fixed',
+          displayMode: 'email',
+          appearance: {
+            theme: 'modern_light',
+            panels: {
+              tools: {
+                dock: 'left'
+              },
+              properties: {
+                dock: 'right'
+              }
+            }
+          },
+          features: {
+            stockImages: true,
+            // Enable all features to ensure nothing is blocked
+            undoRedo: true,
+            preview: true,
+            export: true,
+            userUploads: true,
+            imageEditor: true,
+            backgroundImage: true,
+            colorPicker: true,
+            gradients: true,
+            linkPicker: true,
+            // Make sure blocks are enabled
+            blocks: {
+              enabled: true
+            }
+          },
+          // Ensure all default tools are enabled
+          tools: {
+            text: { enabled: true },
+            image: { enabled: true },
+            button: { enabled: true },
+            divider: { enabled: true },
+            spacer: { enabled: true },
+            social: { enabled: true },
+            html: { enabled: true },
+            video: { enabled: true },
+            menu: { enabled: true },
+            timer: { enabled: true },
+            // Structures
+            columns: { enabled: true }
+          },
+          // Set content restrictions to none
+          contentRestrictions: {
+            enabled: false
+          },
+          // Merge tags for personalization
+          mergeTags: {
+            customer: {
+              name: 'Customer',
+              mergeTags: {
+                first_name: {
+                  name: 'First Name',
+                  value: '{{customer.first_name}}'
+                },
+                email: {
+                  name: 'Email',
+                  value: '{{customer.email}}'
+                }
+              }
+            }
+          }
+        });
+
+        window.unlayer.addEventListener('editor:ready', () => {
+          console.log('[UnlayerFixed] Editor ready');
+          setIsLoading(false);
+          editorRef.current = window.unlayer;
+          
+          if (onReady) {
+            onReady();
+          }
+
+          // Load initial design or a default template
+          if (initialDesign) {
+            console.log('[UnlayerFixed] Loading initial design...');
+            try {
+              window.unlayer.loadDesign(initialDesign);
+              console.log('[UnlayerFixed] Design loaded successfully');
+              if (onDesignLoad) {
+                onDesignLoad();
+              }
+            } catch (err) {
+              console.error('[UnlayerFixed] Error loading design:', err);
+            }
+          } else {
+            // Load a default template that includes both structures and blocks
+            const defaultTemplate = {
+              body: {
+                id: 'default-template',
+                rows: [
+                  {
+                    id: 'row-welcome',
+                    cells: [1],
+                    columns: [
+                      {
+                        id: 'column-welcome',
+                        contents: [
+                          {
+                            id: 'heading-welcome',
+                            type: 'heading',
+                            values: {
+                              text: 'Welcome to the Email Editor',
+                              level: 'h1',
+                              textAlign: 'center'
+                            }
+                          },
+                          {
+                            id: 'text-welcome',
+                            type: 'text',
+                            values: {
+                              text: '<p style="text-align: center;">Start building your email by dragging blocks from the left sidebar!</p>'
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    values: {
+                      backgroundColor: '',
+                      padding: '10px',
+                      columnsBackgroundColor: ''
+                    }
+                  }
+                ],
+                values: {
+                  backgroundColor: '#f4f4f4',
+                  contentWidth: '600px',
+                  contentAlign: 'center',
+                  fontFamily: {
+                    label: 'Arial',
+                    value: 'arial,helvetica,sans-serif'
+                  },
+                  preheaderText: '',
+                  linkStyle: {
+                    body: true,
+                    linkColor: '#0000ee',
+                    linkHoverColor: '#0000ee',
+                    linkUnderline: true,
+                    linkHoverUnderline: true
+                  }
+                }
+              },
+              schemaVersion: 8
+            };
+            
+            try {
+              window.unlayer.loadDesign(defaultTemplate);
+              console.log('[UnlayerFixed] Default template loaded');
+            } catch (err) {
+              console.error('[UnlayerFixed] Error loading default template:', err);
+            }
+          }
+        });
+
+        // Listen for design updates
+        window.unlayer.addEventListener('design:updated', (data: any) => {
+          console.log('[UnlayerFixed] Design updated', data);
+        });
+
+        // Listen for block drag events
+        window.unlayer.addEventListener('block:drag:start', (data: any) => {
+          console.log('[UnlayerFixed] Block drag started', data);
+        });
+
+        window.unlayer.addEventListener('block:drag:end', (data: any) => {
+          console.log('[UnlayerFixed] Block drag ended', data);
+        });
+
+      } catch (err) {
+        console.error('[UnlayerFixed] Initialization error:', err);
+        setError('Failed to initialize editor');
+        setIsLoading(false);
+      }
+    };
+
+    loadUnlayer();
+
+    return () => {
+      mounted = false;
+      if (script && script.parentNode) {
+        document.head.removeChild(script);
+      }
+    };
+  }, []);
+
+  const handleExport = () => {
+    if (!editorRef.current) return;
+
+    editorRef.current.exportHtml((data: any) => {
+      const { design, html } = data;
+      console.log('[UnlayerFixed] Exported:', { design, html });
+      
+      if (onSave) {
+        onSave(design, html);
+      }
+    });
+  };
+
+  const handleSaveDesign = () => {
+    if (!editorRef.current) return;
+
+    editorRef.current.saveDesign((design: any) => {
+      console.log('[UnlayerFixed] Design saved:', design);
+      handleExport();
+    });
+  };
+
+  return (
+    <div className="relative h-full unlayer-editor-wrapper">
+      {/* Editor container */}
+      <div 
+        id="unlayer-editor-fixed" 
+        style={{ 
+          height: '600px',
+          width: '100%',
+          display: isLoading ? 'none' : 'block',
+          backgroundColor: '#f5f5f5'
+        }} 
+      />
+
+      {/* Loading state */}
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white editor-loading">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading email editor...</p>
+            <p className="text-sm text-gray-500 mt-2">This may take a few seconds...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error state */}
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white">
+          <div className="text-center">
+            <div className="text-red-500 mb-4">
+              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <p className="text-gray-800 font-medium mb-2">{error}</p>
+            <p className="text-sm text-gray-600 mb-4">Please try refreshing the page</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Reload Page
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Toolbar */}
+      {!isLoading && !error && (
+        <div className="absolute top-4 right-4 z-10 flex gap-2">
+          <button
+            onClick={handleSaveDesign}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2 shadow-lg"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+            </svg>
+            Save Template
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
