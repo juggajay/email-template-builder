@@ -6,11 +6,9 @@ import { EmailEditor } from '@/components/editor/email-editor';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 
-export const dynamic = 'force-dynamic';
-
 export default function EditorPage() {
   const [templateId, setTemplateId] = useState<string | null>(null);
-  const [initialDesign, setInitialDesign] = useState<any>(null);
+  const [initialTemplate, setInitialTemplate] = useState<any>(null);
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -28,20 +26,37 @@ export default function EditorPage() {
     try {
       const supabase = createClient();
       
-      // Load from email_templates (public templates)
-      const { data, error } = await supabase
+      // First try to load from email_templates (public templates)
+      const { data: publicTemplate, error: publicError } = await supabase
         .from('email_templates')
         .select('*')
         .eq('id', id)
         .single();
 
-      if (data && !error) {
-        // Set the initial design if it exists, otherwise use HTML
-        if (data.json_design) {
-          setInitialDesign(data.json_design);
-        } else if (data.html_content) {
-          // If no JSON design, we'll let the editor load with HTML
-          setInitialDesign({ html: data.html_content });
+      if (publicTemplate && !publicError) {
+        setInitialTemplate({
+          design: publicTemplate.json_design,
+          html: publicTemplate.html_content,
+          name: publicTemplate.name
+        });
+        return;
+      }
+
+      // If not found, try user_templates
+      if (user) {
+        const { data: userTemplate, error: userError } = await supabase
+          .from('user_templates')
+          .select('*')
+          .eq('id', id)
+          .eq('user_id', user.id)
+          .single();
+
+        if (userTemplate && !userError) {
+          setInitialTemplate({
+            design: userTemplate.json_design,
+            html: userTemplate.html_content,
+            name: userTemplate.name
+          });
         }
       }
     } catch (error) {
@@ -50,7 +65,10 @@ export default function EditorPage() {
   };
 
   const handleSave = async (design: any, html: string) => {
-    if (!user) return;
+    if (!user) {
+      alert('Please login to save templates');
+      return;
+    }
 
     try {
       const supabase = createClient();
@@ -64,7 +82,8 @@ export default function EditorPage() {
             html_content: html,
             last_modified: new Date().toISOString(),
           })
-          .eq('id', templateId);
+          .eq('id', templateId)
+          .eq('user_id', user.id);
 
         if (error) throw error;
       } else {
@@ -73,7 +92,7 @@ export default function EditorPage() {
           .from('user_templates')
           .insert({
             user_id: user.id,
-            template_id: null, // This will be a custom template
+            template_id: templateId, // Reference to original template if cloned
             name: 'Untitled Template',
             json_design: design,
             html_content: html,
@@ -86,14 +105,18 @@ export default function EditorPage() {
       }
 
       // Show success message
-      console.log('Template saved successfully');
+      alert('Template saved successfully!');
     } catch (error) {
       console.error('Error saving template:', error);
+      alert('Error saving template. Please try again.');
     }
   };
 
   const handleExport = async (html: string) => {
-    if (!user) return;
+    if (!user) {
+      alert('Please login to export templates');
+      return;
+    }
 
     try {
       const supabase = createClient();
@@ -120,13 +143,14 @@ export default function EditorPage() {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error exporting template:', error);
+      alert('Error exporting template. Please try again.');
     }
   };
 
   return (
     <EmailEditor
       templateId={templateId || undefined}
-      initialDesign={initialDesign}
+      initialTemplate={initialTemplate}
       onSave={handleSave}
       onExport={handleExport}
     />
