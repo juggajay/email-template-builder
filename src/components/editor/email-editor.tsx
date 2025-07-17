@@ -124,28 +124,82 @@ export function EmailEditor({ templateId, initialDesign, onSave, onExport }: Ema
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { user, canExport } = useAuth();
+  
+  console.log('[EmailEditor] Component mounted with:', {
+    templateId,
+    hasInitialDesign: !!initialDesign,
+    initialDesignStructure: initialDesign ? Object.keys(initialDesign) : null
+  });
 
   useEffect(() => {
+    console.log('[EmailEditor] useEffect triggered, loading Unlayer script');
+    
+    // Check if Unlayer is already loaded
+    if ((window as any).unlayer) {
+      console.log('[EmailEditor] Unlayer already loaded, initializing directly');
+      initializeEditor();
+      return;
+    }
+    
     // Load Unlayer script
     const script = document.createElement('script');
-    script.src = 'https://editor.unlayer.com/embed.js';
+    script.src = '//editor.unlayer.com/embed.js';
+    script.async = true;
+    
     script.onload = () => {
+      console.log('[EmailEditor] Unlayer script loaded successfully');
       initializeEditor();
     };
+    
+    script.onerror = (error) => {
+      console.error('[EmailEditor] Failed to load Unlayer script:', error);
+    };
+    
     document.head.appendChild(script);
 
     return () => {
       document.head.removeChild(script);
     };
   }, []);
+  
+  // Watch for initialDesign changes
+  useEffect(() => {
+    console.log('[EmailEditor] initialDesign changed:', {
+      hasDesign: !!initialDesign,
+      editorLoaded,
+      hasEditorRef: !!editorRef.current
+    });
+    
+    if (initialDesign && editorLoaded && editorRef.current) {
+      console.log('[EmailEditor] Loading design due to prop change');
+      try {
+        editorRef.current.loadDesign(initialDesign);
+        console.log('[EmailEditor] Design loaded from prop change');
+      } catch (error) {
+        console.error('[EmailEditor] Error loading design from prop change:', error);
+      }
+    }
+  }, [initialDesign, editorLoaded]);
 
   const initializeEditor = () => {
+    console.log('[EmailEditor] Starting editor initialization');
+    
+    // Ensure DOM is ready
+    const editorElement = document.getElementById('email-editor');
+    if (!editorElement) {
+      console.error('[EmailEditor] Editor element not found in DOM');
+      setTimeout(initializeEditor, 100); // Retry after a short delay
+      return;
+    }
+    
     if (typeof window !== 'undefined' && (window as any).unlayer) {
       const unlayer = (window as any).unlayer;
+      console.log('[EmailEditor] Unlayer found, calling init with element:', editorElement);
       
-      unlayer.init({
+      try {
+        unlayer.init({
         id: 'email-editor',
-        projectId: process.env.NEXT_PUBLIC_UNLAYER_PROJECT_ID,
+        projectId: process.env.NEXT_PUBLIC_UNLAYER_PROJECT_ID || undefined, // Optional project ID
         displayMode: 'email',
         appearance: {
           theme: 'light',
@@ -208,13 +262,40 @@ export function EmailEditor({ templateId, initialDesign, onSave, onExport }: Ema
       });
 
       unlayer.addEventListener('editor:ready', () => {
+        console.log('[EmailEditor] Editor ready event fired');
         setEditorLoaded(true);
+        
         if (initialDesign) {
-          unlayer.loadDesign(initialDesign);
+          console.log('[EmailEditor] Loading initial design:', {
+            hasBody: !!initialDesign.body,
+            bodyRowsCount: initialDesign.body?.rows?.length || 0,
+            designKeys: Object.keys(initialDesign),
+            fullDesign: JSON.stringify(initialDesign, null, 2)
+          });
+          
+          try {
+            unlayer.loadDesign(initialDesign);
+            console.log('[EmailEditor] Design loaded successfully');
+          } catch (error) {
+            console.error('[EmailEditor] Error loading design:', error);
+          }
+        } else {
+          console.log('[EmailEditor] No initial design to load');
         }
+      });
+      
+      // Add error listener
+      unlayer.addEventListener('editor:error', (error: any) => {
+        console.error('[EmailEditor] Unlayer error:', error);
       });
 
       editorRef.current = unlayer;
+      console.log('[EmailEditor] Editor reference stored');
+      } catch (error) {
+        console.error('[EmailEditor] Error during Unlayer init:', error);
+      }
+    } else {
+      console.error('[EmailEditor] Unlayer not available on window');
     }
   };
 

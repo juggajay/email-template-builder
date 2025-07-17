@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { UnlayerWrapper } from '@/components/editor/unlayer-wrapper';
+import { EmailEditor } from '@/components/editor/email-editor';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { getTemplateDesign } from '@/lib/template-designs';
@@ -12,8 +12,6 @@ export const dynamic = 'force-dynamic';
 function EditorContent() {
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [initialDesign, setInitialDesign] = useState<any>(null);
-  const [templateName, setTemplateName] = useState('Untitled Template');
-  const [isReady, setIsReady] = useState(false);
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -21,20 +19,14 @@ function EditorContent() {
   useEffect(() => {
     // Get template ID from URL
     const templateParam = searchParams.get('template');
-    console.log('[EditorPage] Template param:', templateParam);
-    
     if (templateParam) {
       setTemplateId(templateParam);
       loadTemplate(templateParam);
-    } else {
-      // No template specified, start with blank
-      setIsReady(true);
     }
   }, [searchParams]);
 
   const loadTemplate = async (id: string) => {
-    console.log('[EditorPage] Loading template:', id);
-    
+    console.log('[Editor Page] Loading template:', id);
     try {
       // Handle mock templates
       if (id.startsWith('mock-')) {
@@ -47,12 +39,11 @@ function EditorContent() {
         };
         
         const mockTemplate = mockTemplates[id as keyof typeof mockTemplates];
+        console.log('[Editor Page] Mock template:', mockTemplate);
         if (mockTemplate) {
           const design = getTemplateDesign(mockTemplate.name);
-          console.log('[EditorPage] Mock template design loaded');
+          console.log('[Editor Page] Mock template design:', design);
           setInitialDesign(design);
-          setTemplateName(mockTemplate.name);
-          setIsReady(true);
           return;
         }
       }
@@ -67,46 +58,39 @@ function EditorContent() {
         .single();
 
       if (data && !error) {
-        setTemplateName(data.name);
-        
         // Set the initial design if it exists
         if (data.json_design) {
-          console.log('[EditorPage] Using existing json_design from database');
+          console.log('[Editor Page] Using existing json_design from database');
           setInitialDesign(data.json_design);
         } else {
           // Generate a design based on the template name/category
-          console.log('[EditorPage] Generating design for template:', data.name);
+          console.log('[Editor Page] Generating design for template:', data.name);
           const design = getTemplateDesign(data.name);
+          console.log('[Editor Page] Generated design:', design);
           setInitialDesign(design);
         }
       } else {
-        console.error('[EditorPage] Template not found, using default design');
+        console.error('[Editor Page] Template not found, using default design');
         // Use a default design if template not found
         const design = getTemplateDesign('Welcome Series');
+        console.log('[Editor Page] Default design:', design);
         setInitialDesign(design);
-        setTemplateName('Welcome Template');
       }
     } catch (error) {
-      console.error('[EditorPage] Error loading template:', error);
+      console.error('Error loading template:', error);
       // Use a default design on error
       const design = getTemplateDesign('Welcome Series');
       setInitialDesign(design);
-      setTemplateName('Welcome Template');
-    } finally {
-      setIsReady(true);
     }
   };
 
   const handleSave = async (design: any, html: string) => {
-    if (!user) {
-      alert('Please sign in to save templates');
-      return;
-    }
+    if (!user) return;
 
     try {
       const supabase = createClient();
       
-      if (templateId && !templateId.startsWith('mock-')) {
+      if (templateId) {
         // Update existing template
         const { error } = await supabase
           .from('user_templates')
@@ -118,7 +102,6 @@ function EditorContent() {
           .eq('id', templateId);
 
         if (error) throw error;
-        console.log('[EditorPage] Template updated successfully');
       } else {
         // Create new template
         const { data, error } = await supabase
@@ -126,7 +109,7 @@ function EditorContent() {
           .insert({
             user_id: user.id,
             template_id: null, // This will be a custom template
-            name: templateName,
+            name: 'Untitled Template',
             json_design: design,
             html_content: html,
           })
@@ -135,22 +118,17 @@ function EditorContent() {
 
         if (error) throw error;
         setTemplateId(data.id);
-        console.log('[EditorPage] New template created successfully');
       }
 
       // Show success message
-      alert('Template saved successfully!');
+      console.log('Template saved successfully');
     } catch (error) {
-      console.error('[EditorPage] Error saving template:', error);
-      alert('Failed to save template. Please try again.');
+      console.error('Error saving template:', error);
     }
   };
 
   const handleExport = async (html: string) => {
-    if (!user) {
-      alert('Please sign in to export templates');
-      return;
-    }
+    if (!user) return;
 
     try {
       const supabase = createClient();
@@ -172,64 +150,27 @@ function EditorContent() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${templateName.toLowerCase().replace(/\s+/g, '-')}.html`;
+      a.download = 'email-template.html';
       a.click();
       URL.revokeObjectURL(url);
-      
-      console.log('[EditorPage] Template exported successfully');
     } catch (error) {
-      console.error('[EditorPage] Error exporting template:', error);
-      alert('Failed to export template. Please try again.');
+      console.error('Error exporting template:', error);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <input
-              type="text"
-              value={templateName}
-              onChange={(e) => setTemplateName(e.target.value)}
-              className="text-lg font-medium border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none px-1"
-              placeholder="Template name"
-            />
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => router.push('/templates')}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
-            >
-              Back to Templates
-            </button>
-          </div>
-        </div>
-      </div>
+  console.log('[Editor Page] Rendering EmailEditor with:', {
+    templateId,
+    hasInitialDesign: !!initialDesign,
+    initialDesignKeys: initialDesign ? Object.keys(initialDesign) : null
+  });
 
-      {/* Editor */}
-      <div className="p-4">
-        <div className="max-w-full mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-          {isReady ? (
-            <UnlayerWrapper
-              initialDesign={initialDesign}
-              onReady={() => console.log('[EditorPage] Unlayer ready')}
-              onDesignLoad={() => console.log('[EditorPage] Design loaded')}
-              onSave={handleSave}
-            />
-          ) : (
-            <div className="flex items-center justify-center h-[600px]">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading template...</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+  return (
+    <EmailEditor
+      templateId={templateId || undefined}
+      initialDesign={initialDesign}
+      onSave={handleSave}
+      onExport={handleExport}
+    />
   );
 }
 
