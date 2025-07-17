@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Script from 'next/script';
 import { UnlayerWrapper } from '@/components/editor/unlayer-wrapper';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
@@ -229,6 +230,11 @@ function EditorContent() {
           )}
         </div>
       </div>
+      
+      {/* Debug script for development */}
+      {process.env.NODE_ENV === 'development' && (
+        <Script src="/debug-unlayer.js" strategy="afterInteractive" />
+      )}
     </div>
   );
 }
