@@ -25,6 +25,9 @@ export function UnlayerWrapperFixed({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const editorRef = useRef<any>(null);
+  
+  // Debug log
+  console.log('[UnlayerWrapperFixed] Render state:', { isLoading, error, hasOnSave: !!onSave });
 
   useEffect(() => {
     let mounted = true;
@@ -418,12 +421,25 @@ export function UnlayerWrapperFixed({
         </div>
       )}
 
-      {/* Toolbar - positioned outside editor to not overlap */}
+      {/* Save button - fixed position */}
       {!isLoading && !error && (
-        <div className="editor-toolbar-save">
+        <div 
+          className="editor-toolbar-save"
+          style={{
+            position: 'fixed',
+            bottom: '30px',
+            right: '30px',
+            zIndex: 1000
+          }}
+        >
           <button
             onClick={handleSaveDesign}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center gap-2 shadow-lg"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
