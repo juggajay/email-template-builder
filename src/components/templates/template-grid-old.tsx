@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Loading } from '@/components/ui/loading';
 import { 
   Search, 
   Filter, 
@@ -30,39 +30,6 @@ interface TemplateGridProps {
   showUserTemplates?: boolean;
 }
 
-// Template skeleton component
-function TemplateSkeleton() {
-  return (
-    <Card className="group">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-5 w-20" />
-          <div className="flex items-center space-x-1">
-            <Skeleton className="h-8 w-8" />
-            <Skeleton className="h-8 w-8" />
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <Skeleton className="aspect-video w-full" />
-        <div className="space-y-2">
-          <Skeleton className="h-6 w-3/4" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-2/3" />
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-4 w-16" />
-          </div>
-        </div>
-        <div className="flex space-x-2">
-          <Skeleton className="h-9 flex-1" />
-          <Skeleton className="h-9 w-12" />
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 export function TemplateGrid({ category, showUserTemplates = false }: TemplateGridProps) {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,82 +47,14 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
     { id: 'promotional', name: 'Promotional', icon: Target },
   ];
 
-  // Mock templates for immediate display
-  const mockTemplates: EmailTemplate[] = [
-    {
-      id: 'mock-1',
-      name: 'Abandoned Cart Reminder',
-      description: 'Recover lost sales with this effective cart abandonment email',
-      category: 'abandoned-cart',
-      is_public: true,
-      is_premium: false,
-      usage_count: 1250,
-      rating: 4.8,
-      tags: ['ecommerce', 'recovery', 'sales'],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      id: 'mock-2',
-      name: 'Welcome Series',
-      description: 'Make a great first impression with new subscribers',
-      category: 'welcome',
-      is_public: true,
-      is_premium: false,
-      usage_count: 980,
-      rating: 4.9,
-      tags: ['onboarding', 'welcome', 'engagement'],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      id: 'mock-3',
-      name: 'Order Confirmation',
-      description: 'Professional order confirmation with tracking info',
-      category: 'order-confirmation',
-      is_public: true,
-      is_premium: false,
-      usage_count: 2100,
-      rating: 4.7,
-      tags: ['transactional', 'order', 'confirmation'],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      id: 'mock-4',
-      name: 'Product Launch Announcement',
-      description: 'Generate buzz for your new product launch',
-      category: 'product-launch',
-      is_public: true,
-      is_premium: true,
-      usage_count: 650,
-      rating: 4.6,
-      tags: ['launch', 'product', 'announcement'],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    },
-    {
-      id: 'mock-5',
-      name: 'Flash Sale Alert',
-      description: 'Drive urgency with limited-time offers',
-      category: 'promotional',
-      is_public: true,
-      is_premium: false,
-      usage_count: 1800,
-      rating: 4.8,
-      tags: ['sale', 'promotion', 'discount'],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
-  ];
+  useEffect(() => {
+    fetchTemplates();
+  }, [selectedCategory, searchQuery, user, showUserTemplates]);
 
-  const fetchTemplates = useCallback(async () => {
-    // Don't show loading if we already have templates
-    if (templates.length === 0) {
-      setLoading(true);
-    }
-    
+  const fetchTemplates = async () => {
     try {
+      console.log('Fetching templates...', { showUserTemplates, selectedCategory, searchQuery });
+      
       const supabase = createClient();
       let query = supabase
         .from('email_templates')
@@ -186,7 +85,10 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
 
       const { data, error } = await query;
       
+      console.log('Templates query result:', { data, error });
+      
       if (error) {
+        console.error('Supabase error:', error);
         throw error;
       }
 
@@ -194,39 +96,95 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
       setError(null);
     } catch (error: any) {
       console.error('Error fetching templates:', error);
+      setError(error.message || 'Failed to load templates');
       
-      // Use mock templates as fallback but don't show error
-      const filteredMocks = selectedCategory !== 'all' 
-        ? mockTemplates.filter(t => t.category === selectedCategory)
-        : mockTemplates;
+      // Use mock templates as fallback
+      const mockTemplates: EmailTemplate[] = [
+        {
+          id: 'mock-1',
+          name: 'Abandoned Cart Reminder',
+          description: 'Recover lost sales with this effective cart abandonment email',
+          category: 'abandoned-cart',
+          is_public: true,
+          is_premium: false,
+          usage_count: 1250,
+          rating: 4.8,
+          tags: ['ecommerce', 'recovery', 'sales'],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'mock-2',
+          name: 'Welcome Series',
+          description: 'Make a great first impression with new subscribers',
+          category: 'welcome',
+          is_public: true,
+          is_premium: false,
+          usage_count: 980,
+          rating: 4.9,
+          tags: ['onboarding', 'welcome', 'engagement'],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'mock-3',
+          name: 'Order Confirmation',
+          description: 'Professional order confirmation with tracking info',
+          category: 'order-confirmation',
+          is_public: true,
+          is_premium: false,
+          usage_count: 2100,
+          rating: 4.7,
+          tags: ['transactional', 'order', 'confirmation'],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'mock-4',
+          name: 'Product Launch Announcement',
+          description: 'Generate buzz for your new product launch',
+          category: 'product-launch',
+          is_public: true,
+          is_premium: true,
+          usage_count: 650,
+          rating: 4.6,
+          tags: ['launch', 'product', 'announcement'],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'mock-5',
+          name: 'Flash Sale Alert',
+          description: 'Drive urgency with limited-time offers',
+          category: 'promotional',
+          is_public: true,
+          is_premium: false,
+          usage_count: 1800,
+          rating: 4.8,
+          tags: ['sale', 'promotion', 'discount'],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ];
       
-      setTemplates(filteredMocks);
-      // Don't set error to avoid showing error message when using mocks
-      setError(null);
+      // Filter mock templates based on category
+      if (selectedCategory !== 'all') {
+        setTemplates(mockTemplates.filter(t => t.category === selectedCategory));
+      } else {
+        setTemplates(mockTemplates);
+      }
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory, searchQuery, user, showUserTemplates, templates.length]);
-
-  useEffect(() => {
-    // Set initial templates immediately
-    if (templates.length === 0) {
-      const filteredMocks = selectedCategory !== 'all' 
-        ? mockTemplates.filter(t => t.category === selectedCategory)
-        : mockTemplates;
-      setTemplates(filteredMocks);
-      setLoading(false);
-    }
-    
-    // Then fetch real data
-    fetchTemplates();
-  }, [selectedCategory, searchQuery]);
+  };
 
   const handleTemplateSelect = (template: EmailTemplate) => {
+    // Navigate to editor with template
     window.location.href = `/editor?template=${template.id}`;
   };
 
   const handlePreview = (template: EmailTemplate) => {
+    // Use template preview HTML instead of raw HTML content
     const previewHtml = getTemplatePreview(template.name, template.category);
     const previewWindow = window.open('', '_blank');
     if (previewWindow) {
@@ -265,8 +223,32 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
     }
   };
 
+  if (loading) {
+    return <Loading size="lg" text="Loading templates..." />;
+  }
+
   return (
     <div className="space-y-6">
+      {/* Error message */}
+      {error && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-yellow-800">
+                Unable to load templates from database
+              </h3>
+              <div className="mt-2 text-sm text-yellow-700">
+                <p>Using demo templates. {error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Search and filters */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
@@ -300,13 +282,7 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
       </div>
 
       {/* Templates grid */}
-      {loading && templates.length === 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <TemplateSkeleton key={i} />
-          ))}
-        </div>
-      ) : templates.length === 0 ? (
+      {templates.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-gray-400 mb-4">
             {showUserTemplates ? (

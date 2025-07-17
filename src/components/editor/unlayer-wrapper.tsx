@@ -69,7 +69,7 @@ export function UnlayerWrapper({
         console.log(`[UnlayerWrapper] Waiting for unlayer... (attempt ${initAttempts.current}/${maxAttempts})`);
         
         if (initAttempts.current < maxAttempts) {
-          setTimeout(initializeEditor, 500);
+          setTimeout(initializeEditor, 50); // Quick retry for DOM // Reduced from 500ms to 100ms
         } else {
           setError('Editor initialization timeout');
           setIsLoading(false);
