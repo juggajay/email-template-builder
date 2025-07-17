@@ -32,7 +32,6 @@ export function UnlayerWrapperFixed({
   useEffect(() => {
     let mounted = true;
     let script: HTMLScriptElement | null = null;
-    let styleScript: HTMLScriptElement | null = null;
 
     const loadUnlayer = async () => {
       if (window.unlayer) {
@@ -319,9 +318,6 @@ export function UnlayerWrapperFixed({
       mounted = false;
       if (script && script.parentNode) {
         document.head.removeChild(script);
-      }
-      if (styleScript && styleScript.parentNode) {
-        document.body.removeChild(styleScript);
       }
     };
   }, []);
