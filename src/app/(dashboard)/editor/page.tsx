@@ -6,6 +6,7 @@ import Script from 'next/script';
 import { UnlayerWrapper } from '@/components/editor/unlayer-wrapper';
 import { UnlayerWrapperSimple } from '@/components/editor/unlayer-wrapper-simple';
 import { UnlayerWrapperFixed } from '@/components/editor/unlayer-wrapper-fixed';
+import { MobileEditorWrapper } from '@/components/editor/mobile-editor-wrapper';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { getTemplateDesign } from '@/lib/template-designs';
@@ -186,6 +187,47 @@ function EditorContent() {
     }
   };
 
+  // Check if mobile device
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Use mobile wrapper for mobile devices
+  if (isMobile) {
+    return (
+      <>
+        {isReady ? (
+          <MobileEditorWrapper
+            initialDesign={initialDesign}
+            onSave={handleSave}
+            templateName={templateName}
+            onTemplateNameChange={setTemplateName}
+          />
+        ) : (
+          <div className="flex items-center justify-center h-screen bg-gray-50">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading template...</p>
+            </div>
+          </div>
+        )}
+        {process.env.NODE_ENV === 'development' && (
+          <Script src="/debug-unlayer.js" strategy="afterInteractive" />
+        )}
+      </>
+    );
+  }
+
+  // Desktop layout
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}

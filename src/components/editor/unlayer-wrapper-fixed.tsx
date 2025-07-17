@@ -80,6 +80,9 @@ export function UnlayerWrapperFixed({
       try {
         console.log('[UnlayerFixed] Initializing Unlayer...');
         
+        // Check if mobile
+        const isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        
         // Initialize with specific configuration that ensures blocks work
         window.unlayer.init({
           id: 'unlayer-editor-fixed',
@@ -88,16 +91,23 @@ export function UnlayerWrapperFixed({
             theme: 'modern_light',
             panels: {
               tools: {
-                dock: 'left'
+                dock: isMobile ? 'bottom' : 'left',
+                collapsible: isMobile
               },
               properties: {
-                dock: 'right'
+                dock: isMobile ? 'bottom' : 'right',
+                collapsible: isMobile
               }
             }
           },
           // Enable sorting and repositioning
           sortable: true,
           moveable: true,
+          // Mobile-specific options
+          mobile: {
+            enabled: isMobile,
+            breakpoint: 768
+          },
           features: {
             stockImages: true,
             // Enable all features to ensure nothing is blocked
