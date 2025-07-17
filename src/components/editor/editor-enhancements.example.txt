@@ -1,0 +1,23 @@
+// Add this import to your editor page
+import { ExportModal } from '@/components/editor/export-modal';
+
+// Add these state variables
+const [showExportModal, setShowExportModal] = useState(false);
+const [exportData, setExportData] = useState<{ html: string; design: any } | null>(null);
+
+// Update your handleExport function
+const handleExport = (html: string, design: any) => {
+  setExportData({ html, design });
+  setShowExportModal(true);
+};
+
+// Add this to your JSX (before the closing div)
+{exportData && (
+  <ExportModal
+    isOpen={showExportModal}
+    onClose={() => setShowExportModal(false)}
+    html={exportData.html}
+    design={exportData.design}
+    templateId={templateId}
+  />
+)}
