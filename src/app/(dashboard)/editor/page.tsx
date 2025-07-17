@@ -6,6 +6,7 @@ import Script from 'next/script';
 import { UnlayerWrapper } from '@/components/editor/unlayer-wrapper';
 import { UnlayerWrapperSimple } from '@/components/editor/unlayer-wrapper-simple';
 import { UnlayerWrapperFixed } from '@/components/editor/unlayer-wrapper-fixed';
+import { UnlayerWrapperFast } from '@/components/editor/unlayer-wrapper-fast';
 import { MobileEditorWrapper } from '@/components/editor/mobile-editor-wrapper';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
@@ -220,6 +221,7 @@ function EditorContent() {
             </div>
           </div>
         )}
+        <Script src="/performance-optimizations.js" strategy="afterInteractive" />
         {process.env.NODE_ENV === 'development' && (
           <Script src="/debug-unlayer.js" strategy="afterInteractive" />
         )}
@@ -258,7 +260,7 @@ function EditorContent() {
       <div className="flex-1 p-4 overflow-hidden">
         <div className="h-full max-w-full mx-auto bg-white rounded-lg shadow-lg overflow-hidden relative">
           {isReady ? (
-            <UnlayerWrapperFixed
+            <UnlayerWrapperFast
               initialDesign={initialDesign}
               onReady={() => console.log('[EditorPage] Unlayer ready')}
               onDesignLoad={() => console.log('[EditorPage] Design loaded')}
@@ -274,6 +276,9 @@ function EditorContent() {
           )}
         </div>
       </div>
+      
+      {/* Performance optimization script */}
+      <Script src="/performance-optimizations.js" strategy="afterInteractive" />
       
       {/* Debug script for development */}
       {process.env.NODE_ENV === 'development' && (
