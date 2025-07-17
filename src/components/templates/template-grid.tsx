@@ -23,6 +23,7 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import type { EmailTemplate, TemplateCategory } from '@/types';
+import { getTemplatePreview } from '@/lib/template-previews';
 
 interface TemplateGridProps {
   category?: TemplateCategory;
@@ -96,12 +97,24 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
   };
 
   const handlePreview = (template: EmailTemplate) => {
-    if (template.html_content) {
-      const previewWindow = window.open('', '_blank');
-      if (previewWindow) {
-        previewWindow.document.write(template.html_content);
-        previewWindow.document.close();
-      }
+    // Use template preview HTML instead of raw HTML content
+    const previewHtml = getTemplatePreview(template.name, template.category);
+    const previewWindow = window.open('', '_blank');
+    if (previewWindow) {
+      previewWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${template.name} - Preview</title>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+        </head>
+        <body style="margin: 0; padding: 0; background: #f5f5f5;">
+          ${previewHtml}
+        </body>
+        </html>
+      `);
+      previewWindow.document.close();
     }
   };
 
@@ -231,7 +244,7 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
               
               <CardContent className="space-y-4">
                 {/* Template preview */}
-                <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden relative group">
                   {template.thumbnail_url ? (
                     <img 
                       src={template.thumbnail_url} 
@@ -239,19 +252,18 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="text-center">
-                        {getCategoryIcon(template.category) && (
-                          <div className="text-4xl mb-2">
-                            {React.createElement(getCategoryIcon(template.category)!, {
-                              className: "w-12 h-12 mx-auto text-gray-400"
-                            })}
+                    <div 
+                      className="w-full h-full"
+                      dangerouslySetInnerHTML={{ 
+                        __html: `
+                          <div style="transform: scale(0.3); transform-origin: top left; width: 333.33%; height: 333.33%; position: absolute; top: 0; left: 0;">
+                            ${getTemplatePreview(template.name, template.category)}
                           </div>
-                        )}
-                        <p className="text-sm text-gray-500">Email Template</p>
-                      </div>
-                    </div>
+                        ` 
+                      }}
+                    />
                   )}
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200" />
                 </div>
 
                 {/* Template info */}
