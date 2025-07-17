@@ -27,6 +27,24 @@ function EditorContent() {
 
   const loadTemplate = async (id: string) => {
     try {
+      // Handle mock templates
+      if (id.startsWith('mock-')) {
+        const mockTemplates = {
+          'mock-1': { name: 'Abandoned Cart Reminder', category: 'abandoned-cart' },
+          'mock-2': { name: 'Welcome Series', category: 'welcome' },
+          'mock-3': { name: 'Order Confirmation', category: 'order-confirmation' },
+          'mock-4': { name: 'Product Launch Announcement', category: 'product-launch' },
+          'mock-5': { name: 'Flash Sale Alert', category: 'promotional' }
+        };
+        
+        const mockTemplate = mockTemplates[id as keyof typeof mockTemplates];
+        if (mockTemplate) {
+          const design = getTemplateDesign(mockTemplate.name);
+          setInitialDesign(design);
+          return;
+        }
+      }
+
       const supabase = createClient();
       
       // Load from email_templates (public templates)
@@ -45,9 +63,17 @@ function EditorContent() {
           const design = getTemplateDesign(data.name);
           setInitialDesign(design);
         }
+      } else {
+        console.error('Template not found, using default design');
+        // Use a default design if template not found
+        const design = getTemplateDesign('Welcome Series');
+        setInitialDesign(design);
       }
     } catch (error) {
       console.error('Error loading template:', error);
+      // Use a default design on error
+      const design = getTemplateDesign('Welcome Series');
+      setInitialDesign(design);
     }
   };
 

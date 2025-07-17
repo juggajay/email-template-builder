@@ -35,6 +35,7 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategory | 'all'>('all');
+  const [error, setError] = useState<string | null>(null);
   const { user, isPro, isAgency } = useAuth();
 
   const categories = [
@@ -52,6 +53,8 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
 
   const fetchTemplates = async () => {
     try {
+      console.log('Fetching templates...', { showUserTemplates, selectedCategory, searchQuery });
+      
       const supabase = createClient();
       let query = supabase
         .from('email_templates')
@@ -81,11 +84,95 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      
+      console.log('Templates query result:', { data, error });
+      
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
       setTemplates(data || []);
-    } catch (error) {
+      setError(null);
+    } catch (error: any) {
       console.error('Error fetching templates:', error);
+      setError(error.message || 'Failed to load templates');
+      
+      // Use mock templates as fallback
+      const mockTemplates: EmailTemplate[] = [
+        {
+          id: 'mock-1',
+          name: 'Abandoned Cart Reminder',
+          description: 'Recover lost sales with this effective cart abandonment email',
+          category: 'abandoned-cart',
+          is_public: true,
+          is_premium: false,
+          usage_count: 1250,
+          rating: 4.8,
+          tags: ['ecommerce', 'recovery', 'sales'],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'mock-2',
+          name: 'Welcome Series',
+          description: 'Make a great first impression with new subscribers',
+          category: 'welcome',
+          is_public: true,
+          is_premium: false,
+          usage_count: 980,
+          rating: 4.9,
+          tags: ['onboarding', 'welcome', 'engagement'],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'mock-3',
+          name: 'Order Confirmation',
+          description: 'Professional order confirmation with tracking info',
+          category: 'order-confirmation',
+          is_public: true,
+          is_premium: false,
+          usage_count: 2100,
+          rating: 4.7,
+          tags: ['transactional', 'order', 'confirmation'],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'mock-4',
+          name: 'Product Launch Announcement',
+          description: 'Generate buzz for your new product launch',
+          category: 'product-launch',
+          is_public: true,
+          is_premium: true,
+          usage_count: 650,
+          rating: 4.6,
+          tags: ['launch', 'product', 'announcement'],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 'mock-5',
+          name: 'Flash Sale Alert',
+          description: 'Drive urgency with limited-time offers',
+          category: 'promotional',
+          is_public: true,
+          is_premium: false,
+          usage_count: 1800,
+          rating: 4.8,
+          tags: ['sale', 'promotion', 'discount'],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ];
+      
+      // Filter mock templates based on category
+      if (selectedCategory !== 'all') {
+        setTemplates(mockTemplates.filter(t => t.category === selectedCategory));
+      } else {
+        setTemplates(mockTemplates);
+      }
     } finally {
       setLoading(false);
     }
@@ -142,6 +229,26 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
 
   return (
     <div className="space-y-6">
+      {/* Error message */}
+      {error && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-yellow-800">
+                Unable to load templates from database
+              </h3>
+              <div className="mt-2 text-sm text-yellow-700">
+                <p>Using demo templates. {error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Search and filters */}
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
