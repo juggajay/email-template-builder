@@ -8,6 +8,14 @@ import { logSecurityEvent, SecurityEventType, extractRequestMetadata } from '@/l
 import { withRateLimit, rateLimiters } from '@/lib/security/rate-limit';
 
 export async function POST(request: NextRequest) {
+  // Check if Stripe is configured
+  if (!process.env.STRIPE_WEBHOOK_SECRET) {
+    return NextResponse.json(
+      { error: 'Stripe webhook not configured' },
+      { status: 501 }
+    );
+  }
+
   // Apply rate limiting for webhooks
   const rateLimitResult = await withRateLimit(request, rateLimiters.webhook);
   if (rateLimitResult) return rateLimitResult;
@@ -15,7 +23,7 @@ export async function POST(request: NextRequest) {
   // Validate webhook signature with enhanced security
   const { valid, error, event } = await validateStripeWebhook(
     request,
-    process.env.STRIPE_WEBHOOK_SECRET!
+    process.env.STRIPE_WEBHOOK_SECRET
   );
 
   if (!valid || !event) {
