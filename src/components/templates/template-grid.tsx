@@ -18,7 +18,8 @@ import {
   Rocket,
   CheckCircle,
   UserPlus,
-  Target
+  Target,
+  Trash2
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
@@ -247,6 +248,29 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
     }
   };
 
+  const handleDelete = async (templateId: string) => {
+    if (!window.confirm('Are you sure you want to delete this template?')) {
+      return;
+    }
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('user_templates')
+        .delete()
+        .eq('id', templateId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      // Remove from local state
+      setTemplates(templates.filter(t => t.id !== templateId));
+    } catch (error) {
+      console.error('Error deleting template:', error);
+      alert('Failed to delete template. Please try again.');
+    }
+  };
+
   const getCategoryIcon = (categoryId: string) => {
     const category = categories.find(cat => cat.id === categoryId);
     return category?.icon;
@@ -454,6 +478,20 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
                   >
                     <Eye className="w-4 h-4" />
                   </Button>
+                  
+                  {showUserTemplates && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(template.id);
+                      }}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>

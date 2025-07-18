@@ -261,7 +261,7 @@ function EditorContent() {
       <div className="flex-1 p-4 overflow-hidden">
         <div className="h-full max-w-full mx-auto bg-white rounded-lg shadow-lg overflow-hidden relative">
           {isReady ? (
-            <UnlayerWrapperClean
+            <UnlayerWrapperFixed
               initialDesign={initialDesign}
               onReady={() => console.log('[EditorPage] Unlayer ready')}
               onDesignLoad={() => console.log('[EditorPage] Design loaded')}

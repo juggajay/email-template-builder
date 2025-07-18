@@ -93,12 +93,12 @@ export function UnlayerWrapperFixed({
             theme: 'modern_light',
             panels: {
               tools: {
-                dock: isMobile ? 'bottom' : 'left',
-                collapsible: isMobile
+                dock: 'left',  // Always left, even on desktop
+                collapsible: false
               },
               properties: {
-                dock: isMobile ? 'bottom' : 'right',
-                collapsible: isMobile
+                dock: 'right',
+                collapsible: true
               }
             }
           },
