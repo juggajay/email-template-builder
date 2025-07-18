@@ -36,20 +36,16 @@ export async function middleware(request: NextRequest) {
 
   // For API routes, add additional security headers
   if (request.nextUrl.pathname.startsWith('/api/')) {
-    const response = NextResponse.next();
-    
-    // Add security headers
-    response.headers.set('X-Content-Type-Options', 'nosniff');
-    response.headers.set('X-Frame-Options', 'DENY');
-    response.headers.set('X-XSS-Protection', '1; mode=block');
-    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    // Add security headers to the existing response
+    res.headers.set('X-Content-Type-Options', 'nosniff');
+    res.headers.set('X-Frame-Options', 'DENY');
+    res.headers.set('X-XSS-Protection', '1; mode=block');
+    res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
     
     // CORS headers for API routes
-    response.headers.set('Access-Control-Allow-Origin', process.env.FRONTEND_URL || '*');
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    
-    return response;
+    res.headers.set('Access-Control-Allow-Origin', process.env.FRONTEND_URL || '*');
+    res.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   }
 
   return res;
