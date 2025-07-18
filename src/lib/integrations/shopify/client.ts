@@ -43,32 +43,43 @@ export class ShopifyClient {
    * Shop Information
    */
   async getShopInfo() {
-    const query = `
-      query getShop {
-        shop {
-          id
-          name
-          email
-          contactEmail
-          currencyCode
-          primaryDomain {
-            url
-            host
+    try {
+      const query = `
+        query getShop {
+          shop {
+            id
+            name
+            email
+            contactEmail
+            currencyCode
+            primaryDomain {
+              url
+              host
+            }
+            plan {
+              displayName
+              partnerDevelopment
+              shopifyPlus
+            }
+            createdAt
+            timezoneAbbreviation
+            timezoneOffset
           }
-          plan {
-            displayName
-            partnerDevelopment
-            shopifyPlus
-          }
-          createdAt
-          timezoneAbbreviation
-          timezoneOffset
         }
-      }
-    `;
+      `;
 
-    const response = await this.client.request(query);
-    return response.data.shop;
+      const response = await this.client.request(query);
+      console.log('Shop info response:', JSON.stringify(response, null, 2));
+      
+      if (!response || !response.data || !response.data.shop) {
+        throw new Error('Invalid shop info response from Shopify');
+      }
+      
+      return response.data.shop;
+    } catch (error) {
+      console.error('Error getting shop info:', error);
+      throw error;
+    }
   }
 
   /**
@@ -566,37 +577,50 @@ export class ShopifyClient {
    * Webhooks
    */
   async createWebhook(topic: string, callbackUrl: string) {
-    const mutation = `
-      mutation webhookSubscriptionCreate($topic: WebhookSubscriptionTopic!, $webhookSubscription: WebhookSubscriptionInput!) {
-        webhookSubscriptionCreate(topic: $topic, webhookSubscription: $webhookSubscription) {
-          webhookSubscription {
-            id
-            topic
-            callbackUrl
-          }
-          userErrors {
-            field
-            message
+    try {
+      console.log('Creating webhook:', { topic, callbackUrl });
+      
+      const mutation = `
+        mutation webhookSubscriptionCreate($topic: WebhookSubscriptionTopic!, $webhookSubscription: WebhookSubscriptionInput!) {
+          webhookSubscriptionCreate(topic: $topic, webhookSubscription: $webhookSubscription) {
+            webhookSubscription {
+              id
+              topic
+              callbackUrl
+            }
+            userErrors {
+              field
+              message
+            }
           }
         }
-      }
-    `;
+      `;
 
-    const response = await this.client.request(mutation, {
-      variables: {
-        topic: topic,
-        webhookSubscription: {
-          callbackUrl: callbackUrl,
-          format: 'JSON'
+      const response = await this.client.request(mutation, {
+        variables: {
+          topic: topic,
+          webhookSubscription: {
+            callbackUrl: callbackUrl,
+            format: 'JSON'
+          }
         }
-      }
-    });
+      });
 
-    if (response.data.webhookSubscriptionCreate.userErrors?.length > 0) {
-      throw new Error(response.data.webhookSubscriptionCreate.userErrors[0].message);
+      console.log('Webhook creation response:', JSON.stringify(response, null, 2));
+
+      if (!response || !response.data) {
+        throw new Error('Invalid response from Shopify API');
+      }
+
+      if (response.data.webhookSubscriptionCreate?.userErrors?.length > 0) {
+        throw new Error(response.data.webhookSubscriptionCreate.userErrors[0].message);
+      }
+
+      return response.data.webhookSubscriptionCreate?.webhookSubscription;
+    } catch (error) {
+      console.error('Error creating webhook:', error);
+      throw error;
     }
-
-    return response.data.webhookSubscriptionCreate.webhookSubscription;
   }
 
   async listWebhooks() {

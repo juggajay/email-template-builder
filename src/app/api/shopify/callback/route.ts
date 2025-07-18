@@ -66,10 +66,20 @@ export async function GET(request: NextRequest) {
     // Initialize service and setup webhooks
     const service = new ShopifyService(connection);
     const baseUrl = request.headers.get('origin') || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    await service.setupWebhooks(baseUrl);
+    
+    // Try to setup webhooks but don't fail if it doesn't work
+    try {
+      await service.setupWebhooks(baseUrl);
+      console.log('Webhooks setup successfully');
+    } catch (webhookError) {
+      console.error('Failed to setup webhooks (non-critical):', webhookError);
+      // Continue anyway - webhooks are nice to have but not required
+    }
 
     // Start initial sync in background
-    service.syncAll().catch(console.error);
+    service.syncAll().catch(error => {
+      console.error('Background sync failed:', error);
+    });
 
     // Clear OAuth state cookie
     const response = NextResponse.redirect(
