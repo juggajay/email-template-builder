@@ -4,6 +4,7 @@ import { Component, ReactNode } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle } from 'lucide-react';
+import { ShopifySettings } from './shopify-settings';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -52,13 +53,11 @@ class ShopifySettingsErrorBoundary extends Component<
       );
     }
 
-    return this.props.children;
+    return <>{this.props.children}</>;
   }
 }
 
 export default function ShopifySettingsWrapper() {
-  const ShopifySettings = require('./shopify-settings').ShopifySettings;
-  
   return (
     <ShopifySettingsErrorBoundary>
       <ShopifySettings />
