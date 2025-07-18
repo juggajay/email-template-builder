@@ -23,7 +23,8 @@ export function ShopifySettingsSimple() {
       const response = await fetch('/api/shopify/connection');
       if (response.ok) {
         const data = await response.json();
-        if (data && data.id) {
+        console.log('Connection check response:', data);
+        if (data && data.connection && data.connection.id) {
           setIsConnected(true);
         }
       }

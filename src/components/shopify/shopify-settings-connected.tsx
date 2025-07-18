@@ -21,8 +21,11 @@ export function ShopifySettingsConnected() {
       const response = await fetch('/api/shopify/connection');
       if (response.ok) {
         const data = await response.json();
-        setConnection(data);
-        loadStats();
+        console.log('Connected view - connection data:', data);
+        if (data.connection) {
+          setConnection(data.connection);
+          loadStats();
+        }
       }
     } catch (error) {
       console.error('Error loading connection:', error);
