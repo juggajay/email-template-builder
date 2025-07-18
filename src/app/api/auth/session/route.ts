@@ -1,8 +1,16 @@
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
+import { withRateLimit, rateLimiters } from '@/lib/security/rate-limit';
+import { handleApiError, withErrorHandling } from '@/lib/security/error-handling';
+import { logSecurityEvent, SecurityEventType, extractRequestMetadata } from '@/lib/security/monitoring';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResult = await withRateLimit(request, rateLimiters.auth);
+  if (rateLimitResult) return rateLimitResult;
+
   try {
     const supabase = createRouteHandlerClient({ cookies });
     
@@ -24,6 +32,14 @@ export async function GET() {
       );
     }
 
+    // Log successful session retrieval
+    await logSecurityEvent({
+      type: SecurityEventType.LOGIN_SUCCESS,
+      userId: session.user.id,
+      ...extractRequestMetadata(request),
+      result: 'success'
+    });
+
     return NextResponse.json({
       session: {
         access_token: session.access_token,
@@ -39,17 +55,23 @@ export async function GET() {
       }
     });
   } catch (error) {
-    console.error('Auth session error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleApiError(error, { 
+      action: 'get_session',
+      ...extractRequestMetadata(request)
+    });
   }
 }
 
-export async function DELETE() {
+export async function DELETE(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResult = await withRateLimit(request, rateLimiters.auth);
+  if (rateLimitResult) return rateLimitResult;
+
   try {
     const supabase = createRouteHandlerClient({ cookies });
+    
+    // Get current user before signing out
+    const { data: { user } } = await supabase.auth.getUser();
     
     // Sign out the user
     const { error } = await supabase.auth.signOut();
@@ -62,15 +84,24 @@ export async function DELETE() {
       );
     }
 
+    // Log successful logout
+    if (user) {
+      await logSecurityEvent({
+        type: SecurityEventType.LOGOUT,
+        userId: user.id,
+        ...extractRequestMetadata(request),
+        result: 'success'
+      });
+    }
+
     return NextResponse.json(
       { message: 'Successfully signed out' },
       { status: 200 }
     );
   } catch (error) {
-    console.error('Sign out error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return handleApiError(error, { 
+      action: 'sign_out',
+      ...extractRequestMetadata(request)
+    });
   }
 }

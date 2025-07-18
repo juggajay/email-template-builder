@@ -1,30 +1,35 @@
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { stripe } from '@/lib/stripe/server';
 import { createClient } from '@/lib/supabase/server';
+import { validateStripeWebhook } from '@/lib/security/webhook-validation';
+import { handleApiError } from '@/lib/security/error-handling';
+import { logSecurityEvent, SecurityEventType, extractRequestMetadata } from '@/lib/security/monitoring';
+import { withRateLimit, rateLimiters } from '@/lib/security/rate-limit';
 
-export async function POST(request: Request) {
-  const body = await request.text();
-  const signature = request.headers.get('stripe-signature');
+export async function POST(request: NextRequest) {
+  // Apply rate limiting for webhooks
+  const rateLimitResult = await withRateLimit(request, rateLimiters.webhook);
+  if (rateLimitResult) return rateLimitResult;
 
-  if (!signature) {
+  // Validate webhook signature with enhanced security
+  const { valid, error, event } = await validateStripeWebhook(
+    request,
+    process.env.STRIPE_WEBHOOK_SECRET!
+  );
+
+  if (!valid || !event) {
+    // Log failed webhook attempt
+    await logSecurityEvent({
+      type: SecurityEventType.WEBHOOK_FAILURE,
+      ...extractRequestMetadata(request),
+      action: 'stripe_webhook',
+      result: 'failure',
+      metadata: { error }
+    });
+
     return NextResponse.json(
-      { error: 'Missing Stripe signature' },
-      { status: 400 }
-    );
-  }
-
-  let event;
-
-  try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
-  } catch (error) {
-    console.error('Webhook signature verification failed:', error);
-    return NextResponse.json(
-      { error: 'Invalid signature' },
+      { error: error || 'Invalid webhook' },
       { status: 400 }
     );
   }
@@ -158,12 +163,36 @@ export async function POST(request: Request) {
         console.log(`Unhandled event type: ${event.type}`);
     }
 
+    // Log successful webhook processing
+    await logSecurityEvent({
+      type: SecurityEventType.DATA_EXPORT,
+      ...extractRequestMetadata(request),
+      action: 'stripe_webhook',
+      result: 'success',
+      metadata: { 
+        event_type: event.type,
+        event_id: event.id 
+      }
+    });
+
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error('Error handling webhook:', error);
-    return NextResponse.json(
-      { error: 'Webhook handler failed' },
-      { status: 500 }
-    );
+    // Log webhook processing error
+    await logSecurityEvent({
+      type: SecurityEventType.WEBHOOK_FAILURE,
+      ...extractRequestMetadata(request),
+      action: 'stripe_webhook_processing',
+      result: 'failure',
+      metadata: { 
+        event_type: event?.type,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    });
+
+    return handleApiError(error, {
+      action: 'process_stripe_webhook',
+      event_type: event?.type,
+      ...extractRequestMetadata(request)
+    });
   }
 }
