@@ -10,15 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
-import dynamic from 'next/dynamic';
-
-const ShopifySettings = dynamic(
-  () => import('@/components/shopify/shopify-settings-wrapper'),
-  { 
-    loading: () => <div className="p-8 text-center">Loading Shopify settings...</div>,
-    ssr: false 
-  }
-);
+import dynamicImport from 'next/dynamic';
 import { 
   User, 
   Palette, 
@@ -32,6 +24,14 @@ import {
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
+
+const ShopifySettings = dynamicImport(
+  () => import('@/components/shopify/shopify-settings-wrapper'),
+  { 
+    loading: () => <div className="p-8 text-center">Loading Shopify settings...</div>,
+    ssr: false 
+  }
+);
 
 const profileSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
