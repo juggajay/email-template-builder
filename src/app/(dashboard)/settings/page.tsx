@@ -10,6 +10,15 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
+import dynamic from 'next/dynamic';
+
+const ShopifySettings = dynamic(
+  () => import('@/components/shopify/shopify-settings-wrapper'),
+  { 
+    loading: () => <div className="p-8 text-center">Loading Shopify settings...</div>,
+    ssr: false 
+  }
+);
 import { 
   User, 
   Palette, 
@@ -333,15 +342,17 @@ export default function SettingsPage() {
           )}
 
           {activeTab === 'integrations' && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <LinkIcon className="w-5 h-5 mr-2" />
-                  Integrations
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Shopify Integration */}
+              <ShopifySettings />
+              
+              {/* Other Integrations */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Other Integrations</CardTitle>
+                  <p className="text-sm text-gray-600">More integrations coming soon</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -352,7 +363,7 @@ export default function SettingsPage() {
                         <p className="text-sm text-gray-600">Email marketing platform</p>
                       </div>
                     </div>
-                    <Badge variant="outline">Not Connected</Badge>
+                    <Badge variant="outline">Coming Soon</Badge>
                   </div>
 
                   <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -365,36 +376,11 @@ export default function SettingsPage() {
                         <p className="text-sm text-gray-600">Email marketing platform</p>
                       </div>
                     </div>
-                    <Badge variant="outline">Not Connected</Badge>
+                    <Badge variant="outline">Coming Soon</Badge>
                   </div>
-
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                        <span className="text-green-600 font-bold">S</span>
-                      </div>
-                      <div>
-                        <h4 className="font-medium">Shopify</h4>
-                        <p className="text-sm text-gray-600">E-commerce platform</p>
-                      </div>
-                    </div>
-                    <Badge variant="outline">Not Connected</Badge>
-                  </div>
-                </div>
-
-                {!isPro && !isAgency && (
-                  <div className="p-4 bg-blue-50 rounded-lg">
-                    <h4 className="font-medium text-blue-900">Upgrade for Integrations</h4>
-                    <p className="text-sm text-blue-700 mt-1">
-                      Connect with your favorite email platforms and e-commerce tools with Pro or Agency plans.
-                    </p>
-                    <Button variant="outline" className="mt-2" asChild>
-                      <a href="/billing">Upgrade Now</a>
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {activeTab === 'notifications' && (
