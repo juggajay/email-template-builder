@@ -35,7 +35,8 @@
       "Bash(npm run type-check:*)",
       "Bash(npm run build:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": []
   }
