@@ -28,9 +28,28 @@ export class ShopifyService {
   private cache: ShopifyCache;
   private rateLimiter: RateLimiter;
 
-  constructor(connection: ShopifyConnection) {
+  constructor(connection: ShopifyConnection | any) {
+    // Handle both camelCase and snake_case property names from database
+    const shopDomain = connection.shopDomain || connection.shop_domain;
+    const accessToken = connection.accessToken || connection.access_token;
+    
+    console.log('ShopifyService constructor - connection data:', {
+      hasShopDomain: !!shopDomain,
+      hasAccessToken: !!accessToken,
+      shopDomain,
+      connectionKeys: Object.keys(connection)
+    });
+    
+    if (!shopDomain) {
+      throw new Error('Shop domain is required for ShopifyService');
+    }
+    
+    if (!accessToken) {
+      throw new Error('Access token is required for ShopifyService');
+    }
+    
     this.connection = connection;
-    this.client = new ShopifyClient(connection.shopDomain, connection.accessToken);
+    this.client = new ShopifyClient(shopDomain, accessToken);
     this.cache = new ShopifyCache(connection.id);
     this.rateLimiter = new RateLimiter();
   }

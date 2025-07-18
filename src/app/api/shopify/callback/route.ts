@@ -55,6 +55,13 @@ export async function GET(request: NextRequest) {
     // Complete OAuth flow
     console.log('About to call completeOAuth with:', { shop, code, userId: user.id });
     const connection = await ShopifyService.completeOAuth(shop, code, user.id);
+    
+    console.log('Connection returned from completeOAuth:', {
+      connectionId: connection.id,
+      hasShopDomain: !!(connection as any).shop_domain || !!connection.shopDomain,
+      hasAccessToken: !!(connection as any).access_token || !!connection.accessToken,
+      connectionKeys: Object.keys(connection)
+    });
 
     // Initialize service and setup webhooks
     const service = new ShopifyService(connection);
