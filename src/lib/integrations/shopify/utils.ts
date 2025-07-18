@@ -75,7 +75,16 @@ export async function exchangeCodeForToken(
     account_owner: boolean;
   };
 }> {
-  const response = await fetch(`https://${shop}/admin/oauth/access_token`, {
+  console.log('exchangeCodeForToken called with shop:', shop);
+  
+  if (!shop || shop === 'undefined') {
+    throw new Error(`Invalid shop domain in exchangeCodeForToken: ${shop}`);
+  }
+  
+  const tokenUrl = `https://${shop}/admin/oauth/access_token`;
+  console.log('Token exchange URL:', tokenUrl);
+  
+  const response = await fetch(tokenUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -92,7 +101,9 @@ export async function exchangeCodeForToken(
     throw new Error(`Failed to exchange code for token: ${error}`);
   }
 
-  return response.json();
+  const tokenData = await response.json();
+  console.log('Token exchange successful');
+  return tokenData;
 }
 
 /**

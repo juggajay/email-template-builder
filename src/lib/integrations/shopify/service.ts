@@ -78,6 +78,12 @@ export class ShopifyService {
     code: string,
     userId: string
   ): Promise<ShopifyConnection> {
+    console.log('completeOAuth called with:', { shop, code, userId });
+    
+    if (!shop || !code || !userId) {
+      throw new Error(`Missing required parameters: shop=${shop}, code=${code}, userId=${userId}`);
+    }
+    
     // Exchange code for token
     const tokenData = await exchangeCodeForToken(
       shop,
@@ -86,6 +92,8 @@ export class ShopifyService {
       process.env.SHOPIFY_CLIENT_SECRET!
     );
 
+    console.log('Token exchange successful, creating client for shop:', shop);
+    
     // Get shop info
     const tempClient = new ShopifyClient(shop, tokenData.access_token);
     const shopInfo = await tempClient.getShopInfo();

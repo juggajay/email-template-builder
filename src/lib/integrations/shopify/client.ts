@@ -20,6 +20,16 @@ export class ShopifyClient {
   private apiVersion: string = '2024-01';
 
   constructor(shop: string, accessToken: string) {
+    console.log('ShopifyClient constructor called with:', { shop, hasAccessToken: !!accessToken });
+    
+    if (!shop || shop === 'undefined') {
+      throw new Error(`Invalid shop domain provided to ShopifyClient: "${shop}"`);
+    }
+    
+    if (!accessToken) {
+      throw new Error('Access token is required for ShopifyClient');
+    }
+    
     this.shop = shop;
     this.accessToken = accessToken;
     this.client = createAdminApiClient({

@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Complete OAuth flow
+    console.log('About to call completeOAuth with:', { shop, code, userId: user.id });
     const connection = await ShopifyService.completeOAuth(shop, code, user.id);
 
     // Initialize service and setup webhooks
