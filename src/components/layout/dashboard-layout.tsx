@@ -41,6 +41,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const handleSignOut = async () => {
     await signOut();
+    window.location.href = '/login';
   };
 
   return (
