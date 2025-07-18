@@ -9,9 +9,19 @@ import { UnlayerWrapperFixed } from '@/components/editor/unlayer-wrapper-fixed';
 import { UnlayerWrapperFast } from '@/components/editor/unlayer-wrapper-fast';
 import { UnlayerWrapperClean } from '@/components/editor/unlayer-wrapper-clean';
 import { MobileEditorWrapper } from '@/components/editor/mobile-editor-wrapper';
+import { EnhancedMergeTagsPanel } from '@/components/editor/merge-tags-enhanced/panel';
+import { PreviewDataEditor } from '@/components/editor/merge-tags-enhanced/preview-data';
+import { ConditionalEditor } from '@/components/editor/merge-tags-enhanced/conditional-editor';
+import { MergeTagAutocomplete } from '@/components/editor/merge-tags-enhanced/autocomplete';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { getTemplateDesign } from '@/lib/template-designs';
+import { ConditionalBlock } from '@/lib/merge-tags/conditional';
+import { findAllMergeTags } from '@/lib/merge-tags/parser';
+import { validateTemplate } from '@/lib/merge-tags/validator';
+import { getAllMergeTags } from '@/lib/merge-tags';
+import { Button } from '@/components/ui/button';
+import { Sparkles, Eye, Filter } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +30,13 @@ function EditorContent() {
   const [initialDesign, setInitialDesign] = useState<any>(null);
   const [templateName, setTemplateName] = useState('Untitled Template');
   const [isReady, setIsReady] = useState(false);
+  const [showEnhancedPanel, setShowEnhancedPanel] = useState(false);
+  const [showPreviewData, setShowPreviewData] = useState(false);
+  const [showConditional, setShowConditional] = useState(false);
+  const [conditionalBlocks, setConditionalBlocks] = useState<ConditionalBlock[]>([]);
+  const [previewData, setPreviewData] = useState<Record<string, any>>({});
+  const [usedTags, setUsedTags] = useState<string[]>([]);
+  const [templateHtml, setTemplateHtml] = useState('');
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -109,15 +126,45 @@ function EditorContent() {
       return;
     }
 
+    // Update template HTML for preview
+    setTemplateHtml(html);
+    
+    // Extract used tags
+    const tags = findAllMergeTags(html);
+    setUsedTags(tags.map(t => t.fullTag));
+
+    // Validate template
+    const validation = validateTemplate(html, conditionalBlocks, {
+      availableTags: getAllMergeTags().map(t => t.value.replace(/[{}]/g, ''))
+    });
+    
+    if (!validation.valid) {
+      const errors = validation.issues.filter(i => i.type === 'error');
+      if (errors.length > 0) {
+        alert(`Template validation failed:\n${errors.map(e => e.message).join('\n')}`);
+        return;
+      }
+    }
+
     try {
       const supabase = createClient();
+      
+      // Include enhanced data in the save
+      const enhancedDesign = {
+        ...design,
+        conditionalBlocks,
+        mergeTagsMetadata: {
+          usedTags,
+          validation: validation.stats
+        }
+      };
       
       if (templateId && !templateId.startsWith('mock-')) {
         // Update existing template
         const { error } = await supabase
           .from('user_templates')
           .update({
-            json_design: design,
+            json_design: enhancedDesign,
             html_content: html,
             last_modified: new Date().toISOString(),
           })
@@ -133,7 +180,7 @@ function EditorContent() {
             user_id: user.id,
             template_id: null, // This will be a custom template
             name: templateName,
-            json_design: design,
+            json_design: enhancedDesign,
             html_content: html,
           })
           .select()
@@ -247,6 +294,33 @@ function EditorContent() {
           </div>
           
           <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowEnhancedPanel(!showEnhancedPanel)}
+              className="flex items-center gap-2"
+            >
+              <Sparkles className="w-4 h-4" />
+              Merge Tags
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPreviewData(!showPreviewData)}
+              className="flex items-center gap-2"
+            >
+              <Eye className="w-4 h-4" />
+              Preview Data
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowConditional(!showConditional)}
+              className="flex items-center gap-2"
+            >
+              <Filter className="w-4 h-4" />
+              Conditionals
+            </Button>
             <button
               onClick={() => router.push('/templates')}
               className="px-4 py-2 text-gray-600 hover:text-gray-800"
@@ -257,25 +331,67 @@ function EditorContent() {
         </div>
       </div>
 
-      {/* Editor - takes remaining height */}
-      <div className="flex-1 p-4 overflow-hidden">
-        <div className="h-full max-w-full mx-auto bg-white rounded-lg shadow-lg overflow-hidden relative">
-          {isReady ? (
-            <UnlayerWrapperFixed
-              initialDesign={initialDesign}
-              onReady={() => console.log('[EditorPage] Unlayer ready')}
-              onDesignLoad={() => console.log('[EditorPage] Design loaded')}
-              onSave={handleSave}
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading template...</p>
+      {/* Main content area with editor and panels */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Editor - takes remaining width */}
+        <div className="flex-1 p-4 overflow-hidden">
+          <div className="h-full max-w-full mx-auto bg-white rounded-lg shadow-lg overflow-hidden relative">
+            {isReady ? (
+              <>
+                <UnlayerWrapperFixed
+                  initialDesign={initialDesign}
+                  onReady={() => console.log('[EditorPage] Unlayer ready')}
+                  onDesignLoad={() => console.log('[EditorPage] Design loaded')}
+                  onSave={handleSave}
+                />
+                <MergeTagAutocomplete
+                  onTagInsert={(tag) => console.log('Tag inserted:', tag)}
+                />
+              </>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p className="text-gray-600">Loading template...</p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
+
+        {/* Side panels */}
+        {(showEnhancedPanel || showPreviewData || showConditional) && (
+          <div className="w-96 border-l bg-white p-4 overflow-y-auto">
+            {showEnhancedPanel && (
+              <div className="mb-4">
+                <EnhancedMergeTagsPanel
+                  onTagSelect={(tag) => console.log('Tag selected:', tag)}
+                  onTagsUsedUpdate={setUsedTags}
+                  usedTags={usedTags}
+                />
+              </div>
+            )}
+            
+            {showPreviewData && (
+              <div className="mb-4">
+                <PreviewDataEditor
+                  onDataChange={setPreviewData}
+                  templateContent={templateHtml}
+                />
+              </div>
+            )}
+            
+            {showConditional && (
+              <div className="mb-4">
+                <ConditionalEditor
+                  blocks={conditionalBlocks}
+                  onBlocksChange={setConditionalBlocks}
+                  testData={previewData}
+                />
+              </div>
+            )}
+          </div>
+        )}
       </div>
       
       {/* Performance optimization script */}
