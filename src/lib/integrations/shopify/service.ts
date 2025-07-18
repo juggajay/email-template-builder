@@ -90,29 +90,64 @@ export class ShopifyService {
     const tempClient = new ShopifyClient(shop, tokenData.access_token);
     const shopInfo = await tempClient.getShopInfo();
 
-    // Save connection
+    // Save or update connection
     const supabase = createClient();
-    const { data, error } = await supabase
+    
+    // First check if connection exists
+    const { data: existing } = await supabase
       .from('shopify_connections')
-      .insert({
-        user_id: userId,
-        shop_domain: shop,
-        access_token: tokenData.access_token,
-        shop_name: shopInfo.name,
-        shop_email: shopInfo.email || shopInfo.contactEmail,
-        shop_owner: tokenData.associated_user?.first_name 
-          ? `${tokenData.associated_user.first_name} ${tokenData.associated_user.last_name}`
-          : null,
-        shop_plan: shopInfo.plan?.displayName,
-        shop_created_at: shopInfo.createdAt,
-        scopes: tokenData.scope.split(','),
-        is_active: true
-      })
-      .select()
+      .select('*')
+      .eq('shop_domain', shop)
       .single();
 
-    if (error) throw error;
-    return data;
+    if (existing) {
+      // Update existing connection
+      const { data, error } = await supabase
+        .from('shopify_connections')
+        .update({
+          user_id: userId,
+          access_token: tokenData.access_token,
+          shop_name: shopInfo.name,
+          shop_email: shopInfo.email || shopInfo.contactEmail,
+          shop_owner: tokenData.associated_user?.first_name 
+            ? `${tokenData.associated_user.first_name} ${tokenData.associated_user.last_name}`
+            : null,
+          shop_plan: shopInfo.plan?.displayName,
+          shop_created_at: shopInfo.createdAt,
+          scopes: tokenData.scope.split(','),
+          is_active: true,
+          updated_at: new Date()
+        })
+        .eq('id', existing.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } else {
+      // Create new connection
+      const { data, error } = await supabase
+        .from('shopify_connections')
+        .insert({
+          user_id: userId,
+          shop_domain: shop,
+          access_token: tokenData.access_token,
+          shop_name: shopInfo.name,
+          shop_email: shopInfo.email || shopInfo.contactEmail,
+          shop_owner: tokenData.associated_user?.first_name 
+            ? `${tokenData.associated_user.first_name} ${tokenData.associated_user.last_name}`
+            : null,
+          shop_plan: shopInfo.plan?.displayName,
+          shop_created_at: shopInfo.createdAt,
+          scopes: tokenData.scope.split(','),
+          is_active: true
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
   }
 
   /**

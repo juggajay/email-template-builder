@@ -5,11 +5,48 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Store, Link2, ExternalLink } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { ShopifySettingsConnected } from './shopify-settings-connected';
 
 export function ShopifySettingsSimple() {
   const [shopDomain, setShopDomain] = useState('');
   const [connecting, setConnecting] = useState(false);
+  const [checkingConnection, setCheckingConnection] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
+
+  useEffect(() => {
+    checkConnection();
+  }, []);
+
+  const checkConnection = async () => {
+    try {
+      const response = await fetch('/api/shopify/connection');
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.id) {
+          setIsConnected(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking connection:', error);
+    } finally {
+      setCheckingConnection(false);
+    }
+  };
+
+  if (checkingConnection) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <p>Loading...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isConnected) {
+    return <ShopifySettingsConnected />;
+  }
 
   const handleConnect = () => {
     if (!shopDomain.trim()) {
