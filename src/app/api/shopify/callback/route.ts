@@ -45,8 +45,17 @@ export async function GET(request: NextRequest) {
 
     // Check authentication
     const supabase = createClient();
+    console.log('Checking authentication in Shopify callback...');
     const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    console.log('Auth check result:', {
+      hasUser: !!user,
+      userId: user?.id,
+      authError: authError?.message
+    });
+    
     if (authError || !user) {
+      console.error('No authenticated user in Shopify callback:', authError);
       return NextResponse.redirect(
         `${process.env.NEXT_PUBLIC_BASE_URL}/login?redirect=/settings`
       );

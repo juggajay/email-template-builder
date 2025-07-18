@@ -8,12 +8,19 @@ export async function GET(request: NextRequest) {
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log('Connection GET - Auth check:', {
+      hasUser: !!user,
+      userId: user?.id,
+      authError: authError?.message
+    });
+    
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     // Get Shopify connection
     const connection = await ShopifyService.getConnection(user.id);
+    console.log('Connection GET - Found connection:', !!connection);
 
     return NextResponse.json({
       success: true,
