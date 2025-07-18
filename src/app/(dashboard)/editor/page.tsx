@@ -13,6 +13,7 @@ import { EnhancedMergeTagsPanel } from '@/components/editor/merge-tags-enhanced/
 import { PreviewDataEditor } from '@/components/editor/merge-tags-enhanced/preview-data';
 import { ConditionalEditor } from '@/components/editor/merge-tags-enhanced/conditional-editor';
 import { MergeTagAutocomplete } from '@/components/editor/merge-tags-enhanced/autocomplete';
+import { SendTestEmail } from '@/components/email/send-test-email';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { getTemplateDesign } from '@/lib/template-designs';
@@ -321,6 +322,13 @@ function EditorContent() {
               <Filter className="w-4 h-4" />
               Conditionals
             </Button>
+            <SendTestEmail 
+              templateHtml={templateHtml}
+              templateSubject={`Preview: ${templateName}`}
+              onEmailSent={(result) => {
+                console.log('Test email sent:', result);
+              }}
+            />
             <button
               onClick={() => router.push('/templates')}
               className="px-4 py-2 text-gray-600 hover:text-gray-800"
