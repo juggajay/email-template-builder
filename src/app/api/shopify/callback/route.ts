@@ -5,12 +5,16 @@ import { ShopifyService } from '@/lib/integrations/shopify/service';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  console.log('Shopify callback hit:', request.url);
+  
   try {
     const searchParams = request.nextUrl.searchParams;
     const shop = searchParams.get('shop');
     const code = searchParams.get('code');
     const state = searchParams.get('state');
     const hmac = searchParams.get('hmac');
+    
+    console.log('Callback params:', { shop, code, state, hmac });
 
     if (!shop || !code || !state || !hmac) {
       return NextResponse.redirect(
