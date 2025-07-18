@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { mergeTags } from '@/lib/merge-tags';
+import { registerShopifyBlocks, hasShopifyConnection, loadShopifyProducts } from '@/lib/editor/shopify-blocks';
 import './editor-styles.css';
 
 declare global {
@@ -168,13 +169,45 @@ export function UnlayerWrapperFixed({
           mergeTags: mergeTags
         });
 
-        window.unlayer.addEventListener('editor:ready', () => {
+        window.unlayer.addEventListener('editor:ready', async () => {
           console.log('[UnlayerFixed] Editor ready');
           setIsLoading(false);
           editorRef.current = window.unlayer;
           
-          // Don't load fix scripts - they cause cross-origin errors
-          // The Unlayer iframe is on a different domain and cannot be accessed
+          // Register Shopify blocks
+          try {
+            console.log('[UnlayerFixed] Registering Shopify blocks...');
+            registerShopifyBlocks(window.unlayer);
+            
+            // Check if user has connection and products
+            const hasShopify = await hasShopifyConnection();
+            console.log('[UnlayerFixed] Has Shopify connection:', hasShopify);
+            
+            if (hasShopify) {
+              // Load products for dropdown
+              const products = await loadShopifyProducts();
+              console.log('[UnlayerFixed] Loaded products:', products.length);
+              
+              if (products.length > 0) {
+                // Update the product dropdown options
+                window.unlayer.updateTool('shopify_product', {
+                  options: {
+                    product: {
+                      options: {
+                        productId: {
+                          data: {
+                            options: products
+                          }
+                        }
+                      }
+                    }
+                  }
+                });
+              }
+            }
+          } catch (error) {
+            console.error('[UnlayerFixed] Error setting up Shopify:', error);
+          }
           
           if (onReady) {
             onReady();

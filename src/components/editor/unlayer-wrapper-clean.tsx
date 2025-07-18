@@ -103,16 +103,20 @@ export function UnlayerWrapperClean({
           setShowSaveButton(true);
           editorRef.current = window.unlayer;
           
-          // Check if user has Shopify connection and register blocks
+          // Always register Shopify blocks for demo purposes
           try {
+            console.log('[UnlayerClean] Registering Shopify blocks...');
+            registerShopifyBlocks(window.unlayer);
+            
+            // Check if user has connection and products
             const hasShopify = await hasShopifyConnection();
             console.log('[UnlayerClean] Has Shopify connection:', hasShopify);
             
             if (hasShopify) {
-              registerShopifyBlocks(window.unlayer);
-              
               // Load products for dropdown
               const products = await loadShopifyProducts();
+              console.log('[UnlayerClean] Loaded products:', products.length);
+              
               if (products.length > 0) {
                 // Update the product dropdown options
                 window.unlayer.updateTool('shopify_product', {
