@@ -18,7 +18,8 @@ import {
   Menu, 
   X,
   Zap,
-  Crown
+  Crown,
+  FolderOpen
 } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -28,6 +29,7 @@ interface DashboardLayoutProps {
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Templates', href: '/templates', icon: FileText },
+  { name: 'My Templates', href: '/my-templates', icon: FolderOpen },
   { name: 'Email Editor', href: '/editor', icon: Mail },
   { name: 'Settings', href: '/settings', icon: Settings },
   { name: 'Billing', href: '/billing', icon: CreditCard },

@@ -18,7 +18,7 @@ import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
-export default function FileTextsPage() {
+export default function TemplatesPage() {
   const [viewMode, setViewMode] = useState<'public' | 'my-templates'>('public');
 
   return (
@@ -26,16 +26,16 @@ export default function FileTextsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">FileTexts</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Templates Library</h1>
           <p className="text-gray-600 mt-2">
-            Browse our collection of professional email templates or manage your own
+            Browse our collection of professional email templates
           </p>
         </div>
         
         <Link href="/editor">
           <Button>
             <Plus className="w-4 h-4 mr-2" />
-            Create FileText
+            Create Template
           </Button>
         </Link>
       </div>
@@ -49,7 +49,7 @@ export default function FileTextsPage() {
             onClick={() => setViewMode('public')}
           >
             <Globe className="w-4 h-4 mr-2" />
-            Public FileTexts
+            Public Templates
           </Button>
           <Button
             variant={viewMode === 'my-templates' ? 'default' : 'ghost'}
@@ -57,7 +57,7 @@ export default function FileTextsPage() {
             onClick={() => setViewMode('my-templates')}
           >
             <User className="w-4 h-4 mr-2" />
-            My FileTexts
+            My Templates
           </Button>
         </div>
       </div>
@@ -66,7 +66,7 @@ export default function FileTextsPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total FileTexts</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Templates</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -117,7 +117,7 @@ export default function FileTextsPage() {
         </Card>
       </div>
 
-      {/* FileText categories overview */}
+      {/* Template categories overview */}
       {viewMode === 'public' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
@@ -162,7 +162,7 @@ export default function FileTextsPage() {
         </div>
       )}
 
-      {/* FileTexts grid */}
+      {/* Templates grid */}
       <TemplateGrid 
         showUserTemplates={viewMode === 'my-templates'}
       />
