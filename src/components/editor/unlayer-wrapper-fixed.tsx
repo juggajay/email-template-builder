@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { mergeTags } from '@/lib/merge-tags';
 import './editor-styles.css';
 
 declare global {
@@ -163,22 +164,8 @@ export function UnlayerWrapperFixed({
             allowRowDragDrop: true,
             allowContentDragDrop: true
           },
-          // Merge tags for personalization
-          mergeTags: {
-            customer: {
-              name: 'Customer',
-              mergeTags: {
-                first_name: {
-                  name: 'First Name',
-                  value: '{{customer.first_name}}'
-                },
-                email: {
-                  name: 'Email',
-                  value: '{{customer.email}}'
-                }
-              }
-            }
-          }
+          // Comprehensive merge tags for e-commerce
+          mergeTags: mergeTags
         });
 
         window.unlayer.addEventListener('editor:ready', () => {
