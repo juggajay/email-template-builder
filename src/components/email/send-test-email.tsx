@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,7 +29,11 @@ import {
   XCircle, 
   Loader2,
   Eye,
-  Settings
+  Settings,
+  ChevronDown,
+  User,
+  BarChart3,
+  RefreshCw
 } from 'lucide-react';
 import { PreviewDataEditor } from '../editor/merge-tags-enhanced/preview-data';
 
@@ -39,6 +43,17 @@ interface SendTestEmailProps {
   onEmailSent?: (result: any) => void;
 }
 
+const RECENT_RECIPIENTS_KEY = 'test-email-recent-recipients';
+const MAX_RECENT_RECIPIENTS = 3;
+
+const commonTestEmails = [
+  { label: 'Your email', value: 'your-email', placeholder: 'Enter your email...' },
+  { label: 'Gmail test', value: 'test@gmail.com' },
+  { label: 'Outlook test', value: 'test@outlook.com' },
+  { label: 'Yahoo test', value: 'test@yahoo.com' },
+  { label: 'Custom email...', value: 'custom', placeholder: 'Enter custom email...' }
+];
+
 export function SendTestEmail({ 
   templateHtml = '', 
   templateSubject = '',
@@ -47,15 +62,45 @@ export function SendTestEmail({
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [testEmail, setTestEmail] = useState('');
+  const [selectedEmailOption, setSelectedEmailOption] = useState('your-email');
   const [provider, setProvider] = useState<'resend' | 'sendgrid'>('resend');
   const [subject, setSubject] = useState(templateSubject || 'Test Email - Template Preview');
   const [previewData, setPreviewData] = useState<Record<string, any>>({});
   const [showPreviewData, setShowPreviewData] = useState(false);
+  const [recentRecipients, setRecentRecipients] = useState<string[]>([]);
+  const [activeDataProfile, setActiveDataProfile] = useState<string>('Default Test Data');
+  const [showSuccess, setShowSuccess] = useState(false);
   const [result, setResult] = useState<{
     success: boolean;
     message: string;
     emailId?: string;
   } | null>(null);
+
+  // Load recent recipients on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(RECENT_RECIPIENTS_KEY);
+      if (saved) {
+        try {
+          setRecentRecipients(JSON.parse(saved));
+        } catch (e) {
+          console.error('Failed to load recent recipients:', e);
+        }
+      }
+    }
+  }, []);
+
+  // Update recent recipients when test email is sent successfully
+  const updateRecentRecipients = (email: string) => {
+    if (!email || !validateEmail(email)) return;
+    
+    const updated = [email, ...recentRecipients.filter(e => e !== email)].slice(0, MAX_RECENT_RECIPIENTS);
+    setRecentRecipients(updated);
+    
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(RECENT_RECIPIENTS_KEY, JSON.stringify(updated));
+    }
+  };
 
   const sendTestEmail = async () => {
     if (!testEmail.trim()) {
@@ -94,6 +139,8 @@ export function SendTestEmail({
           message: 'Test email sent successfully!',
           emailId: data.emailId
         });
+        setShowSuccess(true);
+        updateRecentRecipients(testEmail);
         onEmailSent?.(data);
       } else {
         setResult({
@@ -122,6 +169,30 @@ export function SendTestEmail({
     setResult(null); // Clear previous results when email changes
   };
 
+  const handleEmailOptionChange = (value: string) => {
+    setSelectedEmailOption(value);
+    
+    if (value === 'your-email' || value === 'custom') {
+      setTestEmail('');
+    } else {
+      setTestEmail(value);
+    }
+    
+    setResult(null);
+  };
+
+  const handleSendAnother = () => {
+    setShowSuccess(false);
+    setResult(null);
+    setTestEmail('');
+    setSelectedEmailOption('your-email');
+  };
+
+  const getCurrentEmailPlaceholder = () => {
+    const option = commonTestEmails.find(e => e.value === selectedEmailOption);
+    return option?.placeholder || 'Enter email address...';
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -132,32 +203,53 @@ export function SendTestEmail({
       </DialogTrigger>
       
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Send Test Email</DialogTitle>
-          <DialogDescription>
-            Send a test email to preview how your template will look in the inbox
-          </DialogDescription>
-        </DialogHeader>
+        {!showSuccess ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>Send Test Email</DialogTitle>
+              <DialogDescription>
+                Send a test email to preview how your template will look in the inbox
+              </DialogDescription>
+            </DialogHeader>
 
-        <div className="space-y-6">
+            <div className="space-y-6">
           {/* Email Configuration */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Email Configuration</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="test-email">Test Email Address</Label>
-                <Input
-                  id="test-email"
-                  type="email"
-                  placeholder="test@example.com"
-                  value={testEmail}
-                  onChange={(e) => handleEmailChange(e.target.value)}
-                  className={!validateEmail(testEmail) && testEmail ? 'border-red-500' : ''}
-                />
+                <Select value={selectedEmailOption} onValueChange={handleEmailOptionChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select test email" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {commonTestEmails.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {(selectedEmailOption === 'your-email' || selectedEmailOption === 'custom') && (
+                  <Input
+                    id="test-email"
+                    type="email"
+                    placeholder={getCurrentEmailPlaceholder()}
+                    value={testEmail}
+                    onChange={(e) => handleEmailChange(e.target.value)}
+                    className={!validateEmail(testEmail) && testEmail ? 'border-red-500' : ''}
+                  />
+                )}
                 {!validateEmail(testEmail) && testEmail && (
                   <p className="text-sm text-red-500 mt-1">Please enter a valid email address</p>
+                )}
+                {recentRecipients.length > 0 && (
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium">Recent:</span> {recentRecipients.join(', ')}
+                  </div>
                 )}
               </div>
 
@@ -205,9 +297,20 @@ export function SendTestEmail({
                   {showPreviewData ? 'Hide' : 'Configure'} Data
                 </Button>
               </div>
-              <p className="text-sm text-gray-600">
-                Configure test data for merge tags in your template
-              </p>
+              <div className="flex items-center gap-2 mt-2">
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <User className="w-3 h-3" />
+                  {activeDataProfile}
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowPreviewData(true)}
+                  className="text-xs"
+                >
+                  Change Profile
+                </Button>
+              </div>
             </CardHeader>
             {showPreviewData && (
               <CardContent>
@@ -304,6 +407,42 @@ export function SendTestEmail({
             </CardContent>
           </Card>
         </div>
+          </>
+        ) : (
+          /* Success State */
+          <div className="text-center py-8">
+            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <h3 className="text-2xl font-bold mb-2">✅ Test email sent successfully!</h3>
+            <p className="text-gray-600 mb-6">
+              Check your inbox (and spam folder) for the test email
+            </p>
+            {result?.emailId && (
+              <p className="text-sm text-gray-500 mb-6">
+                Email ID: {result.emailId}
+              </p>
+            )}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsOpen(false);
+                  window.open('/email-settings?tab=analytics', '_blank');
+                }}
+                className="flex items-center gap-2"
+              >
+                <BarChart3 className="w-4 h-4" />
+                View Email Analytics
+              </Button>
+              <Button
+                onClick={handleSendAnother}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Send Another
+              </Button>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
