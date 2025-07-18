@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar } from '@/components/ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
-import dynamicImport from 'next/dynamic';
+import { ShopifySettingsSimple } from '@/components/shopify/shopify-settings-simple';
 import { 
   User, 
   Palette, 
@@ -23,14 +23,6 @@ import {
   Upload,
   Trash2
 } from 'lucide-react';
-
-const ShopifySettings = dynamicImport(
-  () => import('@/components/shopify/shopify-settings-wrapper'),
-  { 
-    loading: () => <div className="p-8 text-center">Loading Shopify settings...</div>,
-    ssr: false 
-  }
-);
 
 const profileSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
@@ -352,7 +344,7 @@ export function SettingsContent() {
           {activeTab === 'integrations' && (
             <div className="space-y-6">
               {/* Shopify Integration */}
-              <ShopifySettings />
+              <ShopifySettingsSimple />
               
               {/* Other Integrations */}
               <Card>
