@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { registerShopifyBlocks, hasShopifyConnection, loadShopifyProducts } from '@/lib/editor/shopify-blocks';
 
 declare global {
   interface Window {
@@ -96,11 +97,42 @@ export function UnlayerWrapperClean({
           }
         });
 
-        window.unlayer.addEventListener('editor:ready', () => {
+        window.unlayer.addEventListener('editor:ready', async () => {
           console.log('[UnlayerClean] Editor ready');
           setIsLoading(false);
           setShowSaveButton(true);
           editorRef.current = window.unlayer;
+          
+          // Check if user has Shopify connection and register blocks
+          try {
+            const hasShopify = await hasShopifyConnection();
+            console.log('[UnlayerClean] Has Shopify connection:', hasShopify);
+            
+            if (hasShopify) {
+              registerShopifyBlocks(window.unlayer);
+              
+              // Load products for dropdown
+              const products = await loadShopifyProducts();
+              if (products.length > 0) {
+                // Update the product dropdown options
+                window.unlayer.updateTool('shopify_product', {
+                  options: {
+                    product: {
+                      options: {
+                        productId: {
+                          data: {
+                            options: products
+                          }
+                        }
+                      }
+                    }
+                  }
+                });
+              }
+            }
+          } catch (error) {
+            console.error('[UnlayerClean] Error setting up Shopify:', error);
+          }
           
           if (onReady) {
             onReady();
