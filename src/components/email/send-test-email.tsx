@@ -33,7 +33,8 @@ import {
   ChevronDown,
   User,
   BarChart3,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react';
 import { PreviewDataEditor } from '../editor/merge-tags-enhanced/preview-data';
 
@@ -45,6 +46,9 @@ interface SendTestEmailProps {
 
 const RECENT_RECIPIENTS_KEY = 'test-email-recent-recipients';
 const MAX_RECENT_RECIPIENTS = 3;
+const RATE_LIMIT_KEY = 'test-email-rate-limit';
+const MAX_SENDS_PER_HOUR = 10;
+const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in milliseconds
 
 const commonTestEmails = [
   { label: 'Your email', value: 'your-email', placeholder: 'Enter your email...' },
@@ -75,10 +79,13 @@ export function SendTestEmail({
     message: string;
     emailId?: string;
   } | null>(null);
+  const [rateLimitWarning, setRateLimitWarning] = useState<string | null>(null);
+  const [emailsSentInWindow, setEmailsSentInWindow] = useState<number>(0);
 
-  // Load recent recipients on mount
+  // Load recent recipients and check rate limit on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // Load recent recipients
       const saved = localStorage.getItem(RECENT_RECIPIENTS_KEY);
       if (saved) {
         try {
@@ -87,8 +94,102 @@ export function SendTestEmail({
           console.error('Failed to load recent recipients:', e);
         }
       }
+
+      // Check current rate limit status
+      const rateLimitData = localStorage.getItem(RATE_LIMIT_KEY);
+      if (rateLimitData) {
+        try {
+          const { sends, resetTime } = JSON.parse(rateLimitData);
+          if (Date.now() < resetTime) {
+            setEmailsSentInWindow(sends);
+          }
+        } catch (e) {
+          console.error('Failed to parse rate limit data:', e);
+        }
+      }
     }
   }, []);
+
+  // Check rate limit
+  const checkRateLimit = (): { allowed: boolean; remainingTime?: number } => {
+    if (typeof window === 'undefined') return { allowed: true };
+
+    const now = Date.now();
+    const rateLimitData = localStorage.getItem(RATE_LIMIT_KEY);
+    
+    if (!rateLimitData) {
+      return { allowed: true };
+    }
+
+    try {
+      const { sends, resetTime } = JSON.parse(rateLimitData);
+      
+      // If the window has passed, reset
+      if (now >= resetTime) {
+        localStorage.removeItem(RATE_LIMIT_KEY);
+        return { allowed: true };
+      }
+
+      // Check if limit reached
+      if (sends >= MAX_SENDS_PER_HOUR) {
+        const remainingTime = Math.ceil((resetTime - now) / 1000 / 60); // minutes
+        return { allowed: false, remainingTime };
+      }
+
+      return { allowed: true };
+    } catch (e) {
+      console.error('Failed to parse rate limit data:', e);
+      localStorage.removeItem(RATE_LIMIT_KEY);
+      return { allowed: true };
+    }
+  };
+
+  // Update rate limit
+  const updateRateLimit = () => {
+    if (typeof window === 'undefined') return;
+
+    const now = Date.now();
+    const rateLimitData = localStorage.getItem(RATE_LIMIT_KEY);
+    
+    if (!rateLimitData) {
+      // First send in the window
+      localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify({
+        sends: 1,
+        resetTime: now + RATE_LIMIT_WINDOW
+      }));
+      setEmailsSentInWindow(1);
+      return;
+    }
+
+    try {
+      const { sends, resetTime } = JSON.parse(rateLimitData);
+      
+      // If the window has passed, start a new one
+      if (now >= resetTime) {
+        localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify({
+          sends: 1,
+          resetTime: now + RATE_LIMIT_WINDOW
+        }));
+        setEmailsSentInWindow(1);
+      } else {
+        // Increment sends in current window
+        const newSends = sends + 1;
+        localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify({
+          sends: newSends,
+          resetTime
+        }));
+        setEmailsSentInWindow(newSends);
+      }
+    } catch (e) {
+      console.error('Failed to update rate limit:', e);
+      // Start fresh if there's an error
+      localStorage.setItem(RATE_LIMIT_KEY, JSON.stringify({
+        sends: 1,
+        resetTime: now + RATE_LIMIT_WINDOW
+      }));
+      setEmailsSentInWindow(1);
+    }
+  };
 
   // Update recent recipients when test email is sent successfully
   const updateRecentRecipients = (email: string) => {
@@ -103,6 +204,13 @@ export function SendTestEmail({
   };
 
   const sendTestEmail = async () => {
+    // Check rate limit first
+    const rateLimit = checkRateLimit();
+    if (!rateLimit.allowed) {
+      setRateLimitWarning(`Test email limit reached. Try again in ${rateLimit.remainingTime} minutes.`);
+      return;
+    }
+
     if (!testEmail.trim()) {
       alert('Please enter a test email address');
       return;
@@ -115,6 +223,7 @@ export function SendTestEmail({
 
     setLoading(true);
     setResult(null);
+    setRateLimitWarning(null);
 
     try {
       const response = await fetch('/api/email/test', {
@@ -133,6 +242,13 @@ export function SendTestEmail({
 
       const data = await response.json();
 
+      if (response.status === 429) {
+        // Server-side rate limit hit
+        setRateLimitWarning(data.error);
+        setResult(null);
+        return;
+      }
+
       if (data.success) {
         setResult({
           success: true,
@@ -141,6 +257,7 @@ export function SendTestEmail({
         });
         setShowSuccess(true);
         updateRecentRecipients(testEmail);
+        updateRateLimit();
         onEmailSent?.(data);
       } else {
         setResult({
@@ -167,6 +284,7 @@ export function SendTestEmail({
   const handleEmailChange = (email: string) => {
     setTestEmail(email);
     setResult(null); // Clear previous results when email changes
+    setRateLimitWarning(null); // Clear rate limit warning
   };
 
   const handleEmailOptionChange = (value: string) => {
@@ -216,7 +334,14 @@ export function SendTestEmail({
           {/* Email Configuration */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Email Configuration</CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">Email Configuration</CardTitle>
+                {emailsSentInWindow > 0 && (
+                  <Badge variant={emailsSentInWindow >= MAX_SENDS_PER_HOUR ? "destructive" : "secondary"}>
+                    {emailsSentInWindow}/{MAX_SENDS_PER_HOUR} sent this hour
+                  </Badge>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -344,6 +469,18 @@ export function SendTestEmail({
                 <p className="text-xs text-gray-500 mt-2">
                   This is a preview of your template. Merge tags will be replaced with actual data when sent.
                 </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Rate Limit Warning */}
+          {rateLimitWarning && (
+            <Card className="border-amber-200 bg-amber-50">
+              <CardContent className="pt-6">
+                <div className="flex items-center space-x-3">
+                  <AlertTriangle className="w-5 h-5 text-amber-600" />
+                  <p className="text-amber-800 font-medium">{rateLimitWarning}</p>
+                </div>
               </CardContent>
             </Card>
           )}
