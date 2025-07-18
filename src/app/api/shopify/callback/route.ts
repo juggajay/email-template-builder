@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { ShopifyService } from '@/lib/integrations/shopify/service';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -59,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     // Clear OAuth state cookie
     const response = NextResponse.redirect(
-      `${baseUrl}/settings?tab=shopify&success=connected`
+      `${baseUrl}/settings?tab=integrations&shopify=connected`
     );
     response.cookies.delete('shopify_oauth_state');
 

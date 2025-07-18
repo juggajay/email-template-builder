@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -50,8 +51,17 @@ type BrandFormData = z.infer<typeof brandSchema>;
 
 export default function SettingsPage() {
   const { user, profile, updateProfile, isPro, isAgency } = useAuth();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'profile' | 'brand' | 'security' | 'integrations' | 'notifications'>('profile');
   const [saving, setSaving] = useState(false);
+
+  // Handle URL parameters
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab && ['profile', 'brand', 'security', 'integrations', 'notifications'].includes(tab)) {
+      setActiveTab(tab as any);
+    }
+  }, [searchParams]);
 
   const profileForm = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
