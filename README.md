@@ -1,4 +1,4 @@
-# Email Template Builder 📧 v0.1.1
+# Email Template Builder 📧
 
 A production-ready SaaS application for creating professional e-commerce email templates with a drag-and-drop editor, built with Next.js 14, TypeScript, Supabase, and Stripe.
 
