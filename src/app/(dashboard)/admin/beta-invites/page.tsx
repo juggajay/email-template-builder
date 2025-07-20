@@ -114,7 +114,7 @@ export default function BetaInvitesPage() {
       <div>
         <h1 className="text-3xl font-bold">Beta Invites</h1>
         <p className="text-muted-foreground mt-2">
-          Manage beta access invitations for ZebaMail
+          Manage beta access invitations for ZebaMail - 2 Week Beta Test
         </p>
       </div>
 
