@@ -14,6 +14,18 @@ export interface BetaInvite {
   notes?: string;
 }
 
+// Get bypass emails from environment variable
+const getBypassEmails = (): string[] => {
+  const emails = process.env.BETA_BYPASS_EMAILS || process.env.NEXT_PUBLIC_BETA_BYPASS_EMAILS || '';
+  return emails.split(',').map(email => email.trim()).filter(Boolean);
+};
+
+// Check if beta access is enabled
+const isBetaEnabled = (): boolean => {
+  const enabled = process.env.BETA_ACCESS_ENABLED || process.env.NEXT_PUBLIC_BETA_ACCESS_ENABLED;
+  return enabled !== 'false';
+};
+
 export class BetaAccessService {
   private supabase = createClient();
 
@@ -21,14 +33,26 @@ export class BetaAccessService {
    * Check if a user has beta access
    */
   async checkBetaAccess(userId: string): Promise<boolean> {
+    // If beta access is disabled, allow everyone
+    if (!isBetaEnabled()) {
+      return true;
+    }
+
     try {
       const { data, error } = await this.supabase
         .from('user_profiles')
-        .select('is_beta_tester')
+        .select('is_beta_tester, email')
         .eq('user_id', userId)
         .single();
 
       if (error || !data) return false;
+      
+      // Always allow bypass emails
+      const bypassEmails = getBypassEmails();
+      if (bypassEmails.includes(data.email)) {
+        return true;
+      }
+      
       return data.is_beta_tester === true;
     } catch (error) {
       console.error('Error checking beta access:', error);
@@ -40,7 +64,18 @@ export class BetaAccessService {
    * Check if an email is allowed for beta signup
    */
   async isEmailAllowedForBeta(email: string): Promise<boolean> {
+    // If beta access is disabled, allow everyone
+    if (!isBetaEnabled()) {
+      return true;
+    }
+
     try {
+      // Always allow bypass emails
+      const bypassEmails = getBypassEmails();
+      if (bypassEmails.includes(email)) {
+        return true;
+      }
+
       const { data, error } = await this.supabase
         .rpc('is_email_beta_allowed', { email_address: email });
 
