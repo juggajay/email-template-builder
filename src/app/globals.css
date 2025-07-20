@@ -149,55 +149,6 @@
     0% { transform: translateX(-50%) translateY(-50%); }
     100% { transform: translateX(0%) translateY(0%); }
   }
-  
-  /* ZebCharacter Animations */
-  @keyframes peek {
-    0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(-10px); }
-  }
-
-  @keyframes celebrate {
-    0%, 100% { transform: translateY(0) rotate(0); }
-    25% { transform: translateY(-10px) rotate(-5deg); }
-    75% { transform: translateY(-10px) rotate(5deg); }
-  }
-
-  @keyframes guide {
-    0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(5px); }
-  }
-
-  @keyframes welcome {
-    0%, 100% { transform: rotate(0); }
-    25% { transform: rotate(-10deg); }
-    75% { transform: rotate(10deg); }
-  }
-
-  @keyframes thinking {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-  }
-
-  @keyframes gallop {
-    0%, 100% { transform: translateX(0) scaleX(1); }
-    25% { transform: translateX(10px) scaleX(0.95); }
-    50% { transform: translateX(20px) scaleX(1.05); }
-    75% { transform: translateX(10px) scaleX(0.95); }
-  }
-
-  @keyframes wave {
-    0%, 100% { transform: rotate(0); }
-    25% { transform: rotate(-20deg); }
-    75% { transform: rotate(20deg); }
-  }
-
-  .animate-peek { animation: peek 2s ease-in-out infinite; }
-  .animate-celebrate { animation: celebrate 1s ease-in-out; }
-  .animate-guide { animation: guide 1.5s ease-in-out infinite; }
-  .animate-welcome { animation: welcome 0.5s ease-in-out 3; }
-  .animate-thinking { animation: thinking 2s ease-in-out infinite; }
-  .animate-gallop { animation: gallop 1s ease-in-out infinite; }
-  .animate-wave { animation: wave 0.5s ease-in-out 3; }
 }
 
 /* Email editor specific styles */
