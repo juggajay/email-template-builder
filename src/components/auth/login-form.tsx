@@ -40,7 +40,14 @@ export function LoginForm() {
       const result = await signIn(data.email, data.password);
       
       if (result.error) {
-        setError(result.error.message);
+        // Provide user-friendly error messages
+        if (result.error.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password. Please try again.');
+        } else if (result.error.message.includes('Email not confirmed')) {
+          setError('Please check your email to confirm your account before signing in.');
+        } else {
+          setError(result.error.message);
+        }
       } else {
         router.push('/dashboard');
       }
@@ -68,19 +75,7 @@ export function LoginForm() {
   };
 
   return (
-    <>
-      {/* Test credentials info */}
-      <Card className="w-full max-w-md mb-4 border-growth-green/20 bg-growth-green/5">
-        <CardContent className="pt-6">
-          <p className="text-sm text-gray-600 mb-2">Demo credentials:</p>
-          <div className="space-y-1 text-sm">
-            <p><span className="font-medium">Email:</span> demo@zebamail.com</p>
-            <p><span className="font-medium">Password:</span> demo123456</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">Sign in</CardTitle>
           <CardDescription className="text-center">
@@ -112,6 +107,16 @@ export function LoginForm() {
               {error}
             </div>
           )}
+
+          <div className="flex items-center justify-end">
+            <button
+              type="button"
+              onClick={() => router.push('/forgot-password')}
+              className="text-sm text-primary hover:underline"
+            >
+              Forgot password?
+            </button>
+          </div>
 
           <Button 
             type="submit" 
@@ -173,6 +178,5 @@ export function LoginForm() {
         </div>
       </CardContent>
     </Card>
-    </>
   );
 }

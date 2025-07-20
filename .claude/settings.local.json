@@ -42,7 +42,10 @@
       "Bash(git tag:*)",
       "Bash(npm run lint:*)",
       "Bash(git revert:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(npm test:*)",
+      "Bash(npx shadcn-ui:*)",
+      "Bash(npx shadcn@latest add dropdown-menu:*)"
     ],
     "deny": []
   }

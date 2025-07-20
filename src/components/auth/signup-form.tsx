@@ -52,7 +52,14 @@ export function SignupForm() {
       });
       
       if (result.error) {
-        setError(result.error.message);
+        // Provide user-friendly error messages
+        if (result.error.message.includes('already registered')) {
+          setError('This email is already registered. Please sign in instead.');
+        } else if (result.error.message.includes('weak_password')) {
+          setError('Password is too weak. Please use a stronger password.');
+        } else {
+          setError(result.error.message);
+        }
       } else {
         setSuccess(true);
       }
