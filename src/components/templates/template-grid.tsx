@@ -29,7 +29,9 @@ import {
   Trash2,
   ArrowUpDown,
   TrendingUp,
-  DollarSign
+  DollarSign,
+  Globe,
+  User
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
@@ -342,106 +344,81 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
 
   return (
     <div className="space-y-6">
-      {/* Search and filters */}
+      {/* View mode and category filters */}
       <div className="space-y-4">
-        {/* Search bar with sort */}
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search by goal, industry, or revenue stage..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4"
-            />
-            {searchQuery && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">
-                Try: "recover carts fashion" or "$500K monthly"
-              </div>
-            )}
-          </div>
-          
-          {/* Sort dropdown */}
-          <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
-            <SelectTrigger className="w-[200px]">
-              <ArrowUpDown className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Sort by..." />
-            </SelectTrigger>
-            <SelectContent>
-              {sortOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {/* View mode toggle */}
+        <div className="flex items-center border rounded-lg p-1 w-fit">
+          <Button
+            variant={!showUserTemplates ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => {
+              // This will be handled by parent component
+              window.location.href = '/templates';
+            }}
+          >
+            <Globe className="w-4 h-4 mr-2" />
+            Public Templates
+          </Button>
+          <Button
+            variant={showUserTemplates ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => {
+              // This will be handled by parent component
+              window.location.href = '/my-templates';
+            }}
+          >
+            <User className="w-4 h-4 mr-2" />
+            My Templates
+          </Button>
         </div>
-        
+
+        {/* Category filters - only show for public templates */}
         {!showUserTemplates && (
-          <div className="space-y-3">
-            {/* Category filters */}
-            <div className="flex flex-wrap gap-2">
-              {categories.map((cat) => {
-                const Icon = cat.icon;
-                const isActive = selectedCategory === cat.id;
-                return (
-                  <Button
-                    key={cat.id}
-                    variant={isActive ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setSelectedCategory(cat.id as TemplateCategory | 'all')}
-                    className={cn(
-                      "relative overflow-hidden transition-all duration-200",
-                      isActive && "bg-growth-green hover:bg-growth-green-600 text-white border-growth-green"
-                    )}
-                  >
-                    {isActive && (
-                      <div className="absolute inset-0 pointer-events-none">
-                        <StripePattern 
-                          animation="parallax" 
-                          speed="slow" 
-                          opacity={0.1} 
-                          color="#ffffff"
-                        />
-                      </div>
-                    )}
-                    {Icon && <Icon className="w-4 h-4 mr-2 relative z-10" />}
-                    <span className="relative z-10">{cat.name}</span>
-                  </Button>
-                );
-              })}
-            </div>
-            
-            {/* Performance filters */}
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-medium text-gray-700">Performance:</span>
-              <div className="flex gap-2">
-                {[
-                  { id: 'all', label: 'All Templates', color: null },
-                  { id: 'top-performer', label: 'Top Performers', color: 'bg-success-purple' },
-                  { id: 'rising', label: 'Rising Stars', color: 'bg-growth-green' },
-                  { id: 'new', label: 'New Arrivals', color: 'bg-alert-amber' }
-                ].map((filter) => {
-                  const isActive = selectedPerformance === filter.id;
-                  return (
-                    <Button
-                      key={filter.id}
-                      variant={isActive ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setSelectedPerformance(filter.id as any)}
-                      className={cn(
-                        "transition-all duration-200",
-                        isActive && filter.color && `${filter.color} text-white border-transparent hover:opacity-90`
-                      )}
-                    >
-                      {filter.label}
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
+          <div className="flex flex-wrap gap-2">
+            {categories.map((cat) => {
+              const Icon = cat.icon;
+              const isActive = selectedCategory === cat.id;
+              return (
+                <Button
+                  key={cat.id}
+                  variant={isActive ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedCategory(cat.id as TemplateCategory | 'all')}
+                  className={cn(
+                    "relative overflow-hidden transition-all duration-200",
+                    isActive && "bg-growth-green hover:bg-growth-green-600 text-white border-growth-green"
+                  )}
+                >
+                  {isActive && (
+                    <div className="absolute inset-0 pointer-events-none">
+                      <StripePattern 
+                        animation="parallax" 
+                        speed="slow" 
+                        opacity={0.1} 
+                        color="#ffffff"
+                      >
+                        <div />
+                      </StripePattern>
+                    </div>
+                  )}
+                  {Icon && <Icon className="w-4 h-4 mr-2 relative z-10" />}
+                  <span className="relative z-10">{cat.name}</span>
+                </Button>
+              );
+            })}
           </div>
         )}
+
+        {/* Search bar */}
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Search templates..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 pr-4"
+          />
+        </div>
       </div>
 
       {/* Templates grid */}
