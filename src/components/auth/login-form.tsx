@@ -68,16 +68,28 @@ export function LoginForm() {
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl text-center">Sign in</CardTitle>
-        <CardDescription className="text-center">
-          Enter your email and password to access your account
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Input
+    <>
+      {/* Test credentials info */}
+      <Card className="w-full max-w-md mb-4 border-growth-green/20 bg-growth-green/5">
+        <CardContent className="pt-6">
+          <p className="text-sm text-gray-600 mb-2">Demo credentials:</p>
+          <div className="space-y-1 text-sm">
+            <p><span className="font-medium">Email:</span> demo@zebamail.com</p>
+            <p><span className="font-medium">Password:</span> demo123456</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl text-center">Sign in</CardTitle>
+          <CardDescription className="text-center">
+            Enter your email and password to access your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <Input
             {...register('email')}
             type="email"
             label="Email"

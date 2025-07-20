@@ -39,7 +39,8 @@
       "Bash(npx tsc:*)",
       "Bash(curl:*)",
       "Bash(git fetch:*)",
-      "Bash(git tag:*)"
+      "Bash(git tag:*)",
+      "Bash(npm run lint:*)"
     ],
     "deny": []
   }
