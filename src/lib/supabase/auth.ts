@@ -23,11 +23,6 @@ export class AuthService {
 
   async signUp({ email, password, fullName, companyName }: SignUpData) {
     try {
-      // Check if Supabase is properly configured
-      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-        throw new Error('Authentication service is not properly configured. Please contact support.');
-      }
-
       const { data, error } = await this.supabase.auth.signUp({
         email,
         password,
@@ -66,11 +61,6 @@ export class AuthService {
 
   async signIn({ email, password }: SignInData) {
     try {
-      // Check if Supabase is properly configured
-      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-        throw new Error('Authentication service is not properly configured. Please contact support.');
-      }
-
       const { data, error } = await this.supabase.auth.signInWithPassword({
         email,
         password,

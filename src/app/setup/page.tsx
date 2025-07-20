@@ -3,13 +3,29 @@ import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
 export default function SetupPage() {
   // Check environment variables
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || '';
+
   const checks = {
-    supabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-    supabaseAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    siteUrl: !!process.env.NEXT_PUBLIC_SITE_URL,
+    supabaseUrl: {
+      isSet: !!supabaseUrl,
+      isValid: supabaseUrl.startsWith('https://') && supabaseUrl.includes('.supabase.co'),
+      value: supabaseUrl,
+    },
+    supabaseAnonKey: {
+      isSet: !!supabaseAnonKey,
+      isValid: supabaseAnonKey !== 'your-anon-key-here' && supabaseAnonKey.length > 20,
+      value: supabaseAnonKey,
+    },
+    siteUrl: {
+      isSet: !!siteUrl,
+      isValid: true,
+      value: siteUrl,
+    },
   };
 
-  const allChecked = Object.values(checks).every(v => v);
+  const allChecked = Object.values(checks).every(v => v.isSet && v.isValid);
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -24,37 +40,66 @@ export default function SetupPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-3">
-              {checks.supabaseUrl ? (
-                <CheckCircle className="w-5 h-5 text-green-500" />
-              ) : (
-                <XCircle className="w-5 h-5 text-red-500" />
+            <div className="space-y-1">
+              <div className="flex items-center gap-3">
+                {checks.supabaseUrl.isSet && checks.supabaseUrl.isValid ? (
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                ) : (
+                  <XCircle className="w-5 h-5 text-red-500" />
+                )}
+                <span className={checks.supabaseUrl.isSet && checks.supabaseUrl.isValid ? 'text-green-700' : 'text-red-700'}>
+                  NEXT_PUBLIC_SUPABASE_URL
+                </span>
+              </div>
+              {checks.supabaseUrl.isSet && (
+                <div className="ml-8 text-sm text-gray-600">
+                  {checks.supabaseUrl.isValid ? (
+                    <span className="font-mono">{checks.supabaseUrl.value}</span>
+                  ) : (
+                    <span className="text-red-600">Invalid URL format: {checks.supabaseUrl.value}</span>
+                  )}
+                </div>
               )}
-              <span className={checks.supabaseUrl ? 'text-green-700' : 'text-red-700'}>
-                NEXT_PUBLIC_SUPABASE_URL {checks.supabaseUrl ? 'is set' : 'is missing'}
-              </span>
             </div>
             
-            <div className="flex items-center gap-3">
-              {checks.supabaseAnonKey ? (
-                <CheckCircle className="w-5 h-5 text-green-500" />
-              ) : (
-                <XCircle className="w-5 h-5 text-red-500" />
+            <div className="space-y-1">
+              <div className="flex items-center gap-3">
+                {checks.supabaseAnonKey.isSet && checks.supabaseAnonKey.isValid ? (
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                ) : (
+                  <XCircle className="w-5 h-5 text-red-500" />
+                )}
+                <span className={checks.supabaseAnonKey.isSet && checks.supabaseAnonKey.isValid ? 'text-green-700' : 'text-red-700'}>
+                  NEXT_PUBLIC_SUPABASE_ANON_KEY
+                </span>
+              </div>
+              {checks.supabaseAnonKey.isSet && (
+                <div className="ml-8 text-sm text-gray-600">
+                  {checks.supabaseAnonKey.isValid ? (
+                    <span className="font-mono">{checks.supabaseAnonKey.value.substring(0, 20)}...</span>
+                  ) : (
+                    <span className="text-red-600">Invalid key (using placeholder)</span>
+                  )}
+                </div>
               )}
-              <span className={checks.supabaseAnonKey ? 'text-green-700' : 'text-red-700'}>
-                NEXT_PUBLIC_SUPABASE_ANON_KEY {checks.supabaseAnonKey ? 'is set' : 'is missing'}
-              </span>
             </div>
             
-            <div className="flex items-center gap-3">
-              {checks.siteUrl ? (
-                <CheckCircle className="w-5 h-5 text-green-500" />
-              ) : (
-                <XCircle className="w-5 h-5 text-red-500" />
+            <div className="space-y-1">
+              <div className="flex items-center gap-3">
+                {checks.siteUrl.isSet ? (
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                ) : (
+                  <XCircle className="w-5 h-5 text-red-500" />
+                )}
+                <span className={checks.siteUrl.isSet ? 'text-green-700' : 'text-red-700'}>
+                  NEXT_PUBLIC_SITE_URL
+                </span>
+              </div>
+              {checks.siteUrl.isSet && (
+                <div className="ml-8 text-sm text-gray-600">
+                  <span className="font-mono">{checks.siteUrl.value}</span>
+                </div>
               )}
-              <span className={checks.siteUrl ? 'text-green-700' : 'text-red-700'}>
-                NEXT_PUBLIC_SITE_URL {checks.siteUrl ? 'is set' : 'is missing'}
-              </span>
             </div>
           </CardContent>
         </Card>
