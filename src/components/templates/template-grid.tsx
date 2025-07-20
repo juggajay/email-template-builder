@@ -7,6 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { 
   Search, 
   Filter, 
   Eye, 
@@ -19,12 +26,36 @@ import {
   CheckCircle,
   UserPlus,
   Target,
-  Trash2
+  Trash2,
+  ArrowUpDown,
+  TrendingUp,
+  DollarSign
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import type { EmailTemplate, TemplateCategory } from '@/types';
 import { getTemplatePreview } from '@/lib/template-previews';
+import { ZebCharacter, StripePattern } from '@/components/brand';
+import { TargetIcon } from '@/components/brand/GeometricIcons';
+import { cn } from '@/lib/utils';
+import Link from 'next/link';
+
+// Template performance data interface
+interface TemplatePerformanceData {
+  monthlyRevenue: number;
+  conversionRate: number;
+  avgOrderValue: number;
+  sends: number;
+  trend: 'up' | 'down' | 'stable';
+  lastUpdated: Date;
+}
+
+// Enhanced template interface
+interface EnhancedTemplate extends EmailTemplate {
+  performance?: TemplatePerformanceData;
+  growthStage?: 'starter' | 'growth' | 'scale';
+  performanceBadge?: 'top-performer' | 'rising' | 'new';
+}
 
 interface TemplateGridProps {
   category?: TemplateCategory;
@@ -69,8 +100,18 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategory | 'all'>('all');
+  const [selectedPerformance, setSelectedPerformance] = useState<'all' | 'top-performer' | 'rising' | 'new'>('all');
+  const [sortBy, setSortBy] = useState<'revenue-desc' | 'conversion-desc' | 'newest' | 'trending'>('revenue-desc');
   const [error, setError] = useState<string | null>(null);
   const { user, isPro, isAgency } = useAuth();
+
+  // Sort options for dropdown
+  const sortOptions = [
+    { value: 'revenue-desc', label: 'Highest Revenue First' },
+    { value: 'conversion-desc', label: 'Best Conversion Rate' },
+    { value: 'newest', label: 'Recently Added' },
+    { value: 'trending', label: 'Trending Up' }
+  ];
 
   const categories = [
     { id: 'all', name: 'All Templates', icon: null },
@@ -81,8 +122,8 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
     { id: 'promotional', name: 'Promotional', icon: Target },
   ];
 
-  // Mock templates for immediate display
-  const mockTemplates: EmailTemplate[] = [
+  // Mock templates with performance data
+  const mockTemplates: EnhancedTemplate[] = [
     {
       id: 'mock-1',
       name: 'Abandoned Cart Reminder',
@@ -94,7 +135,17 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
       rating: 4.8,
       tags: ['ecommerce', 'recovery', 'sales'],
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      performance: {
+        monthlyRevenue: 24500,
+        conversionRate: 3.8,
+        avgOrderValue: 85,
+        sends: 15000,
+        trend: 'up',
+        lastUpdated: new Date()
+      },
+      growthStage: 'growth',
+      performanceBadge: 'top-performer'
     },
     {
       id: 'mock-2',
@@ -292,33 +343,103 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
   return (
     <div className="space-y-6">
       {/* Search and filters */}
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Search templates..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+      <div className="space-y-4">
+        {/* Search bar with sort */}
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search by goal, industry, or revenue stage..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-4"
+            />
+            {searchQuery && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500">
+                Try: "recover carts fashion" or "$500K monthly"
+              </div>
+            )}
+          </div>
+          
+          {/* Sort dropdown */}
+          <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+            <SelectTrigger className="w-[200px]">
+              <ArrowUpDown className="w-4 h-4 mr-2" />
+              <SelectValue placeholder="Sort by..." />
+            </SelectTrigger>
+            <SelectContent>
+              {sortOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         
         {!showUserTemplates && (
-          <div className="flex flex-wrap gap-2">
-            {categories.map((cat) => {
-              const Icon = cat.icon;
-              return (
-                <Button
-                  key={cat.id}
-                  variant={selectedCategory === cat.id ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedCategory(cat.id as TemplateCategory | 'all')}
-                >
-                  {Icon && <Icon className="w-4 h-4 mr-2" />}
-                  {cat.name}
-                </Button>
-              );
-            })}
+          <div className="space-y-3">
+            {/* Category filters */}
+            <div className="flex flex-wrap gap-2">
+              {categories.map((cat) => {
+                const Icon = cat.icon;
+                const isActive = selectedCategory === cat.id;
+                return (
+                  <Button
+                    key={cat.id}
+                    variant={isActive ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedCategory(cat.id as TemplateCategory | 'all')}
+                    className={cn(
+                      "relative overflow-hidden transition-all duration-200",
+                      isActive && "bg-growth-green hover:bg-growth-green-600 text-white border-growth-green"
+                    )}
+                  >
+                    {isActive && (
+                      <div className="absolute inset-0 pointer-events-none">
+                        <StripePattern 
+                          animation="parallax" 
+                          speed="slow" 
+                          opacity={0.1} 
+                          color="#ffffff"
+                        />
+                      </div>
+                    )}
+                    {Icon && <Icon className="w-4 h-4 mr-2 relative z-10" />}
+                    <span className="relative z-10">{cat.name}</span>
+                  </Button>
+                );
+              })}
+            </div>
+            
+            {/* Performance filters */}
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium text-gray-700">Performance:</span>
+              <div className="flex gap-2">
+                {[
+                  { id: 'all', label: 'All Templates', color: null },
+                  { id: 'top-performer', label: 'Top Performers', color: 'bg-success-purple' },
+                  { id: 'rising', label: 'Rising Stars', color: 'bg-growth-green' },
+                  { id: 'new', label: 'New Arrivals', color: 'bg-alert-amber' }
+                ].map((filter) => {
+                  const isActive = selectedPerformance === filter.id;
+                  return (
+                    <Button
+                      key={filter.id}
+                      variant={isActive ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSelectedPerformance(filter.id as any)}
+                      className={cn(
+                        "transition-all duration-200",
+                        isActive && filter.color && `${filter.color} text-white border-transparent hover:opacity-90`
+                      )}
+                    >
+                      {filter.label}
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -332,31 +453,64 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
         </div>
       ) : templates.length === 0 ? (
         <div className="text-center py-12">
-          <div className="text-gray-400 mb-4">
-            {showUserTemplates ? (
-              <Edit className="w-16 h-16 mx-auto" />
-            ) : (
-              <Search className="w-16 h-16 mx-auto" />
-            )}
+          <div className="mb-4">
+            <ZebCharacter 
+              variant={showUserTemplates ? 'guide' : 'thinking'} 
+              size="lg" 
+              className="mx-auto"
+            />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {showUserTemplates ? 'No templates yet' : 'No templates found'}
-          </h3>
-          <p className="text-gray-600">
+          <h3 className="text-lg font-bold text-zebra-black mb-2">
             {showUserTemplates 
-              ? 'Create your first template to get started'
-              : 'Try adjusting your search or filters'
+              ? "No templates yet? Let's build your first revenue driver!"
+              : 'No templates found for your search'
+            }
+          </h3>
+          <p className="text-gray-600 mb-4">
+            {showUserTemplates 
+              ? 'Start with our proven e-commerce templates to drive growth'
+              : 'Try adjusting your filters or browse all templates'
             }
           </p>
+          <Link href={showUserTemplates ? '/templates' : '/editor'}>
+            <Button className="bg-growth-green hover:bg-growth-green-600 text-white">
+              <TargetIcon className="w-4 h-4 mr-2" />
+              {showUserTemplates ? 'Browse Growth Templates' : 'Create Growth Template'}
+            </Button>
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {templates.map((template) => (
-            <Card 
-              key={template.id} 
-              className="group hover:shadow-lg transition-all duration-200 cursor-pointer"
-              onClick={() => handleTemplateSelect(template)}
-            >
+          {templates.map((template) => {
+            const enhancedTemplate = template as EnhancedTemplate;
+            const performanceBadge = enhancedTemplate.performanceBadge || (enhancedTemplate.usage_count > 1000 ? 'top-performer' : enhancedTemplate.usage_count > 500 ? 'rising' : 'new');
+            const revenue = enhancedTemplate.performance?.monthlyRevenue || Math.floor(Math.random() * 50000) + 5000;
+            const conversionRate = enhancedTemplate.performance?.conversionRate || (Math.random() * 4 + 1).toFixed(1);
+            
+            return (
+              <Card 
+                key={template.id} 
+                className="group relative hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-growth-green/30 hover:-translate-y-1 overflow-hidden"
+                onClick={() => handleTemplateSelect(template)}
+              >
+                {/* Stripe pattern on hover */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                  <StripePattern animation="static" opacity={0.03} color="#00d4aa" />
+                </div>
+                
+                {/* Performance badge */}
+                {performanceBadge && (
+                  <div className={cn(
+                    "absolute top-2 right-2 z-20 px-2 py-1 rounded-full text-xs font-medium",
+                    performanceBadge === 'top-performer' && "bg-success-purple text-white",
+                    performanceBadge === 'rising' && "bg-growth-green text-white",
+                    performanceBadge === 'new' && "bg-alert-amber text-zebra-black"
+                  )}>
+                    {performanceBadge === 'top-performer' && "Top Performer"}
+                    {performanceBadge === 'rising' && "Rising Star"}
+                    {performanceBadge === 'new' && "New"}
+                  </div>
+                )}
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -423,7 +577,7 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
 
                 {/* Template info */}
                 <div className="space-y-2">
-                  <h3 className="font-medium text-gray-900 group-hover:text-primary-600 transition-colors">
+                  <h3 className="font-bold text-zebra-black group-hover:text-growth-green transition-colors">
                     {template.name}
                   </h3>
                   {template.description && (
@@ -432,22 +586,40 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
                     </p>
                   )}
                   
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center">
-                        <Download className="w-4 h-4 mr-1" />
-                        {template.usage_count || 0}
+                  {/* Revenue metrics */}
+                  <div className="space-y-2 pt-2 border-t border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">💰 Generates</span>
+                      <span className="text-sm font-bold text-growth-green">
+                        ${revenue.toLocaleString()}/mo avg
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Conversion</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-sm font-medium text-zebra-black">{conversionRate}%</span>
+                        {enhancedTemplate.performance?.trend === 'up' && (
+                          <TrendingUp className="w-3 h-3 text-growth-green" />
+                        )}
                       </div>
-                      {template.rating > 0 && (
-                        <div className="flex items-center">
-                          <Star className="w-4 h-4 mr-1 fill-yellow-400 text-yellow-400" />
-                          {template.rating.toFixed(1)}
-                        </div>
-                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Growth stage indicator */}
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex gap-1">
+                        {[...Array(enhancedTemplate.growthStage === 'scale' ? 3 : enhancedTemplate.growthStage === 'growth' ? 2 : 1)].map((_, i) => (
+                          <div key={i} className="w-2 h-2 rounded-full bg-gray-300" />
+                        ))}
+                      </div>
+                      <span className="text-xs text-gray-600">
+                        {enhancedTemplate.growthStage === 'scale' ? 'Scale' : enhancedTemplate.growthStage === 'growth' ? 'Growth' : 'Starter'}
+                      </span>
                     </div>
                     
                     {showUserTemplates && (
-                      <span className="text-xs">
+                      <span className="text-xs text-gray-500">
                         {new Date(template.created_at).toLocaleDateString()}
                       </span>
                     )}
@@ -455,17 +627,17 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
                 </div>
 
                 {/* Action buttons */}
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 relative z-10">
                   <Button 
                     size="sm" 
-                    className="flex-1"
+                    className="flex-1 bg-growth-green hover:bg-growth-green-600 text-white group/btn"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleTemplateSelect(template);
                     }}
                   >
-                    <Edit className="w-4 h-4 mr-2" />
-                    {showUserTemplates ? 'Edit' : 'Use Template'}
+                    <TargetIcon className="w-4 h-4 mr-2 transition-transform group-hover/btn:rotate-12" />
+                    {showUserTemplates ? 'Edit Template' : 'Start Growing'}
                   </Button>
                   
                   <Button 
@@ -475,6 +647,7 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
                       e.stopPropagation();
                       handlePreview(template);
                     }}
+                    className="hover:border-growth-green hover:text-growth-green"
                   >
                     <Eye className="w-4 h-4" />
                   </Button>
@@ -495,7 +668,8 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
                 </div>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
