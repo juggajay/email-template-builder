@@ -144,10 +144,6 @@ export function Hero() {
                   </Button>
                 </Link>
               </div>
-              
-              <p className="text-sm text-gray-600 mt-6">
-                🚀 Beta testers get lifetime access to premium features
-              </p>
             </div>
           </div>
         </div>
