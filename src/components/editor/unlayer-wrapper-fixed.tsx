@@ -26,7 +26,6 @@ export function UnlayerWrapperFixed({
 }: UnlayerWrapperFixedProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true); // Start collapsed
   const editorRef = useRef<any>(null);
   
   // Debug log
@@ -175,28 +174,153 @@ export function UnlayerWrapperFixed({
           setIsLoading(false);
           editorRef.current = window.unlayer;
           
-          // Add collapse/expand functionality
+          // Create collapsible sidebar functionality
           setTimeout(() => {
-            const toolsPanel = document.querySelector('.gjs-pn-panels');
-            const canvasContainer = document.querySelector('.gjs-cv-canvas');
+            // Create hover trigger zone and indicator
+            const hoverZone = document.createElement('div');
+            hoverZone.id = 'sidebar-hover-zone';
+            hoverZone.style.cssText = `
+              position: fixed;
+              left: 0;
+              top: 60px;
+              width: 30px;
+              height: calc(100vh - 60px);
+              background: transparent;
+              z-index: 999;
+              cursor: pointer;
+            `;
             
-            if (toolsPanel && canvasContainer) {
-              // Apply initial collapsed state
-              toolsPanel.classList.add('collapsed-sidebar');
-              canvasContainer.classList.add('expanded-canvas');
+            const hoverIndicator = document.createElement('div');
+            hoverIndicator.id = 'sidebar-hover-indicator';
+            hoverIndicator.style.cssText = `
+              position: fixed;
+              left: 0;
+              top: 50%;
+              transform: translateY(-50%);
+              width: 20px;
+              height: 60px;
+              background: #00D4AA;
+              border-radius: 0 4px 4px 0;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              font-size: 12px;
+              z-index: 1000;
+              box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+              transition: all 0.3s ease;
+            `;
+            hoverIndicator.innerHTML = '▶';
+            
+            document.body.appendChild(hoverZone);
+            document.body.appendChild(hoverIndicator);
+            
+            // Apply styles to collapse the Unlayer sidebar
+            const style = document.createElement('style');
+            style.textContent = `
+              #unlayer-editor-fixed {
+                transition: padding-left 0.3s ease-in-out !important;
+              }
               
-              // Add hover listeners
-              toolsPanel.addEventListener('mouseenter', () => {
-                toolsPanel.classList.remove('collapsed-sidebar');
-                canvasContainer.classList.remove('expanded-canvas');
+              #unlayer-editor-fixed.sidebar-collapsed {
+                padding-left: 0 !important;
+              }
+              
+              #unlayer-editor-fixed iframe {
+                width: 100% !important;
+                height: 100% !important;
+              }
+              
+              /* Override Unlayer's internal styles */
+              .blockbuilder-wrapper .blockbuilder-content-frame {
+                left: 0 !important;
+                width: 100% !important;
+              }
+            `;
+            document.head.appendChild(style);
+            
+            // Get the editor container
+            const editorContainer = document.getElementById('unlayer-editor-fixed');
+            if (editorContainer) {
+              // Start with sidebar collapsed
+              editorContainer.classList.add('sidebar-collapsed');
+              
+              // Try to hide panels using Unlayer's API
+              if (window.unlayer && window.unlayer.setBodyValues) {
+                try {
+                  // Hide panels through Unlayer's API if available
+                  window.unlayer.hidePanel && window.unlayer.hidePanel('tools');
+                } catch (e) {
+                  console.log('[UnlayerFixed] Could not hide panel via API');
+                }
+              }
+              
+              let isHovering = false;
+              
+              const expandSidebar = () => {
+                isHovering = true;
+                editorContainer.classList.remove('sidebar-collapsed');
+                hoverIndicator.style.opacity = '0';
+                
+                // Show panels through Unlayer's API if available
+                if (window.unlayer && window.unlayer.showPanel) {
+                  try {
+                    window.unlayer.showPanel('tools');
+                  } catch (e) {
+                    console.log('[UnlayerFixed] Could not show panel via API');
+                  }
+                }
+              };
+              
+              const collapseSidebar = () => {
+                if (!isHovering) {
+                  editorContainer.classList.add('sidebar-collapsed');
+                  hoverIndicator.style.opacity = '1';
+                  
+                  // Hide panels through Unlayer's API if available
+                  if (window.unlayer && window.unlayer.hidePanel) {
+                    try {
+                      window.unlayer.hidePanel('tools');
+                    } catch (e) {
+                      console.log('[UnlayerFixed] Could not hide panel via API');
+                    }
+                  }
+                }
+              };
+              
+              // Add event listeners
+              hoverZone.addEventListener('mouseenter', expandSidebar);
+              hoverIndicator.addEventListener('mouseenter', expandSidebar);
+              
+              hoverZone.addEventListener('mouseleave', () => {
+                isHovering = false;
+                setTimeout(collapseSidebar, 300);
               });
               
-              toolsPanel.addEventListener('mouseleave', () => {
-                toolsPanel.classList.add('collapsed-sidebar');
-                canvasContainer.classList.add('expanded-canvas');
-              });
+              // Also monitor the iframe for hover
+              const checkIframeHover = setInterval(() => {
+                const iframe = editorContainer.querySelector('iframe');
+                if (iframe) {
+                  clearInterval(checkIframeHover);
+                  
+                  // Monitor mouse position relative to iframe
+                  iframe.addEventListener('load', () => {
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+                    if (iframeDoc) {
+                      iframeDoc.addEventListener('mousemove', (e: MouseEvent) => {
+                        if (e.clientX < 250) { // If mouse is in sidebar area
+                          expandSidebar();
+                        } else if (e.clientX > 300) { // If mouse moved away from sidebar
+                          isHovering = false;
+                          setTimeout(collapseSidebar, 300);
+                        }
+                      });
+                    }
+                  });
+                }
+              }, 100);
             }
-          }, 100);
+          }, 1000); // Wait for Unlayer to fully initialize
           
           // Register Shopify blocks
           try {
