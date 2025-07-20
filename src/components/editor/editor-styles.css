@@ -121,7 +121,7 @@
 
 /* Collapsible sidebar styles */
 .gjs-pn-panels {
-  transition: transform 0.3s ease-in-out, width 0.3s ease-in-out !important;
+  transition: transform 0.3s ease-in-out !important;
   position: fixed !important;
   left: 0 !important;
   top: 0 !important;
@@ -129,8 +129,35 @@
   z-index: 40 !important;
 }
 
+/* Collapsed state - show just a sliver */
 .gjs-pn-panels.collapsed-sidebar {
-  transform: translateX(-250px) !important;
+  transform: translateX(-230px) !important; /* Leave 20px visible */
+}
+
+/* Visual indicator when collapsed */
+.gjs-pn-panels.collapsed-sidebar::after {
+  content: '▶';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 60px;
+  background: #00D4AA;
+  border-radius: 0 4px 4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 12px;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+  cursor: pointer;
+  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.gjs-pn-panels.collapsed-sidebar:hover::after {
+  opacity: 1;
 }
 
 .gjs-cv-canvas {
@@ -138,7 +165,7 @@
 }
 
 .gjs-cv-canvas.expanded-canvas {
-  margin-left: 0 !important;
+  margin-left: 20px !important; /* Account for the visible sliver */
 }
 
 /* Make sure the iframe container adjusts */
