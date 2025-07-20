@@ -13,16 +13,18 @@ declare global {
 
 interface UnlayerWrapperFixedProps {
   initialDesign?: any;
-  onReady?: () => void;
+  onReady?: (editor: any) => void;
   onDesignLoad?: () => void;
   onSave?: (design: any, html: string) => void;
+  hideBottomSaveButton?: boolean;
 }
 
 export function UnlayerWrapperFixed({ 
   initialDesign, 
   onReady, 
   onDesignLoad,
-  onSave 
+  onSave,
+  hideBottomSaveButton = false
 }: UnlayerWrapperFixedProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -358,7 +360,7 @@ export function UnlayerWrapperFixed({
           }
           
           if (onReady) {
-            onReady();
+            onReady(window.unlayer);
           }
 
           // Load initial design or a default template
@@ -578,7 +580,7 @@ export function UnlayerWrapperFixed({
       )}
 
       {/* Save button - fixed position */}
-      {!isLoading && !error && (
+      {!isLoading && !error && !hideBottomSaveButton && (
         <div 
           className="editor-toolbar-save"
           style={{

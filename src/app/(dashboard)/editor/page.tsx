@@ -22,7 +22,13 @@ import { findAllMergeTags } from '@/lib/merge-tags/parser';
 import { validateTemplate } from '@/lib/merge-tags/validator';
 import { getAllMergeTags } from '@/lib/merge-tags';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Eye, Filter } from 'lucide-react';
+import { Sparkles, Eye, Filter, Save, ChevronDown } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,6 +44,8 @@ function EditorContent() {
   const [previewData, setPreviewData] = useState<Record<string, any>>({});
   const [usedTags, setUsedTags] = useState<string[]>([]);
   const [templateHtml, setTemplateHtml] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [editorRef, setEditorRef] = useState<any>(null);
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -121,11 +129,13 @@ function EditorContent() {
     }
   };
 
-  const handleSave = async (design: any, html: string) => {
+  const handleSave = async (design: any, html: string, shouldExit: boolean = false) => {
     if (!user) {
       alert('Please sign in to save templates');
       return;
     }
+
+    setIsSaving(true);
 
     // Update template HTML for preview
     setTemplateHtml(html);
@@ -143,6 +153,7 @@ function EditorContent() {
       const errors = validation.issues.filter(i => i.type === 'error');
       if (errors.length > 0) {
         alert(`Template validation failed:\n${errors.map(e => e.message).join('\n')}`);
+        setIsSaving(false);
         return;
       }
     }
@@ -192,11 +203,18 @@ function EditorContent() {
         console.log('[EditorPage] New template created successfully');
       }
 
-      // Show success message
-      alert('Template saved successfully!');
+      // If shouldExit is true, navigate back to templates
+      if (shouldExit) {
+        router.push('/my-templates');
+      } else {
+        // Show success message
+        alert('Template saved successfully!');
+      }
     } catch (error) {
       console.error('[EditorPage] Error saving template:', error);
       alert('Failed to save template. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -250,6 +268,31 @@ function EditorContent() {
     
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Handle save actions from the header
+  const handleSaveAndExit = () => {
+    if (editorRef && editorRef.exportHtml) {
+      editorRef.exportHtml((data: any) => {
+        const { design, html } = data;
+        handleSave(design, html, true);
+      });
+    }
+  };
+
+  const handleSaveAsTemplate = () => {
+    if (editorRef && editorRef.exportHtml) {
+      editorRef.exportHtml((data: any) => {
+        const { design, html } = data;
+        handleSave(design, html, false);
+      });
+    }
+  };
+
+  const handleChangeTemplate = () => {
+    if (window.confirm('Are you sure you want to change template? Any unsaved changes will be lost.')) {
+      router.push('/templates');
+    }
+  };
 
   // Use mobile wrapper for mobile devices
   if (isMobile) {
@@ -329,12 +372,45 @@ function EditorContent() {
                 console.log('Test email sent:', result);
               }}
             />
-            <button
-              onClick={() => router.push('/templates')}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
-            >
-              Back to Templates
-            </button>
+            
+            {/* Save & Exit Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  className="bg-growth-green hover:bg-growth-green-600 text-white flex items-center gap-2"
+                  disabled={isSaving}
+                >
+                  <Save className="w-4 h-4" />
+                  {isSaving ? 'Saving...' : 'Save & Exit'}
+                  <ChevronDown className="w-4 h-4 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem 
+                  onClick={handleSaveAndExit}
+                  disabled={isSaving}
+                  className="cursor-pointer"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Save & Exit
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={handleSaveAsTemplate}
+                  disabled={isSaving}
+                  className="cursor-pointer"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Save as Template
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={handleChangeTemplate}
+                  className="cursor-pointer"
+                >
+                  <Filter className="w-4 h-4 mr-2" />
+                  Change Template
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -348,9 +424,13 @@ function EditorContent() {
               <>
                 <UnlayerWrapperFixed
                   initialDesign={initialDesign}
-                  onReady={() => console.log('[EditorPage] Unlayer ready')}
+                  onReady={(editor) => {
+                    console.log('[EditorPage] Unlayer ready');
+                    setEditorRef(editor);
+                  }}
                   onDesignLoad={() => console.log('[EditorPage] Design loaded')}
                   onSave={handleSave}
+                  hideBottomSaveButton={true}
                 />
                 <MergeTagAutocomplete
                   onTagInsert={(tag) => console.log('Tag inserted:', tag)}
