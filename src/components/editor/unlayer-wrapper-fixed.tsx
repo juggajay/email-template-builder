@@ -26,6 +26,7 @@ export function UnlayerWrapperFixed({
 }: UnlayerWrapperFixedProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const editorRef = useRef<any>(null);
   
   // Debug log
@@ -173,6 +174,17 @@ export function UnlayerWrapperFixed({
           console.log('[UnlayerFixed] Editor ready');
           setIsLoading(false);
           editorRef.current = window.unlayer;
+          
+          // Add collapse/expand functionality
+          setTimeout(() => {
+            const toolsPanel = document.querySelector('.gjs-pn-panels');
+            if (toolsPanel) {
+              // Apply initial state
+              if (sidebarCollapsed) {
+                toolsPanel.classList.add('collapsed-sidebar');
+              }
+            }
+          }, 100);
           
           // Register Shopify blocks
           try {
@@ -342,6 +354,32 @@ export function UnlayerWrapperFixed({
     };
   }, []);
 
+  // Handle sidebar toggle
+  const toggleSidebar = () => {
+    const newState = !sidebarCollapsed;
+    setSidebarCollapsed(newState);
+    
+    // Apply the class to Unlayer's panels
+    const toolsPanel = document.querySelector('.gjs-pn-panels');
+    const canvasContainer = document.querySelector('.gjs-cv-canvas');
+    
+    if (toolsPanel) {
+      if (newState) {
+        toolsPanel.classList.add('collapsed-sidebar');
+      } else {
+        toolsPanel.classList.remove('collapsed-sidebar');
+      }
+    }
+    
+    if (canvasContainer) {
+      if (newState) {
+        canvasContainer.classList.add('expanded-canvas');
+      } else {
+        canvasContainer.classList.remove('expanded-canvas');
+      }
+    }
+  };
+
   const handleExport = () => {
     console.log('[UnlayerFixed] handleExport called');
     if (!editorRef.current) {
@@ -383,6 +421,37 @@ export function UnlayerWrapperFixed({
 
   return (
     <div className="relative h-full unlayer-editor-wrapper">
+      {/* Sidebar Toggle Button */}
+      {!isLoading && !error && (
+        <button
+          onClick={toggleSidebar}
+          className="absolute bg-white border border-gray-300 rounded-md p-2 shadow-md hover:bg-gray-50 transition-all duration-200 hover:shadow-lg"
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: sidebarCollapsed ? '10px' : '260px',
+            transform: 'translateY(-50%)',
+            transition: 'left 0.3s ease-in-out',
+            zIndex: 100
+          }}
+          title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          <svg 
+            className="w-5 h-5 text-gray-600" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d={sidebarCollapsed ? 'M9 5l7 7-7 7' : 'M15 19l-7-7 7-7'}
+            />
+          </svg>
+        </button>
+      )}
+      
       {/* Editor container */}
       <div 
         id="unlayer-editor-fixed" 
