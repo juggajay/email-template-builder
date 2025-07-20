@@ -2,7 +2,8 @@
 ALTER TABLE user_profiles 
 ADD COLUMN IF NOT EXISTS is_beta_tester BOOLEAN DEFAULT false,
 ADD COLUMN IF NOT EXISTS beta_access_granted_at TIMESTAMPTZ,
-ADD COLUMN IF NOT EXISTS beta_invite_code TEXT;
+ADD COLUMN IF NOT EXISTS beta_invite_code TEXT,
+ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user' CHECK (role IN ('user', 'admin'));
 
 -- Create index for faster lookups
 CREATE INDEX IF NOT EXISTS idx_user_profiles_beta_tester ON user_profiles(is_beta_tester) WHERE is_beta_tester = true;
