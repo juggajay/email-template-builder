@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/hooks/use-auth';
 import { authService } from '@/lib/supabase/auth';
 import { betaAccessService } from '@/lib/beta-access';
+import { BETA_CONFIG } from '@/lib/beta-config';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -50,6 +51,12 @@ export function LoginForm() {
           setError(result.error.message);
         }
       } else if (result.data?.user) {
+        // Skip beta check if disabled or email is bypassed
+        if (!BETA_CONFIG.IS_ENABLED || BETA_CONFIG.shouldBypassBeta(data.email)) {
+          router.push('/dashboard');
+          return;
+        }
+        
         // Check if user has beta access
         const hasBetaAccess = await betaAccessService.checkBetaAccess(result.data.user.id);
         
