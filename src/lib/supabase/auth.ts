@@ -23,6 +23,11 @@ export class AuthService {
 
   async signUp({ email, password, fullName, companyName }: SignUpData) {
     try {
+      // Check if Supabase is properly configured
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        throw new Error('Authentication service is not properly configured. Please contact support.');
+      }
+
       const { data, error } = await this.supabase.auth.signUp({
         email,
         password,
@@ -38,6 +43,18 @@ export class AuthService {
 
       return { data, error: null };
     } catch (error) {
+      console.error('Sign up error:', error);
+      
+      // Handle specific error types
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        return {
+          data: null,
+          error: {
+            message: 'Connection error. Please check your internet connection and try again.',
+          },
+        };
+      }
+      
       return {
         data: null,
         error: {
@@ -49,6 +66,11 @@ export class AuthService {
 
   async signIn({ email, password }: SignInData) {
     try {
+      // Check if Supabase is properly configured
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        throw new Error('Authentication service is not properly configured. Please contact support.');
+      }
+
       const { data, error } = await this.supabase.auth.signInWithPassword({
         email,
         password,
@@ -58,6 +80,18 @@ export class AuthService {
 
       return { data, error: null };
     } catch (error) {
+      console.error('Sign in error:', error);
+      
+      // Handle specific error types
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        return {
+          data: null,
+          error: {
+            message: 'Connection error. Please check your internet connection and try again.',
+          },
+        };
+      }
+      
       return {
         data: null,
         error: {

@@ -105,6 +105,14 @@ export function LoginForm() {
           {error && (
             <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
               {error}
+              {error.includes('configured') && (
+                <a 
+                  href="/setup" 
+                  className="block mt-2 text-primary hover:underline"
+                >
+                  View setup guide →
+                </a>
+              )}
             </div>
           )}
 
