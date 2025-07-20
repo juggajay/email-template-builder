@@ -21,6 +21,8 @@ import {
   Crown,
   FolderOpen
 } from 'lucide-react';
+import { ZebCharacter, StripePattern } from '@/components/brand';
+import { TargetIcon } from '@/components/brand/GeometricIcons';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -30,7 +32,7 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Templates', href: '/templates', icon: FileText },
   { name: 'My Templates', href: '/my-templates', icon: FolderOpen },
-  { name: 'Email Editor', href: '/editor', icon: Mail },
+  { name: 'Campaign Builder', href: '/editor', icon: Mail },
   { name: 'Settings', href: '/settings', icon: Settings },
   { name: 'Billing', href: '/billing', icon: CreditCard },
   { name: 'Help', href: '/help', icon: HelpCircle },
@@ -54,7 +56,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         
         <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-xl">
           <div className="flex items-center justify-between h-16 px-4 border-b">
-            <span className="text-xl font-bold text-gray-900">Email Builder</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-bold text-zebra-black">ZebaMail</span>
+              <ZebCharacter variant="default" size="sm" className="w-6 h-6" />
+            </div>
             <Button
               variant="ghost"
               size="sm"
@@ -73,15 +78,20 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center px-4 py-3 text-sm font-medium transition-colors ${
+                  className={`relative flex items-center px-4 py-3 text-sm font-medium transition-all duration-200 group ${
                     isActive
-                      ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-growth-green/10 text-growth-green border-r-2 border-growth-green'
+                      : 'text-zebra-black hover:bg-gray-50 hover:text-growth-green'
                   }`}
                   onClick={() => setSidebarOpen(false)}
                 >
-                  <Icon className="mr-3 h-5 w-5" />
-                  {item.name}
+                  {isActive && (
+                    <div className="absolute inset-0 pointer-events-none">
+                      <StripePattern animation="static" opacity={0.03} color="#00d4aa" />
+                    </div>
+                  )}
+                  <Icon className="mr-3 h-5 w-5 relative z-10" />
+                  <span className="relative z-10">{item.name}</span>
                 </Link>
               );
             })}
@@ -93,7 +103,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
         <div className="flex flex-col flex-1 min-h-0 bg-white border-r border-gray-200">
           <div className="flex items-center h-16 px-4 border-b">
-            <span className="text-xl font-bold text-gray-900">Email Builder</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-bold text-zebra-black">ZebaMail</span>
+              <ZebCharacter variant="default" size="sm" className="w-6 h-6" />
+            </div>
           </div>
           
           <nav className="flex-1 mt-4 space-y-1">
@@ -105,14 +118,19 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center px-4 py-3 text-sm font-medium transition-colors ${
+                  className={`relative flex items-center px-4 py-3 text-sm font-medium transition-all duration-200 group ${
                     isActive
-                      ? 'bg-primary-50 text-primary-600 border-r-2 border-primary-600'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-growth-green/10 text-growth-green border-r-2 border-growth-green'
+                      : 'text-zebra-black hover:bg-gray-50 hover:text-growth-green'
                   }`}
                 >
-                  <Icon className="mr-3 h-5 w-5" />
-                  {item.name}
+                  {isActive && (
+                    <div className="absolute inset-0 pointer-events-none">
+                      <StripePattern animation="static" opacity={0.03} color="#00d4aa" />
+                    </div>
+                  )}
+                  <Icon className="mr-3 h-5 w-5 relative z-10" />
+                  <span className="relative z-10">{item.name}</span>
                 </Link>
               );
             })}
@@ -121,14 +139,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           {/* User menu */}
           <div className="flex-shrink-0 p-4 border-t">
             <div className="flex items-center space-x-3">
-              <Avatar
-                src={profile?.logo_url}
-                alt={profile?.full_name || 'User'}
-                fallback={profile?.full_name || 'User'}
-                size="md"
-              />
+              <div className="relative">
+                <Avatar
+                  src={profile?.logo_url}
+                  alt={profile?.full_name || 'User'}
+                  fallback={profile?.full_name || 'User'}
+                  size="md"
+                />
+                <ZebCharacter variant="default" size="sm" className="absolute -bottom-1 -right-1 w-4 h-4" />
+              </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
+                <p className="text-sm font-medium text-zebra-black truncate">
                   {profile?.full_name || 'User'}
                 </p>
                 <div className="flex items-center space-x-2 mt-1">
@@ -184,21 +205,25 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             {/* Usage indicator for free users */}
             {!isPro && !isAgency && subscription && (
               <div className="hidden sm:flex items-center space-x-2">
-                <span className="text-sm text-gray-600">
-                  {profile?.usage_count || 0}/5 exports this month
+                <span className="text-sm text-gray-700 font-medium">
+                  <span className="text-growth-green">{profile?.usage_count || 0}</span>/5 campaigns this month
                 </span>
                 <Link href="/billing">
-                  <Button variant="outline" size="sm">
-                    Upgrade
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="border-growth-green text-growth-green hover:bg-growth-green hover:text-white"
+                  >
+                    Unlock Growth
                   </Button>
                 </Link>
               </div>
             )}
 
             <Link href="/editor">
-              <Button>
-                <Mail className="w-4 h-4 mr-2" />
-                New Template
+              <Button className="bg-growth-green hover:bg-growth-green-600 text-white">
+                <TargetIcon className="w-4 h-4 mr-2" />
+                Build Campaign
               </Button>
             </Link>
           </div>
