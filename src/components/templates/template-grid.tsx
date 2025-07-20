@@ -396,9 +396,7 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
                         speed="slow" 
                         opacity={0.1} 
                         color="#ffffff"
-                      >
-                        <div />
-                      </StripePattern>
+                      />
                     </div>
                   )}
                   {Icon && <Icon className="w-4 h-4 mr-2 relative z-10" />}
