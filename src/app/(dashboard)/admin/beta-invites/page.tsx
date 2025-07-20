@@ -16,7 +16,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Copy, Check } from 'lucide-react';
+import { Plus, Copy, Check, Info } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function BetaInvitesPage() {
@@ -117,6 +117,43 @@ export default function BetaInvitesPage() {
           Manage beta access invitations for ZebaMail
         </p>
       </div>
+
+      {/* Instructions Card */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Info className="w-5 h-5 text-blue-600" />
+            How Beta Invites Work
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <h4 className="font-semibold text-sm mb-2">For You (Admin):</h4>
+            <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700">
+              <li>Create an invite code below (e.g., BETA-LAUNCH01)</li>
+              <li>Set how many people can use it (e.g., 50 uses)</li>
+              <li>Share the code with your beta testers via email</li>
+            </ol>
+          </div>
+          
+          <div className="border-t pt-4">
+            <h4 className="font-semibold text-sm mb-2">For Beta Testers:</h4>
+            <ol className="list-decimal list-inside space-y-1 text-sm text-gray-700">
+              <li>They go to your signup page (/signup)</li>
+              <li>Create their own account (email + password they choose)</li>
+              <li>Enter the invite code you provided</li>
+              <li>They're in! They login with their own credentials</li>
+            </ol>
+          </div>
+
+          <div className="bg-white rounded-lg p-3 border border-blue-200">
+            <p className="text-sm">
+              <strong>Note:</strong> The invite code is NOT a password - it's just a one-time access key. 
+              Each user creates their own unique account with their own email/password.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Create Invite Form */}
       <Card>
