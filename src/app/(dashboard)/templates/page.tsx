@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { TemplateGrid } from '@/components/templates/template-grid';
 
 export const dynamic = 'force-dynamic';
 
-export default function TemplatesPage() {
+function TemplatesContent() {
   const searchParams = useSearchParams();
   const [viewMode, setViewMode] = useState<'public' | 'my-templates'>(
     searchParams.get('view') === 'my-templates' ? 'my-templates' : 'public'
@@ -36,5 +36,23 @@ export default function TemplatesPage() {
         onViewModeChange={setViewMode}
       />
     </div>
+  );
+}
+
+export default function TemplatesPage() {
+  return (
+    <Suspense fallback={
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-zebra-black">Templates Library</h1>
+          <p className="text-gray-700 mt-2">
+            Choose from our collection of email templates
+          </p>
+        </div>
+        <div className="text-center py-8">Loading templates...</div>
+      </div>
+    }>
+      <TemplatesContent />
+    </Suspense>
   );
 }
