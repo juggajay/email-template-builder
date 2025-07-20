@@ -104,7 +104,9 @@ export function Hero() {
           <div className="relative rounded-xl overflow-hidden shadow-2xl border-2 border-growth-green bg-gradient-to-br from-growth-green/5 to-white p-12">
             {/* Stripe pattern overlay */}
             <div className="absolute inset-0 opacity-10">
-              <StripeBackground animation="static" opacity={0.1} color="#00d4aa" />
+              <StripeBackground animation="static" opacity={0.1} color="#00d4aa">
+                <div className="absolute inset-0" />
+              </StripeBackground>
             </div>
             
             <div className="relative z-10 text-center">
