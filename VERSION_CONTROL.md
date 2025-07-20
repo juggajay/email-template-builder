@@ -82,6 +82,14 @@ DEFAULT_FROM_NAME=App Name
 6. ✅ Vercel deployment issues
 7. ✅ Shopify connection detection
 
+## Important Configuration Notes
+
+### Shopify App Type (Critical for Launch)
+- The app uses `SHOPIFY_CLIENT_ID` and `SHOPIFY_CLIENT_SECRET`
+- Must be a **PUBLIC APP**, not a Custom App
+- Custom Apps cannot be distributed or monetized
+- See `SHOPIFY_APP_MIGRATION_GUIDE.md` for migration steps
+
 ## How to Rollback if Needed
 
 If something breaks in future updates:
