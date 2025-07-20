@@ -118,3 +118,116 @@
   margin-left: 250px !important;
   margin-right: 0 !important;
 }
+
+/* ==============================================
+   MINIMALIST DESIGN OVERRIDES 
+   ============================================== */
+
+/* Hide Unlayer UI elements for minimalist design */
+#unlayer-editor-minimalist .blockbuilder-placeholder { 
+  display: none !important; 
+}
+
+#unlayer-editor-minimalist .blockbuilder-wrapper { 
+  background: transparent !important; 
+}
+
+#unlayer-editor-minimalist .blockbuilder-content-wrapper { 
+  box-shadow: none !important; 
+}
+
+/* Remove Row labels and hover UI */
+#unlayer-editor-minimalist .u-row-container:hover::before { 
+  content: none !important; 
+}
+
+#unlayer-editor-minimalist .u-row-container .row-actions {
+  display: none !important;
+}
+
+/* Remove all blue + buttons between sections */
+#unlayer-editor-minimalist .add-row-button,
+#unlayer-editor-minimalist [class*="add-button"],
+#unlayer-editor-minimalist [class*="plus-button"],
+#unlayer-editor-minimalist .u-row-add {
+  display: none !important;
+}
+
+/* Hide Unlayer branding/footer */
+#unlayer-editor-minimalist .blockbuilder-footer,
+#unlayer-editor-minimalist [class*="branding"],
+#unlayer-editor-minimalist [class*="powered-by"] {
+  display: none !important;
+}
+
+/* Minimize hover states */
+#unlayer-editor-minimalist .u-row:hover {
+  border: 1px solid #E5E5E5 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+#unlayer-editor-minimalist .u-row.selected,
+#unlayer-editor-minimalist .u-row-selected {
+  outline: 1px solid #00D4AA !important;
+  outline-offset: 2px !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Clean canvas background */
+#unlayer-editor-minimalist .blockbuilder-content {
+  background: #FFFFFF !important;
+  border: 1px solid #E5E5E5 !important;
+  border-radius: 4px !important;
+}
+
+#unlayer-editor-minimalist .email-editor-canvas {
+  background: #FAFAFA !important;
+}
+
+/* Remove all blue highlights */
+#unlayer-editor-minimalist [class*="highlight"],
+#unlayer-editor-minimalist [class*="selected"] {
+  background-color: transparent !important;
+}
+
+#unlayer-editor-minimalist .u-block:hover {
+  outline: 1px solid #E5E5E5 !important;
+  outline-offset: 2px !important;
+  background-color: transparent !important;
+}
+
+/* Hide default Unlayer panels */
+#unlayer-editor-minimalist .gjs-blocks-c,
+#unlayer-editor-minimalist .gjs-pn-panels {
+  display: none !important;
+}
+
+/* Ensure proper text visibility */
+#unlayer-editor-minimalist [class*="percentage"],
+#unlayer-editor-minimalist [class*="percent"] {
+  color: #333333 !important;
+}
+
+/* Remove decorative backgrounds */
+#unlayer-editor-minimalist [class*="pattern"],
+#unlayer-editor-minimalist [class*="checkered"] {
+  background: none !important;
+}
+
+/* Clean up block insertion */
+#unlayer-editor-minimalist .u-block-insertion-indicator {
+  background: #00D4AA !important;
+  height: 2px !important;
+}
+
+/* Remove shadows and excessive borders */
+#unlayer-editor-minimalist * {
+  box-shadow: none !important;
+}
+
+#unlayer-editor-minimalist .u-row,
+#unlayer-editor-minimalist .u-block {
+  border-radius: 0 !important;
+}

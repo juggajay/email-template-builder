@@ -8,6 +8,7 @@ import { UnlayerWrapperSimple } from '@/components/editor/unlayer-wrapper-simple
 import { UnlayerWrapperFixed } from '@/components/editor/unlayer-wrapper-fixed';
 import { UnlayerWrapperFast } from '@/components/editor/unlayer-wrapper-fast';
 import { UnlayerWrapperClean } from '@/components/editor/unlayer-wrapper-clean';
+import { UnlayerWrapperMinimalist } from '@/components/editor/unlayer-wrapper-minimalist';
 import { MobileEditorWrapper } from '@/components/editor/mobile-editor-wrapper';
 import { EnhancedMergeTagsPanel } from '@/components/editor/merge-tags-enhanced/panel';
 import { PreviewDataEditor } from '@/components/editor/merge-tags-enhanced/preview-data';
@@ -278,129 +279,24 @@ function EditorContent() {
     );
   }
 
-  // Desktop layout
+  // Desktop layout - Using Minimalist Design
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <input
-              type="text"
-              value={templateName}
-              onChange={(e) => setTemplateName(e.target.value)}
-              className="text-lg font-medium border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none px-1"
-              placeholder="Template name"
-            />
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowEnhancedPanel(!showEnhancedPanel)}
-              className="flex items-center gap-2"
-            >
-              <Sparkles className="w-4 h-4" />
-              Merge Tags
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowPreviewData(!showPreviewData)}
-              className="flex items-center gap-2"
-            >
-              <Eye className="w-4 h-4" />
-              Preview Data
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowConditional(!showConditional)}
-              className="flex items-center gap-2"
-            >
-              <Filter className="w-4 h-4" />
-              Conditionals
-            </Button>
-            <SendTestEmail 
-              templateHtml={templateHtml}
-              templateSubject={`Preview: ${templateName}`}
-              onEmailSent={(result) => {
-                console.log('Test email sent:', result);
-              }}
-            />
-            <button
-              onClick={() => router.push('/templates')}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
-            >
-              Back to Templates
-            </button>
+    <>
+      {isReady ? (
+        <UnlayerWrapperMinimalist
+          initialDesign={initialDesign}
+          onReady={() => console.log('[EditorPage] Unlayer ready')}
+          onDesignLoad={() => console.log('[EditorPage] Design loaded')}
+          onSave={handleSave}
+        />
+      ) : (
+        <div className="flex items-center justify-center h-screen bg-gray-50">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading editor...</p>
           </div>
         </div>
-      </div>
-
-      {/* Main content area with editor and panels */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Editor - takes remaining width */}
-        <div className="flex-1 p-4 overflow-hidden">
-          <div className="h-full max-w-full mx-auto bg-white rounded-lg shadow-lg overflow-hidden relative">
-            {isReady ? (
-              <>
-                <UnlayerWrapperFixed
-                  initialDesign={initialDesign}
-                  onReady={() => console.log('[EditorPage] Unlayer ready')}
-                  onDesignLoad={() => console.log('[EditorPage] Design loaded')}
-                  onSave={handleSave}
-                />
-                <MergeTagAutocomplete
-                  onTagInsert={(tag) => console.log('Tag inserted:', tag)}
-                />
-              </>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading template...</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Side panels */}
-        {(showEnhancedPanel || showPreviewData || showConditional) && (
-          <div className="w-96 border-l bg-white p-4 overflow-y-auto">
-            {showEnhancedPanel && (
-              <div className="mb-4">
-                <EnhancedMergeTagsPanel
-                  onTagSelect={(tag) => console.log('Tag selected:', tag)}
-                  onTagsUsedUpdate={setUsedTags}
-                  usedTags={usedTags}
-                />
-              </div>
-            )}
-            
-            {showPreviewData && (
-              <div className="mb-4">
-                <PreviewDataEditor
-                  onDataChange={setPreviewData}
-                  templateContent={templateHtml}
-                />
-              </div>
-            )}
-            
-            {showConditional && (
-              <div className="mb-4">
-                <ConditionalEditor
-                  blocks={conditionalBlocks}
-                  onBlocksChange={setConditionalBlocks}
-                  testData={previewData}
-                />
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      )}
       
       {/* Performance optimization script */}
       <Script src="/performance-optimizations.js" strategy="afterInteractive" />
@@ -409,7 +305,7 @@ function EditorContent() {
       {process.env.NODE_ENV === 'development' && (
         <Script src="/debug-unlayer.js" strategy="afterInteractive" />
       )}
-    </div>
+    </>
   );
 }
 
