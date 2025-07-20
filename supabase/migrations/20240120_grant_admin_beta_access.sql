@@ -26,7 +26,7 @@ RETURNS TRIGGER AS $$
 BEGIN
   -- Auto-grant beta access to specific email domains
   IF NEW.email LIKE '%@zebamail.com' OR 
-     NEW.email = 'jaysonjewett@gmail.com' THEN  -- Add your email here
+     NEW.email = 'jaysonryan21@hotmail.com' THEN  -- Add your email here
     NEW.is_beta_tester := true;
     NEW.beta_access_granted_at := NOW();
     
