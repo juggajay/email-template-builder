@@ -19,7 +19,8 @@ import {
   X,
   Zap,
   Crown,
-  FolderOpen
+  FolderOpen,
+  ShieldCheck
 } from 'lucide-react';
 import { ZebCharacter, StripePattern } from '@/components/brand';
 import { TargetIcon } from '@/components/brand/GeometricIcons';
@@ -28,20 +29,31 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Templates', href: '/templates', icon: FileText },
-  { name: 'My Templates', href: '/my-templates', icon: FolderOpen },
-  { name: 'Campaign Builder', href: '/editor', icon: Mail },
-  { name: 'Settings', href: '/settings', icon: Settings },
-  { name: 'Billing', href: '/billing', icon: CreditCard },
-  { name: 'Help', href: '/help', icon: HelpCircle },
-];
+const getNavigation = (isAdmin: boolean) => {
+  const baseNav = [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Templates', href: '/templates', icon: FileText },
+    { name: 'My Templates', href: '/my-templates', icon: FolderOpen },
+    { name: 'Campaign Builder', href: '/editor', icon: Mail },
+    { name: 'Settings', href: '/settings', icon: Settings },
+    { name: 'Billing', href: '/billing', icon: CreditCard },
+    { name: 'Help', href: '/help', icon: HelpCircle },
+  ];
+
+  if (isAdmin) {
+    baseNav.push({ name: 'Beta Invites', href: '/admin/beta-invites', icon: ShieldCheck });
+  }
+
+  return baseNav;
+};
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const { user, profile, subscription, signOut, isPro, isAgency } = useAuth();
+  
+  const isAdmin = profile?.role === 'admin';
+  const navigation = getNavigation(isAdmin);
 
   const handleSignOut = async () => {
     await signOut();
@@ -59,6 +71,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="flex items-center gap-2">
               <span className="text-xl font-bold text-zebra-black">ZebaMail</span>
               <ZebCharacter variant="default" size="sm" className="w-6 h-6" />
+              <Badge variant="secondary" className="text-xs">BETA</Badge>
             </div>
             <Button
               variant="ghost"
@@ -106,6 +119,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="flex items-center gap-2">
               <span className="text-xl font-bold text-zebra-black">ZebaMail</span>
               <ZebCharacter variant="default" size="sm" className="w-6 h-6" />
+              <Badge variant="secondary" className="text-xs">BETA</Badge>
             </div>
           </div>
           

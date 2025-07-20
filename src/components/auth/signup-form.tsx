@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
 import { authService } from '@/lib/supabase/auth';
+import { betaAccessService } from '@/lib/beta-access';
+import { AlertCircle } from 'lucide-react';
 
 const signupSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -17,6 +19,7 @@ const signupSchema = z.object({
   confirmPassword: z.string(),
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
   companyName: z.string().optional(),
+  inviteCode: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -44,6 +47,25 @@ export function SignupForm() {
     setError(null);
 
     try {
+      // Check if beta access is required
+      const isBetaAllowed = await betaAccessService.isEmailAllowedForBeta(data.email);
+      
+      if (!isBetaAllowed && !data.inviteCode) {
+        setError('ZebaMail is currently in beta. Please enter your invite code or contact us for access.');
+        setIsLoading(false);
+        return;
+      }
+
+      // Validate invite code if provided
+      if (data.inviteCode && !isBetaAllowed) {
+        const { valid } = await betaAccessService.validateInviteCode(data.inviteCode);
+        if (!valid) {
+          setError('Invalid or expired invite code. Please check your code or contact us for access.');
+          setIsLoading(false);
+          return;
+        }
+      }
+
       const result = await signUp({
         email: data.email,
         password: data.password,
@@ -61,6 +83,10 @@ export function SignupForm() {
           setError(result.error.message);
         }
       } else {
+        // Use the invite code after successful signup
+        if (data.inviteCode && result.data?.user) {
+          await betaAccessService.useInviteCode(data.inviteCode, result.data.user.id);
+        }
         setSuccess(true);
       }
     } catch (err) {
@@ -181,6 +207,21 @@ export function SignupForm() {
             error={errors.confirmPassword?.message}
             disabled={isLoading}
           />
+
+          <div className="space-y-2">
+            <Input
+              {...register('inviteCode')}
+              type="text"
+              label="Beta Invite Code"
+              placeholder="BETA-XXXXXXXX"
+              error={errors.inviteCode?.message}
+              disabled={isLoading}
+            />
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <AlertCircle className="w-3 h-3" />
+              ZebaMail is in beta. Enter your invite code or request access.
+            </p>
+          </div>
 
           {error && (
             <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">

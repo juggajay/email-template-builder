@@ -45,7 +45,8 @@
       "Bash(npm run dev:*)",
       "Bash(npm test:*)",
       "Bash(npx shadcn-ui:*)",
-      "Bash(npx shadcn@latest add dropdown-menu:*)"
+      "Bash(npx shadcn@latest add dropdown-menu:*)",
+      "Bash(npx shadcn:*)"
     ],
     "deny": []
   }
