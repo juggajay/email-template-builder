@@ -99,30 +99,54 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Email editor preview */}
-        <div className="relative mt-16 max-w-6xl mx-auto">
-          <div className="relative rounded-xl overflow-hidden shadow-2xl border border-gray-200 bg-white">
-            <div className="absolute top-0 left-0 right-0 h-12 bg-gray-100 border-b border-gray-200 flex items-center px-4">
-              <div className="flex gap-2">
-                <div className="w-3 h-3 rounded-full bg-red-400" />
-                <div className="w-3 h-3 rounded-full bg-yellow-400" />
-                <div className="w-3 h-3 rounded-full bg-green-400" />
-              </div>
-              <div className="ml-4 text-sm text-gray-600">ZebaMail Editor - Revenue Attribution Dashboard</div>
+        {/* Beta Test CTA */}
+        <div className="relative mt-16 max-w-4xl mx-auto">
+          <div className="relative rounded-xl overflow-hidden shadow-2xl border-2 border-growth-green bg-gradient-to-br from-growth-green/5 to-white p-12">
+            {/* Stripe pattern overlay */}
+            <div className="absolute inset-0 opacity-10">
+              <StripeBackground animation="static" opacity={0.1} color="#00d4aa" />
             </div>
-            <div className="pt-12 p-8">
-              {/* Placeholder for editor preview - in production, use actual screenshot */}
-              <div className="aspect-[16/9] bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg flex items-center justify-center">
-                <div className="text-gray-400 text-lg">Email Editor Preview</div>
+            
+            <div className="relative z-10 text-center">
+              <div className="inline-flex items-center justify-center mb-6">
+                <ZebCharacter variant="celebrate" size="lg" />
               </div>
+              
+              <h2 className="text-3xl md:text-4xl font-bold text-zebra-black mb-4">
+                Join Our Exclusive Beta Test
+              </h2>
+              
+              <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
+                Be among the first to experience ZebaMail's revenue-driving email templates. 
+                Limited spots available for our 2-week beta program.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <Link href="/signup">
+                  <Button
+                    size="lg"
+                    className="bg-growth-green hover:bg-growth-green-600 text-white px-8 py-6 text-lg font-semibold group shadow-lg"
+                  >
+                    Request Beta Access
+                    <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                  </Button>
+                </Link>
+                
+                <Link href="/beta">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-growth-green text-growth-green hover:bg-growth-green/10 px-8 py-6 text-lg font-semibold"
+                  >
+                    Learn More About Beta
+                  </Button>
+                </Link>
+              </div>
+              
+              <p className="text-sm text-gray-600 mt-6">
+                🚀 Beta testers get lifetime access to premium features
+              </p>
             </div>
-          </div>
-
-          {/* Revenue attribution overlay */}
-          <div className="absolute top-20 right-8 bg-white rounded-lg shadow-lg p-4 border border-gray-200">
-            <div className="text-sm text-gray-600 mb-1">Campaign Revenue</div>
-            <div className="text-2xl font-bold text-zebra-black">$24,847</div>
-            <div className="text-sm text-growth-green mt-1">↑ 23% from last week</div>
           </div>
         </div>
       </div>
