@@ -62,6 +62,7 @@ interface EnhancedTemplate extends EmailTemplate {
 interface TemplateGridProps {
   category?: TemplateCategory;
   showUserTemplates?: boolean;
+  onViewModeChange?: (mode: 'public' | 'my-templates') => void;
 }
 
 // Template skeleton component
@@ -97,7 +98,7 @@ function TemplateSkeleton() {
   );
 }
 
-export function TemplateGrid({ category, showUserTemplates = false }: TemplateGridProps) {
+export function TemplateGrid({ category, showUserTemplates = false, onViewModeChange }: TemplateGridProps) {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -352,8 +353,9 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
             variant={!showUserTemplates ? 'default' : 'ghost'}
             size="sm"
             onClick={() => {
-              // This will be handled by parent component
-              window.location.href = '/templates';
+              if (onViewModeChange) {
+                onViewModeChange('public');
+              }
             }}
           >
             <Globe className="w-4 h-4 mr-2" />
@@ -363,8 +365,9 @@ export function TemplateGrid({ category, showUserTemplates = false }: TemplateGr
             variant={showUserTemplates ? 'default' : 'ghost'}
             size="sm"
             onClick={() => {
-              // This will be handled by parent component
-              window.location.href = '/my-templates';
+              if (onViewModeChange) {
+                onViewModeChange('my-templates');
+              }
             }}
           >
             <User className="w-4 h-4 mr-2" />

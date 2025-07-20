@@ -33,7 +33,6 @@ const getNavigation = (isAdmin: boolean) => {
   const baseNav = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Templates', href: '/templates', icon: FileText },
-    { name: 'My Templates', href: '/my-templates', icon: FolderOpen },
     { name: 'Campaign Builder', href: '/editor', icon: Mail },
     { name: 'Settings', href: '/settings', icon: Settings },
     { name: 'Billing', href: '/billing', icon: CreditCard },

@@ -1,12 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { TemplateGrid } from '@/components/templates/template-grid';
 
 export const dynamic = 'force-dynamic';
 
 export default function TemplatesPage() {
-  const [viewMode, setViewMode] = useState<'public' | 'my-templates'>('public');
+  const searchParams = useSearchParams();
+  const [viewMode, setViewMode] = useState<'public' | 'my-templates'>(
+    searchParams.get('view') === 'my-templates' ? 'my-templates' : 'public'
+  );
+
+  useEffect(() => {
+    // Update URL without page reload when view changes
+    const newUrl = viewMode === 'my-templates' 
+      ? '/templates?view=my-templates' 
+      : '/templates';
+    window.history.replaceState({}, '', newUrl);
+  }, [viewMode]);
 
   return (
     <div className="space-y-6">
@@ -21,6 +33,7 @@ export default function TemplatesPage() {
       {/* Templates grid with integrated filters */}
       <TemplateGrid 
         showUserTemplates={viewMode === 'my-templates'}
+        onViewModeChange={setViewMode}
       />
     </div>
   );
