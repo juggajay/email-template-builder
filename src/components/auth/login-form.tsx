@@ -173,5 +173,6 @@ export function LoginForm() {
         </div>
       </CardContent>
     </Card>
+    </>
   );
 }

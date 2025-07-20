@@ -97,8 +97,8 @@ export function GrowthCalculator() {
           </div>
 
           {/* Calculator Form */}
-          <div className="bg-systematic-grey rounded-2xl p-8 relative">
-            <StripePattern animation="static" opacity={0.02} className="rounded-2xl" />
+          <div className="bg-systematic-grey rounded-2xl p-8 relative overflow-hidden">
+            <StripePattern animation="static" opacity={0.04} className="rounded-2xl" />
             
             <div className="relative z-10 grid md:grid-cols-2 gap-6">
               {/* Monthly Revenue */}
@@ -187,10 +187,16 @@ export function GrowthCalculator() {
 
             {/* Zeb Animation */}
             {isCalculating && (
-              <div className="absolute inset-0 bg-white/90 rounded-2xl flex items-center justify-center z-20">
-                <div className="text-center">
+              <div className="absolute inset-0 bg-white/95 rounded-2xl flex items-center justify-center z-20 overflow-hidden">
+                <StripePattern animation="loading" speed="fast" opacity={0.05} />
+                <div className="text-center relative z-10">
                   <ZebCharacter variant="thinking" size="lg" className="mx-auto mb-4" />
                   <p className="text-gray-600">Analyzing your growth potential...</p>
+                  <div className="mt-4 flex justify-center gap-1">
+                    <div className="w-2 h-2 bg-growth-green rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 bg-growth-green rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 bg-growth-green rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
                 </div>
               </div>
             )}
@@ -202,7 +208,7 @@ export function GrowthCalculator() {
               'mt-8 bg-gradient-to-br from-growth-green/5 to-success-purple/5 rounded-2xl p-8 relative',
               'animate-in fade-in slide-in-from-bottom-4 duration-500'
             )}>
-              <StripePattern animation="success" opacity={0.03} className="rounded-2xl" />
+              <StripePattern animation="success" opacity={0.05} className="rounded-2xl" />
               
               <div className="relative z-10">
                 <div className="flex items-start justify-between mb-6">

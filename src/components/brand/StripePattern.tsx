@@ -26,97 +26,48 @@ export function StripePattern({
     fast: '15s',
   };
 
-  const getAnimationClass = () => {
+  const getAnimationStyle = () => {
+    const duration = speedDurations[speed];
     switch (animation) {
       case 'parallax':
-        return 'animate-stripe-parallax';
+        return `stripe-parallax ${duration} linear infinite`;
       case 'hover':
-        return 'animate-stripe-hover';
+        return `stripe-hover ${duration} linear infinite`;
       case 'success':
-        return 'animate-stripe-success';
+        return `stripe-success 1s ease-out`;
       case 'loading':
-        return 'animate-stripe-loading';
+        return `stripe-loading ${duration} linear infinite`;
       default:
-        return '';
+        return 'none';
     }
   };
+
+  // Convert opacity to hex
+  const opacityHex = Math.round(opacity * 255).toString(16).padStart(2, '0');
 
   return (
     <div
       className={cn(
         'absolute inset-0 overflow-hidden pointer-events-none',
-        getAnimationClass(),
         className
       )}
-      style={{
-        '--stripe-color': color,
-        '--stripe-opacity': opacity,
-        '--animation-duration': speedDurations[speed],
-      } as React.CSSProperties}
     >
-      <div className="absolute inset-0 stripe-pattern" />
-      
-      <style jsx>{`
-        .stripe-pattern {
-          background-image: repeating-linear-gradient(
+      <div 
+        className="absolute inset-0 stripe-pattern"
+        style={{
+          backgroundImage: `repeating-linear-gradient(
             15deg,
             transparent,
             transparent 20px,
-            var(--stripe-color) 20px,
-            var(--stripe-color) 40px
-          );
-          opacity: var(--stripe-opacity);
-          width: 200%;
-          height: 200%;
-          transform: translateX(-50%) translateY(-50%);
-        }
-
-        @keyframes stripe-parallax {
-          0% { transform: translateX(-50%) translateY(-50%); }
-          100% { transform: translateX(-30%) translateY(-30%); }
-        }
-
-        @keyframes stripe-hover {
-          0% { transform: translateX(-50%) translateY(-50%); }
-          100% { transform: translateX(-40%) translateY(-40%); }
-        }
-
-        @keyframes stripe-success {
-          0% { 
-            transform: translateX(-50%) translateY(-50%) scale(1);
-            opacity: var(--stripe-opacity);
-          }
-          50% { 
-            transform: translateX(-50%) translateY(-50%) scale(1.1);
-            opacity: calc(var(--stripe-opacity) * 2);
-          }
-          100% { 
-            transform: translateX(-50%) translateY(-50%) scale(1);
-            opacity: var(--stripe-opacity);
-          }
-        }
-
-        @keyframes stripe-loading {
-          0% { transform: translateX(-50%) translateY(-50%); }
-          100% { transform: translateX(0%) translateY(0%); }
-        }
-
-        .animate-stripe-parallax .stripe-pattern {
-          animation: stripe-parallax var(--animation-duration) linear infinite;
-        }
-
-        .animate-stripe-hover:hover .stripe-pattern {
-          animation: stripe-hover calc(var(--animation-duration) / 2) linear infinite;
-        }
-
-        .animate-stripe-success .stripe-pattern {
-          animation: stripe-success 1s ease-out;
-        }
-
-        .animate-stripe-loading .stripe-pattern {
-          animation: stripe-loading var(--animation-duration) linear infinite;
-        }
-      `}</style>
+            ${color}${opacityHex} 20px,
+            ${color}${opacityHex} 40px
+          )`,
+          width: '200%',
+          height: '200%',
+          transform: 'translateX(-50%) translateY(-50%)',
+          animation: getAnimationStyle(),
+        }}
+      />
     </div>
   );
 }

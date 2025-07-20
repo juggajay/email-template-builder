@@ -3,56 +3,54 @@
 import React from 'react';
 import { SystematicGrid, GridItem, StripePattern } from '@/components/brand';
 import { 
-  Target, 
-  DollarSign, 
-  ShoppingCart, 
-  TrendingUp, 
-  RefreshCw, 
-  BarChart3,
-  Sparkles,
-  Users,
-  Zap
-} from 'lucide-react';
+  TargetIcon,
+  DollarSignIcon,
+  CartIcon,
+  TrendingUpIcon,
+  RefreshIcon,
+  ChartIcon
+} from '@/components/brand/GeometricIcons';
+import { Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const features = [
   {
-    icon: Target,
+    icon: TargetIcon,
     title: 'Smart Segmentation',
     description: 'Target customers who actually buy',
     metric: '3x higher conversion',
     color: 'text-growth-green',
   },
   {
-    icon: DollarSign,
+    icon: DollarSignIcon,
     title: 'Revenue Attribution',
     description: 'Track every dollar from every email',
     metric: 'Real-time tracking',
     color: 'text-success-purple',
   },
   {
-    icon: ShoppingCart,
+    icon: CartIcon,
     title: 'Abandoned Cart AI',
     description: 'Recover 23% more lost sales',
     metric: '23% recovery rate',
     color: 'text-alert-amber',
   },
   {
-    icon: TrendingUp,
+    icon: TrendingUpIcon,
     title: 'Growth Automation',
     description: 'Scale campaigns as you grow',
     metric: 'Auto-scaling',
     color: 'text-growth-green',
   },
   {
-    icon: RefreshCw,
+    icon: RefreshIcon,
     title: 'One-Click Migration',
     description: 'Switch from any platform in minutes',
     metric: '15 min setup',
     color: 'text-trust-blue',
   },
   {
-    icon: BarChart3,
+    icon: ChartIcon,
     title: 'Live Analytics',
     description: 'See what drives real revenue',
     metric: 'Real-time insights',
@@ -110,7 +108,16 @@ function FeatureCard({ feature, index }: { feature: typeof features[0]; index: n
       <div className="relative h-full p-8 bg-white rounded-xl border border-gray-200 transition-all duration-300 hover:shadow-xl hover:border-growth-green/20 overflow-hidden">
         {/* Stripe pattern on hover */}
         <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <StripePattern animation="hover" opacity={0.03} color={feature.color.replace('text-', '#')} />
+          <StripePattern 
+            animation="static" 
+            opacity={0.06} 
+            color={
+              feature.color === 'text-growth-green' ? '#00d4aa' :
+              feature.color === 'text-success-purple' ? '#6b5fd4' :
+              feature.color === 'text-alert-amber' ? '#ffb800' :
+              '#0066ff'
+            } 
+          />
         </div>
 
         {/* Content */}

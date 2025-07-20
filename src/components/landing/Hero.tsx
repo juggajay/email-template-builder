@@ -31,7 +31,7 @@ export function Hero() {
     setVariant(randomVariant);
 
     // Delayed Zeb appearance for subtle effect
-    const timer = setTimeout(() => setZebVisible(true), 1000);
+    const timer = setTimeout(() => setZebVisible(true), 500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -40,7 +40,7 @@ export function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background with animated stripe pattern */}
-      <StripeBackground animation="parallax" speed="slow" opacity={0.05}>
+      <StripeBackground animation="parallax" speed="slow" opacity={0.08}>
         <div className="absolute inset-0 bg-gradient-to-br from-systematic-grey via-white to-growth-green/5" />
       </StripeBackground>
 
@@ -130,13 +130,13 @@ export function Hero() {
       {/* Zeb character peeking from corner */}
       <div
         className={cn(
-          'absolute bottom-0 right-0 transition-all duration-1000',
+          'fixed bottom-4 right-4 z-20 transition-all duration-1000',
           zebVisible
             ? 'translate-x-0 translate-y-0 opacity-100'
-            : 'translate-x-full translate-y-full opacity-0'
+            : 'translate-x-32 translate-y-32 opacity-0'
         )}
       >
-        <ZebCharacter variant="peek" size="lg" className="mb-4 mr-4" />
+        <ZebCharacter variant="peek" size="lg" />
       </div>
     </section>
   );

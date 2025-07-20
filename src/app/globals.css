@@ -13,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 4%;
 
-    --primary: 170 100% 41.6%;
+    --primary: 168 100% 42%;
     --primary-foreground: 0 0% 98%;
 
     --secondary: 240 3.3% 97.1%;
@@ -30,7 +30,7 @@
 
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 170 100% 41.6%;
+    --ring: 168 100% 42%;
 
     --radius: 0.5rem;
   }
@@ -45,7 +45,7 @@
     --popover: 0 0% 4%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 170 100% 41.6%;
+    --primary: 168 100% 42%;
     --primary-foreground: 0 0% 98%;
 
     --secondary: 0 0% 9.8%;
@@ -62,7 +62,7 @@
 
     --border: 0 0% 9.8%;
     --input: 0 0% 9.8%;
-    --ring: 170 100% 41.6%;
+    --ring: 168 100% 42%;
   }
 }
 
@@ -117,6 +117,37 @@
       transform: translateY(0);
       opacity: 1;
     }
+  }
+  
+  /* Stripe pattern animations */
+  @keyframes stripe-parallax {
+    0% { transform: translateX(-50%) translateY(-50%); }
+    100% { transform: translateX(-30%) translateY(-30%); }
+  }
+  
+  @keyframes stripe-hover {
+    0% { transform: translateX(-50%) translateY(-50%); }
+    100% { transform: translateX(-40%) translateY(-40%); }
+  }
+  
+  @keyframes stripe-success {
+    0% { 
+      transform: translateX(-50%) translateY(-50%) scale(1);
+      opacity: 0.1;
+    }
+    50% { 
+      transform: translateX(-50%) translateY(-50%) scale(1.1);
+      opacity: 0.2;
+    }
+    100% { 
+      transform: translateX(-50%) translateY(-50%) scale(1);
+      opacity: 0.1;
+    }
+  }
+  
+  @keyframes stripe-loading {
+    0% { transform: translateX(-50%) translateY(-50%); }
+    100% { transform: translateX(0%) translateY(0%); }
   }
 }
 
