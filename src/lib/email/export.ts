@@ -1,4 +1,6 @@
 import type { EmailTemplate, ExportType } from '@/types';
+import juice from 'juice';
+import { toast } from 'sonner';
 
 export interface ExportResult {
   success: boolean;
@@ -88,8 +90,20 @@ const cleanEmailHTML = (html: string): string => {
   // Remove link tags (except stylesheets)
   html = html.replace(/<link(?![^>]*rel="stylesheet")[^>]*>/gi, '');
   
-  // Inline CSS if needed
-  // This is a simplified version - a real implementation would use a CSS inliner
+  // Inline CSS for email compatibility
+  html = juice(html, {
+    removeStyleTags: false, // Keep media queries in style tags
+    preserveMediaQueries: true,
+    preserveFontFaces: true,
+    preserveKeyFrames: true,
+    preservePseudos: true,
+  });
+  
+  // Remove any editor-specific attributes
+  html = html
+    .replace(/data-editor-[^=]*="[^"]*"/g, '')
+    .replace(/contenteditable="[^"]*"/g, '')
+    .replace(/data-unlayer-[^=]*="[^"]*"/g, '');
   
   // Add email-safe DOCTYPE if not present
   if (!html.includes('<!DOCTYPE')) {
@@ -251,4 +265,16 @@ const extractTextFromHTML = (html: string): string => {
     .replace(/<[^>]*>/g, '')
     .replace(/\s+/g, ' ')
     .trim();
+};
+
+export const copyHTMLToClipboard = async (html: string): Promise<void> => {
+  try {
+    const cleanedHTML = cleanEmailHTML(html);
+    await navigator.clipboard.writeText(cleanedHTML);
+    toast.success('HTML copied to clipboard!');
+  } catch (err) {
+    console.error('Failed to copy HTML:', err);
+    toast.error('Failed to copy. Please try again.');
+    throw err;
+  }
 };

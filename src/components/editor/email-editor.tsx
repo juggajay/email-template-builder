@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/use-auth';
+import { copyHTMLToClipboard } from '@/lib/email/export';
 import { 
   Save, 
   Download, 
@@ -21,7 +22,8 @@ import {
   ShoppingCart,
   Clock,
   Percent,
-  Star
+  Star,
+  Copy
 } from 'lucide-react';
 
 interface EmailEditorProps {
@@ -238,7 +240,7 @@ export function EmailEditor({ templateId, initialDesign, onSave, onExport }: Ema
     }
   };
 
-  const handleExport = async () => {
+  const handleCopyHTML = async () => {
     if (!editorRef.current) return;
 
     const canUserExport = await canExport();
@@ -249,15 +251,16 @@ export function EmailEditor({ templateId, initialDesign, onSave, onExport }: Ema
 
     setIsLoading(true);
     try {
-      editorRef.current.exportHtml((data: any) => {
+      editorRef.current.exportHtml(async (data: any) => {
         const { html } = data;
+        await copyHTMLToClipboard(html);
         if (onExport) {
           onExport(html);
         }
         setIsLoading(false);
       });
     } catch (error) {
-      console.error('Error exporting template:', error);
+      console.error('Error copying HTML:', error);
       setIsLoading(false);
     }
   };
@@ -354,12 +357,12 @@ export function EmailEditor({ templateId, initialDesign, onSave, onExport }: Ema
 
             <Button
               size="sm"
-              onClick={handleExport}
+              onClick={handleCopyHTML}
               loading={isLoading}
               disabled={!editorLoaded || isLoading}
             >
-              <Download className="w-4 h-4 mr-2" />
-              Export
+              <Copy className="w-4 h-4 mr-2" />
+              Copy HTML
             </Button>
           </div>
         </div>
