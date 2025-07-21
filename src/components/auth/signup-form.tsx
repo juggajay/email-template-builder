@@ -95,7 +95,15 @@ export function SignupForm() {
 
         // Use the invite code after successful signup
         if (data.inviteCode && result.data.user) {
-          await betaAccessService.useInviteCode(data.inviteCode, result.data.user.id);
+          try {
+            const inviteResult = await betaAccessService.useInviteCode(data.inviteCode, result.data.user.id);
+            if (!inviteResult) {
+              console.warn('[Signup Form] Failed to apply invite code, but user was created successfully');
+            }
+          } catch (inviteError) {
+            console.error('[Signup Form] Error applying invite code:', inviteError);
+            // Don't fail the signup if invite code fails - user is already created
+          }
         }
         
         // If user is already confirmed (e.g., OAuth), redirect to dashboard
