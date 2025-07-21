@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Store, CheckCircle, RefreshCw, Unlink, Package, Users, ShoppingCart, TrendingUp } from 'lucide-react';
+import { Store, CheckCircle, RefreshCw, Unlink, Package, Users, ShoppingCart, TrendingUp, Info } from 'lucide-react';
 
 export function ShopifySettingsConnected() {
   const [connection, setConnection] = useState<any>(null);
@@ -116,12 +116,50 @@ export function ShopifySettingsConnected() {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Store Info */}
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <h4 className="font-medium mb-2">{connection.shop_name}</h4>
-          <p className="text-sm text-gray-600">{connection.shop_domain}</p>
-          <p className="text-xs text-gray-500 mt-1">
-            Connected on {new Date(connection.created_at).toLocaleDateString()}
-          </p>
+        <div className="p-4 bg-gray-50 rounded-lg space-y-3">
+          <div>
+            <h4 className="font-medium mb-2">{connection.shop_name}</h4>
+            <p className="text-sm text-gray-600">{connection.shop_domain}</p>
+            <p className="text-xs text-gray-500 mt-1">
+              Connected on {new Date(connection.created_at).toLocaleDateString()}
+            </p>
+          </div>
+          
+          {/* App Version Info */}
+          <div className="pt-3 border-t border-gray-200">
+            <div className="flex items-start gap-2">
+              <Info className="w-4 h-4 text-gray-500 mt-0.5" />
+              <div className="text-xs text-gray-600">
+                <p className="font-medium mb-1">Connection Details:</p>
+                <div className="space-y-1 mt-1">
+                  {connection.scopes && (
+                    <p className="text-xs">
+                      <span className="font-medium">Scopes: </span>
+                      <span className="text-gray-500">{connection.scopes.length} permissions granted</span>
+                    </p>
+                  )}
+                  {connection.shop_plan && (
+                    <p className="text-xs">
+                      <span className="font-medium">Shop Plan: </span>
+                      <span className="text-gray-500">{connection.shop_plan}</span>
+                    </p>
+                  )}
+                  {connection.last_sync_at && (
+                    <p className="text-xs">
+                      <span className="font-medium">Last Sync: </span>
+                      <span className="text-gray-500">
+                        {new Date(connection.last_sync_at).toLocaleString()}
+                      </span>
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-2 italic">
+                    To identify which app version you're connected to, check your Shopify Partners 
+                    dashboard and compare the shop domain with your installed apps.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Sync Status */}
