@@ -46,7 +46,8 @@ export function middleware(request: NextRequest) {
     "upgrade-insecure-requests"
   ].join('; ');
   
-  headers.set('Content-Security-Policy', csp);
+  // Use Report-Only mode to avoid blocking browser extensions
+  headers.set('Content-Security-Policy-Report-Only', csp);
   
   // Strict Transport Security (HSTS) - only for production
   if (process.env.NODE_ENV === 'production') {
