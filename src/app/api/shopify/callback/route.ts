@@ -90,10 +90,18 @@ export async function GET(request: NextRequest) {
       console.error('Background sync failed:', error);
     });
 
+    // Extract shop ID from domain (remove .myshopify.com)
+    const shopId = shop.replace('.myshopify.com', '');
+    
+    // Get app handle from environment or use default
+    const appHandle = process.env.SHOPIFY_APP_HANDLE || 'grant';
+    
+    // For embedded apps, redirect to Shopify admin
+    // Format: https://admin.shopify.com/store/{shop-id}/apps/{app-handle}
+    const shopifyAdminUrl = `https://admin.shopify.com/store/${shopId}/apps/${appHandle}`;
+    
     // Clear OAuth state cookie
-    const response = NextResponse.redirect(
-      `${baseUrl}/settings?tab=integrations&shopify=connected`
-    );
+    const response = NextResponse.redirect(shopifyAdminUrl);
     response.cookies.delete('shopify_oauth_state');
 
     return response;
