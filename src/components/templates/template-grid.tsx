@@ -13,6 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { 
   Search, 
   Filter, 
@@ -106,6 +112,7 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
   const [selectedPerformance, setSelectedPerformance] = useState<'all' | 'top-performer' | 'rising' | 'new'>('all');
   const [sortBy, setSortBy] = useState<'revenue-desc' | 'conversion-desc' | 'newest' | 'trending'>('revenue-desc');
   const [error, setError] = useState<string | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<any>(null);
   const { user, isPro, isAgency } = useAuth();
 
   // Sort options for dropdown
@@ -282,28 +289,7 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
   };
 
   const handlePreview = (template: any) => {
-    const previewWindow = window.open('', '_blank');
-    if (previewWindow) {
-      // Use actual HTML content for user templates, or preview for public templates
-      const htmlContent = showUserTemplates && template.html_content 
-        ? template.html_content 
-        : getTemplatePreview(template.name, template.category);
-      
-      previewWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>${template.name} - Preview</title>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-        </head>
-        <body style="margin: 0; padding: 0; background: #f5f5f5;">
-          ${htmlContent}
-        </body>
-        </html>
-      `);
-      previewWindow.document.close();
-    }
+    setPreviewTemplate(template);
   };
 
   const handleDelete = async (templateId: string) => {
@@ -597,6 +583,26 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
           })}
         </div>
       )}
+
+      {/* Preview Modal */}
+      <Dialog open={!!previewTemplate} onOpenChange={(open) => !open && setPreviewTemplate(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
+          <DialogHeader className="px-6 py-4 border-b">
+            <DialogTitle>{previewTemplate?.name} - Preview</DialogTitle>
+          </DialogHeader>
+          <div className="overflow-auto" style={{ maxHeight: 'calc(90vh - 80px)' }}>
+            <div 
+              dangerouslySetInnerHTML={{ 
+                __html: previewTemplate && (
+                  showUserTemplates && previewTemplate.html_content 
+                    ? previewTemplate.html_content 
+                    : getTemplatePreview(previewTemplate.name, previewTemplate.category)
+                )
+              }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
