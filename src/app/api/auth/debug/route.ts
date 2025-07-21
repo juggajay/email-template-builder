@@ -10,6 +10,9 @@ export async function GET(request: NextRequest) {
     // Get current user
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
+    // Get session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
     let profile = null;
     let profileError = null;
     
@@ -25,6 +28,14 @@ export async function GET(request: NextRequest) {
       profileError = error;
     }
     
+    // Check for recently created users (last 5 minutes)
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const { data: recentUsers, error: recentError } = await supabase
+      .from('user_profiles')
+      .select('user_id, email, created_at, is_beta_tester')
+      .gte('created_at', fiveMinutesAgo)
+      .order('created_at', { ascending: false });
+    
     // Also check if there are any Shopify connections for this user
     let shopifyConnections = null;
     if (user) {
@@ -39,14 +50,22 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       auth: {
         hasUser: !!user,
+        hasSession: !!session,
         userId: user?.id,
         userEmail: user?.email,
-        userError: userError?.message
+        emailConfirmed: user?.email_confirmed_at,
+        userError: userError?.message,
+        sessionError: sessionError?.message
       },
       profile: {
         hasProfile: !!profile,
         profileData: profile,
         profileError: profileError?.message
+      },
+      recentActivity: {
+        recentUsers: recentUsers || [],
+        recentUsersCount: recentUsers?.length || 0,
+        error: recentError?.message
       },
       shopify: {
         connections: shopifyConnections,
