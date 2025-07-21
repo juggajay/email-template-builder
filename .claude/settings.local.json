@@ -46,7 +46,10 @@
       "Bash(npm test:*)",
       "Bash(npx shadcn-ui:*)",
       "Bash(npx shadcn@latest add dropdown-menu:*)",
-      "Bash(npx shadcn:*)"
+      "Bash(npx shadcn:*)",
+      "Bash(node:*)",
+      "Bash(./test-oauth-redirect.sh:*)",
+      "Bash(npx playwright test:*)"
     ],
     "deny": []
   }
