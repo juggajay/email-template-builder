@@ -132,6 +132,7 @@ export function useAuth() {
     password: string;
     fullName?: string;
     companyName?: string;
+    inviteCode?: string;
   }) => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     
