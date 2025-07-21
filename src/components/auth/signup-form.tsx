@@ -79,15 +79,33 @@ export function SignupForm() {
           setError('This email is already registered. Please sign in instead.');
         } else if (result.error.message.includes('weak_password')) {
           setError('Password is too weak. Please use a stronger password.');
+        } else if (result.error.message.includes('Email link is invalid')) {
+          setError('Email confirmations may be disabled. Please contact support.');
         } else {
           setError(result.error.message);
         }
-      } else {
+      } else if (result.data?.user) {
+        // Check if email confirmation is required
+        console.log('[Signup Form] User created:', {
+          id: result.data.user.id,
+          email: result.data.user.email,
+          emailConfirmedAt: result.data.user.email_confirmed_at,
+          confirmationSentAt: result.data.user.confirmation_sent_at,
+        });
+
         // Use the invite code after successful signup
-        if (data.inviteCode && result.data?.user) {
+        if (data.inviteCode && result.data.user) {
           await betaAccessService.useInviteCode(data.inviteCode, result.data.user.id);
         }
-        setSuccess(true);
+        
+        // If user is already confirmed (e.g., OAuth), redirect to dashboard
+        if (result.data.user.email_confirmed_at) {
+          router.push('/dashboard');
+        } else {
+          setSuccess(true);
+        }
+      } else {
+        setError('Signup failed. Please try again.');
       }
     } catch (err) {
       setError('An unexpected error occurred');

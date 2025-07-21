@@ -31,10 +31,18 @@ export class AuthService {
             full_name: fullName,
             company_name: companyName,
           },
+          emailRedirectTo: `${window.location.origin}/auth/callback?type=signup`,
         },
       });
 
       if (error) throw error;
+
+      // Log for debugging
+      console.log('[Auth Service] Sign up successful:', {
+        user: data.user?.id,
+        email: data.user?.email,
+        confirmationSentAt: data.user?.confirmation_sent_at,
+      });
 
       return { data, error: null };
     } catch (error) {
