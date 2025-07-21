@@ -250,13 +250,18 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
     } catch (error: any) {
       console.error('Error fetching templates:', error);
       
-      // Use mock templates as fallback but don't show error
-      const filteredMocks = selectedCategory !== 'all' 
-        ? mockTemplates.filter(t => t.category === selectedCategory)
-        : mockTemplates;
+      // Only use mock templates for public templates, not user templates
+      if (!showUserTemplates) {
+        const filteredMocks = selectedCategory !== 'all' 
+          ? mockTemplates.filter(t => t.category === selectedCategory)
+          : mockTemplates;
+        
+        setTemplates(filteredMocks);
+      } else {
+        // For user templates, show empty state
+        setTemplates([]);
+      }
       
-      setTemplates(filteredMocks);
-      // Don't set error to avoid showing error message when using mocks
       setError(null);
     } finally {
       setLoading(false);
@@ -264,27 +269,26 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
   }, [selectedCategory, searchQuery, user, showUserTemplates, templates.length]);
 
   useEffect(() => {
-    // Set initial templates immediately
-    if (templates.length === 0) {
-      const filteredMocks = selectedCategory !== 'all' 
-        ? mockTemplates.filter(t => t.category === selectedCategory)
-        : mockTemplates;
-      setTemplates(filteredMocks);
-      setLoading(false);
-    }
+    // Clear templates when switching between views
+    setTemplates([]);
+    setLoading(true);
     
-    // Then fetch real data
+    // Fetch appropriate templates based on view
     fetchTemplates();
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory, searchQuery, showUserTemplates]);
 
   const handleTemplateSelect = (template: EmailTemplate) => {
     window.location.href = `/editor?template=${template.id}`;
   };
 
-  const handlePreview = (template: EmailTemplate) => {
-    const previewHtml = getTemplatePreview(template.name, template.category);
+  const handlePreview = (template: any) => {
     const previewWindow = window.open('', '_blank');
     if (previewWindow) {
+      // Use actual HTML content for user templates, or preview for public templates
+      const htmlContent = showUserTemplates && template.html_content 
+        ? template.html_content 
+        : getTemplatePreview(template.name, template.category);
+      
       previewWindow.document.write(`
         <!DOCTYPE html>
         <html>
@@ -294,7 +298,7 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
           <meta name="viewport" content="width=device-width, initial-scale=1">
         </head>
         <body style="margin: 0; padding: 0; background: #f5f5f5;">
-          ${previewHtml}
+          ${htmlContent}
         </body>
         </html>
       `);
@@ -538,6 +542,17 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
                       alt={template.name}
                       className="w-full h-full object-cover"
                     />
+                  ) : showUserTemplates && template.html_content ? (
+                    <div 
+                      className="w-full h-full"
+                      dangerouslySetInnerHTML={{ 
+                        __html: `
+                          <div style="transform: scale(0.3); transform-origin: top left; width: 333.33%; height: 333.33%; position: absolute; top: 0; left: 0;">
+                            ${template.html_content}
+                          </div>
+                        ` 
+                      }}
+                    />
                   ) : (
                     <div 
                       className="w-full h-full"
@@ -564,44 +579,49 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
                     </p>
                   )}
                   
-                  {/* Revenue metrics */}
-                  <div className="space-y-2 pt-2 border-t border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">💰 Generates</span>
-                      <span className="text-sm font-bold text-growth-green">
-                        ${revenue.toLocaleString()}/mo avg
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Conversion</span>
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm font-medium text-zebra-black">{conversionRate}%</span>
-                        {enhancedTemplate.performance?.trend === 'up' && (
-                          <TrendingUp className="w-3 h-3 text-growth-green" />
-                        )}
+                  {/* Revenue metrics - only for public templates */}
+                  {!showUserTemplates && (
+                    <div className="space-y-2 pt-2 border-t border-gray-100">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-700">💰 Generates</span>
+                        <span className="text-sm font-bold text-growth-green">
+                          ${revenue.toLocaleString()}/mo avg
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Conversion</span>
+                        <div className="flex items-center gap-1">
+                          <span className="text-sm font-medium text-zebra-black">{conversionRate}%</span>
+                          {enhancedTemplate.performance?.trend === 'up' && (
+                            <TrendingUp className="w-3 h-3 text-growth-green" />
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                   
-                  {/* Growth stage indicator */}
-                  <div className="flex items-center justify-between pt-2">
-                    <div className="flex items-center gap-2">
-                      <div className="flex gap-1">
-                        {[...Array(enhancedTemplate.growthStage === 'scale' ? 3 : enhancedTemplate.growthStage === 'growth' ? 2 : 1)].map((_, i) => (
-                          <div key={i} className="w-2 h-2 rounded-full bg-gray-300" />
-                        ))}
-                      </div>
-                      <span className="text-xs text-gray-600">
-                        {enhancedTemplate.growthStage === 'scale' ? 'Scale' : enhancedTemplate.growthStage === 'growth' ? 'Growth' : 'Starter'}
-                      </span>
-                    </div>
-                    
-                    {showUserTemplates && (
+                  {/* Date info for user templates, growth stage for public */}
+                  {showUserTemplates ? (
+                    <div className="flex items-center justify-between pt-2">
+                      <span className="text-xs text-gray-600">Created</span>
                       <span className="text-xs text-gray-500">
                         {new Date(template.created_at).toLocaleDateString()}
                       </span>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1">
+                          {[...Array(enhancedTemplate.growthStage === 'scale' ? 3 : enhancedTemplate.growthStage === 'growth' ? 2 : 1)].map((_, i) => (
+                            <div key={i} className="w-2 h-2 rounded-full bg-gray-300" />
+                          ))}
+                        </div>
+                        <span className="text-xs text-gray-600">
+                          {enhancedTemplate.growthStage === 'scale' ? 'Scale' : enhancedTemplate.growthStage === 'growth' ? 'Growth' : 'Starter'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Action buttons */}
