@@ -74,12 +74,12 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json({
       searchedUser: userData ? {
-        id: userData.user.id,
-        email: userData.user.email,
-        emailConfirmed: userData.user.email_confirmed_at,
-        createdAt: userData.user.created_at,
-        lastSignIn: userData.user.last_sign_in_at,
-        confirmationSentAt: userData.user.confirmation_sent_at,
+        id: 'user' in userData ? userData.user.id : userData.id,
+        email: 'user' in userData ? userData.user.email : userData.email,
+        emailConfirmed: 'user' in userData ? userData.user.email_confirmed_at : userData.email_confirmed_at,
+        createdAt: 'user' in userData ? userData.user.created_at : userData.created_at,
+        lastSignIn: 'user' in userData ? userData.user.last_sign_in_at : userData.last_sign_in_at,
+        confirmationSentAt: 'user' in userData ? userData.user.confirmation_sent_at : userData.confirmation_sent_at,
         profile: profileData
       } : null,
       recentSignups: recentSignups.map(u => ({
