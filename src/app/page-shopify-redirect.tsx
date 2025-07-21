@@ -7,24 +7,22 @@ export function ShopifyRedirectHandler() {
   const searchParams = useSearchParams();
   
   useEffect(() => {
-    // Check if we have Shopify OAuth params
+    // Check if we have Shopify OAuth params on the homepage
     const shop = searchParams.get('shop');
     const hmac = searchParams.get('hmac');
     const host = searchParams.get('host');
+    const code = searchParams.get('code');
     
-    if (shop && hmac && host) {
+    // Only redirect if we have OAuth parameters but NOT a code (which means it's not OAuth callback)
+    if (shop && hmac && host && !code) {
       console.log('Detected Shopify embedded app params:', {
         shop,
         hmac,
         host
       });
       
-      // Redirect to Shopify admin using the correct format
-      const appHandle = 'grant';
-      const adminUrl = `https://${shop}/admin/app/${appHandle}`;
-      
-      console.log('Redirecting to:', adminUrl);
-      window.location.href = adminUrl;
+      // Redirect to our app page
+      window.location.href = `/app/grant?shop=${encodeURIComponent(shop)}&host=${encodeURIComponent(host)}`;
     }
   }, [searchParams]);
   

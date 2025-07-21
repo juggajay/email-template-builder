@@ -90,15 +90,12 @@ export async function GET(request: NextRequest) {
       console.error('Background sync failed:', error);
     });
 
-    // Get app handle from environment or use default
-    const appHandle = process.env.SHOPIFY_APP_HANDLE || 'grant';
-    
-    // For embedded apps, redirect to the app within Shopify admin
-    // Format: https://{shop}/admin/app/{app-handle}
-    const shopifyAdminUrl = `https://${shop}/admin/app/${appHandle}`;
+    // After successful OAuth, redirect to our app page with shop parameter
+    // This page will be loaded by Shopify in an iframe
+    const appUrl = `${baseUrl}/app/grant?shop=${encodeURIComponent(shop)}`;
     
     // Clear OAuth state cookie
-    const response = NextResponse.redirect(shopifyAdminUrl);
+    const response = NextResponse.redirect(appUrl);
     response.cookies.delete('shopify_oauth_state');
 
     return response;
