@@ -20,7 +20,8 @@ import {
   Zap,
   Crown,
   FolderOpen,
-  ShieldCheck
+  ShieldCheck,
+  MessageSquarePlus
 } from 'lucide-react';
 import { ZebCharacter, StripePattern } from '@/components/brand';
 import { TargetIcon } from '@/components/brand/GeometricIcons';
@@ -36,6 +37,7 @@ const getNavigation = (isAdmin: boolean) => {
     { name: 'Campaign Builder', href: '/editor', icon: Mail },
     { name: 'Settings', href: '/settings', icon: Settings },
     { name: 'Billing', href: '/billing', icon: CreditCard },
+    { name: 'Feedback', href: '/feedback', icon: MessageSquarePlus, badge: 'BETA' },
     { name: 'Help', href: '/help', icon: HelpCircle },
   ];
 
@@ -103,7 +105,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     </div>
                   )}
                   <Icon className="mr-3 h-5 w-5 relative z-10" />
-                  <span className="relative z-10">{item.name}</span>
+                  <span className="relative z-10 flex items-center gap-2">
+                    {item.name}
+                    {item.badge && (
+                      <Badge variant="secondary" className="text-xs">
+                        {item.badge}
+                      </Badge>
+                    )}
+                  </span>
                 </Link>
               );
             })}
@@ -143,7 +152,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     </div>
                   )}
                   <Icon className="mr-3 h-5 w-5 relative z-10" />
-                  <span className="relative z-10">{item.name}</span>
+                  <span className="relative z-10 flex items-center gap-2">
+                    {item.name}
+                    {item.badge && (
+                      <Badge variant="secondary" className="text-xs">
+                        {item.badge}
+                      </Badge>
+                    )}
+                  </span>
                 </Link>
               );
             })}
