@@ -90,12 +90,13 @@ export async function GET(request: NextRequest) {
       console.error('Background sync failed:', error);
     });
 
-    // After successful OAuth, redirect to our app page with shop parameter
-    // This page will be loaded by Shopify in an iframe
-    const appUrl = `${baseUrl}/app/grant?shop=${encodeURIComponent(shop)}`;
+    // After successful OAuth, redirect to Shopify admin URL
+    // Extract shop ID from shop domain (e.g., xbbf0y-vp.myshopify.com -> xbbf0y-vp)
+    const shopId = shop.replace('.myshopify.com', '');
+    const redirectUrl = `https://admin.shopify.com/store/${shopId}/app/grant`;
     
     // Clear OAuth state cookie
-    const response = NextResponse.redirect(appUrl);
+    const response = NextResponse.redirect(redirectUrl);
     response.cookies.delete('shopify_oauth_state');
 
     return response;
