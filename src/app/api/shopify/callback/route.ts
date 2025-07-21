@@ -94,8 +94,8 @@ export async function GET(request: NextRequest) {
     const appHandle = process.env.SHOPIFY_APP_HANDLE || 'grant';
     
     // For embedded apps, redirect to the app within Shopify admin
-    // Format: https://{shop}/admin/apps/{app-handle}
-    const shopifyAdminUrl = `https://${shop}/admin/apps/${appHandle}`;
+    // Format: https://{shop}/admin/app/{app-handle}
+    const shopifyAdminUrl = `https://${shop}/admin/app/${appHandle}`;
     
     // Clear OAuth state cookie
     const response = NextResponse.redirect(shopifyAdminUrl);

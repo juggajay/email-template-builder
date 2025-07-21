@@ -19,9 +19,9 @@ export function ShopifyRedirectHandler() {
         host
       });
       
-      // Redirect to Shopify admin using the new format
+      // Redirect to Shopify admin using the correct format
       const appHandle = 'grant';
-      const adminUrl = `https://${shop}/admin/apps/${appHandle}`;
+      const adminUrl = `https://${shop}/admin/app/${appHandle}`;
       
       console.log('Redirecting to:', adminUrl);
       window.location.href = adminUrl;
