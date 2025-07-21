@@ -19,12 +19,9 @@ export function ShopifyRedirectHandler() {
         host
       });
       
-      // Extract shop ID
-      const shopId = shop.replace('.myshopify.com', '');
-      
-      // Redirect to Shopify admin
+      // Redirect to Shopify admin using the new format
       const appHandle = 'grant';
-      const adminUrl = `https://admin.shopify.com/store/${shopId}/app/${appHandle}`;
+      const adminUrl = `https://${shop}/admin/apps/${appHandle}`;
       
       console.log('Redirecting to:', adminUrl);
       window.location.href = adminUrl;
