@@ -58,9 +58,9 @@ export function SignupForm() {
 
       // Validate invite code if provided
       if (data.inviteCode && !isBetaAllowed) {
-        const { valid } = await betaAccessService.validateInviteCode(data.inviteCode);
+        const { valid, reason } = await betaAccessService.validateInviteCode(data.inviteCode);
         if (!valid) {
-          setError('Invalid or expired invite code. Please check your code or contact us for access.');
+          setError(reason || 'Invalid or expired invite code. Please check your code or contact us for access.');
           setIsLoading(false);
           return;
         }

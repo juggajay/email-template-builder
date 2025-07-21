@@ -94,16 +94,20 @@ export class BetaAccessService {
   /**
    * Validate a beta invite code
    */
-  async validateInviteCode(code: string): Promise<{ valid: boolean; invite?: BetaInvite }> {
+  async validateInviteCode(code: string): Promise<{ valid: boolean; invite?: BetaInvite; reason?: string }> {
     try {
+      // Clean the code (remove spaces, make uppercase)
+      const cleanCode = code.trim().toUpperCase();
+      
       const { data, error } = await this.supabase
         .from('beta_invites')
         .select('*')
-        .eq('code', code)
+        .eq('code', cleanCode)
         .single();
 
       if (error || !data) {
-        return { valid: false };
+        console.log('Invite code not found:', cleanCode);
+        return { valid: false, reason: 'Invite code not found' };
       }
 
       // Check if invite is still valid
@@ -111,17 +115,19 @@ export class BetaAccessService {
       const expiresAt = data.expires_at ? new Date(data.expires_at) : null;
       
       if (expiresAt && expiresAt < now) {
-        return { valid: false };
+        console.log('Invite code expired:', cleanCode, 'expires at:', expiresAt);
+        return { valid: false, reason: 'Invite code has expired' };
       }
 
       if (data.uses_count >= data.max_uses) {
-        return { valid: false };
+        console.log('Invite code used up:', cleanCode, 'uses:', data.uses_count, 'max:', data.max_uses);
+        return { valid: false, reason: 'Invite code has reached maximum uses' };
       }
 
       return { valid: true, invite: data as BetaInvite };
     } catch (error) {
       console.error('Error validating invite code:', error);
-      return { valid: false };
+      return { valid: false, reason: 'Error validating invite code' };
     }
   }
 
@@ -130,9 +136,12 @@ export class BetaAccessService {
    */
   async useInviteCode(code: string, userId: string): Promise<boolean> {
     try {
+      // Clean the code (remove spaces, make uppercase)
+      const cleanCode = code.trim().toUpperCase();
+      
       const { data, error } = await this.supabase
         .rpc('use_beta_invite', { 
-          invite_code: code, 
+          invite_code: cleanCode, 
           user_id: userId 
         });
 
