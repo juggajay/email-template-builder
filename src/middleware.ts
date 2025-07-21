@@ -33,7 +33,7 @@ export function middleware(request: NextRequest) {
   // Content Security Policy
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://editor.unlayer.com https://*.stripe.com https://*.supabase.co",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://editor.unlayer.com https://*.stripe.com https://*.supabase.co https://*.bybit.com",
     "style-src 'self' 'unsafe-inline' https://editor.unlayer.com https://fonts.googleapis.com",
     "img-src 'self' data: blob: https: http:",
     "font-src 'self' https://fonts.gstatic.com data:",
