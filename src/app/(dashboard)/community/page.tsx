@@ -17,10 +17,7 @@ import {
   MessageSquare, 
   ChevronUp, 
   ChevronDown,
-  Plus,
-  TrendingUp,
-  Clock,
-  Flame
+  Plus
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
@@ -32,7 +29,7 @@ export default function CommunityPage() {
   const [posts, setPosts] = useState<FeedbackPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | FeedbackTag>('all');
-  const [sortBy, setSortBy] = useState<'hot' | 'new' | 'top'>('hot');
+  // Always sort by newest first
   const [dialogOpen, setDialogOpen] = useState(false);
   const { user } = useAuth();
 
@@ -44,7 +41,7 @@ export default function CommunityPage() {
 
   useEffect(() => {
     fetchPosts();
-  }, [filter, sortBy]);
+  }, [filter]);
 
   const fetchPosts = async () => {
     try {
@@ -57,16 +54,8 @@ export default function CommunityPage() {
         query = query.eq('tag', filter);
       }
 
-      // Sorting logic
-      if (sortBy === 'new') {
-        query = query.order('created_at', { ascending: false });
-      } else if (sortBy === 'top') {
-        query = query.order('score', { ascending: false });
-      } else {
-        // Hot: combination of score and recency
-        query = query.order('score', { ascending: false })
-                     .order('created_at', { ascending: false });
-      }
+      // Always sort by newest first
+      query = query.order('created_at', { ascending: false });
 
       const { data, error } = await query;
       
@@ -156,37 +145,6 @@ export default function CommunityPage() {
       <div className="bg-white rounded-lg shadow-sm p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            {/* Sort Options */}
-            <div className="flex items-center space-x-1">
-              <Button
-                variant={sortBy === 'hot' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setSortBy('hot')}
-                className={sortBy === 'hot' ? 'bg-orange-500 hover:bg-orange-600' : ''}
-              >
-                <Flame className="w-4 h-4 mr-1" />
-                Hot
-              </Button>
-              <Button
-                variant={sortBy === 'new' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setSortBy('new')}
-                className={sortBy === 'new' ? 'bg-blue-500 hover:bg-blue-600' : ''}
-              >
-                <Clock className="w-4 h-4 mr-1" />
-                New
-              </Button>
-              <Button
-                variant={sortBy === 'top' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setSortBy('top')}
-                className={sortBy === 'top' ? 'bg-green-500 hover:bg-green-600' : ''}
-              >
-                <TrendingUp className="w-4 h-4 mr-1" />
-                Top
-              </Button>
-            </div>
-
             {/* Tag Filter */}
             <div className="flex items-center space-x-1">
               <Button
