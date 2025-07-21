@@ -13,8 +13,10 @@ export function useAuth() {
 
   useEffect(() => {
     let mounted = true;
+    let retryCount = 0;
+    const maxRetries = 3;
 
-    // Get initial session
+    // Get initial session with retry logic
     const getInitialSession = async () => {
       try {
         const user = await authService.getCurrentUser();
@@ -33,6 +35,17 @@ export function useAuth() {
             error: null,
           });
         } else if (mounted) {
+          // If no user but we're on a verified redirect, retry
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get('verified') === 'true' && retryCount < maxRetries) {
+            retryCount++;
+            console.log(`[Auth Hook] No user found on verified redirect, retrying (${retryCount}/${maxRetries})...`);
+            setTimeout(() => {
+              if (mounted) getInitialSession();
+            }, 500 * retryCount); // Exponential backoff
+            return;
+          }
+          
           setState(prev => ({
             ...prev,
             loading: false,
@@ -40,6 +53,17 @@ export function useAuth() {
         }
       } catch (error) {
         if (mounted) {
+          // Retry on error if we're on a verified redirect
+          const urlParams = new URLSearchParams(window.location.search);
+          if (urlParams.get('verified') === 'true' && retryCount < maxRetries) {
+            retryCount++;
+            console.log(`[Auth Hook] Error getting session on verified redirect, retrying (${retryCount}/${maxRetries})...`);
+            setTimeout(() => {
+              if (mounted) getInitialSession();
+            }, 500 * retryCount);
+            return;
+          }
+          
           setState(prev => ({
             ...prev,
             loading: false,

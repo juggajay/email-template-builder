@@ -94,7 +94,7 @@ function DashboardSkeleton() {
 }
 
 export default function DashboardPage() {
-  const { user, isPro, isAgency } = useAuth();
+  const { user, isPro, isAgency, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<{
     stats: {
@@ -117,27 +117,40 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
-    if (user) {
-      fetchDashboardData();
-    } else {
-      // Show default data for non-authenticated users
-      setDashboardData({
-        stats: {
-          totalTemplates: 5,
-          totalExports: 0,
-          savedThisMonth: 0,
-          averageRating: 4.8
-        },
-        recentTemplates: [],
-        popularTemplates: [
-          { id: '1', name: 'Welcome Series', usage_count: 1250, rating: 4.9 },
-          { id: '2', name: 'Abandoned Cart', usage_count: 980, rating: 4.8 },
-          { id: '3', name: 'Order Confirmation', usage_count: 750, rating: 4.7 }
-        ]
-      });
-      setLoading(false);
+    // Add timeout to prevent infinite loading
+    const loadingTimeout = setTimeout(() => {
+      if (loading) {
+        console.log('[Dashboard] Loading timeout reached, showing default state');
+        setLoading(false);
+      }
+    }, 5000); // 5 second timeout
+
+    // Only fetch data after auth is loaded
+    if (!authLoading) {
+      if (user) {
+        fetchDashboardData();
+      } else {
+        // Show default data for non-authenticated users
+        setDashboardData({
+          stats: {
+            totalTemplates: 5,
+            totalExports: 0,
+            savedThisMonth: 0,
+            averageRating: 4.8
+          },
+          recentTemplates: [],
+          popularTemplates: [
+            { id: '1', name: 'Welcome Series', usage_count: 1250, rating: 4.9 },
+            { id: '2', name: 'Abandoned Cart', usage_count: 980, rating: 4.8 },
+            { id: '3', name: 'Order Confirmation', usage_count: 750, rating: 4.7 }
+          ]
+        });
+        setLoading(false);
+      }
     }
-  }, [user]);
+
+    return () => clearTimeout(loadingTimeout);
+  }, [user, authLoading]);
 
   const fetchDashboardData = async () => {
     try {
