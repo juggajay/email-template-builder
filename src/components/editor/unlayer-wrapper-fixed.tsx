@@ -16,6 +16,7 @@ interface UnlayerWrapperFixedProps {
   onReady?: (editor: any) => void;
   onDesignLoad?: () => void;
   onSave?: (design: any, html: string) => void;
+  onDesignUpdate?: (design: any, html: string) => void;
   hideBottomSaveButton?: boolean;
 }
 
@@ -24,6 +25,7 @@ export function UnlayerWrapperFixed({
   onReady, 
   onDesignLoad,
   onSave,
+  onDesignUpdate,
   hideBottomSaveButton = false
 }: UnlayerWrapperFixedProps) {
   const [isLoading, setIsLoading] = useState(true);
@@ -447,6 +449,12 @@ export function UnlayerWrapperFixed({
         // Listen for design updates
         window.unlayer.addEventListener('design:updated', (data: any) => {
           console.log('[UnlayerFixed] Design updated', data);
+          // Export HTML on design update
+          if (onDesignUpdate) {
+            window.unlayer.exportHtml((exportData: any) => {
+              onDesignUpdate(exportData.design, exportData.html);
+            });
+          }
         });
 
         // Listen for various drag events

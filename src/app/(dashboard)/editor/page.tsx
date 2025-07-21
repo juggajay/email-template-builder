@@ -301,6 +301,8 @@ function EditorContent() {
         const { html } = data;
         try {
           await copyHTMLToClipboard(html);
+          // Also update templateHtml for SendTestEmail
+          setTemplateHtml(html);
         } catch (error) {
           console.error('Failed to copy HTML:', error);
         }
@@ -452,9 +454,27 @@ function EditorContent() {
                   onReady={(editor) => {
                     console.log('[EditorPage] Unlayer ready');
                     setEditorRef(editor);
+                    // Export initial HTML for SendTestEmail
+                    if (editor && editor.exportHtml) {
+                      editor.exportHtml((data: any) => {
+                        setTemplateHtml(data.html);
+                      });
+                    }
                   }}
-                  onDesignLoad={() => console.log('[EditorPage] Design loaded')}
+                  onDesignLoad={() => {
+                    console.log('[EditorPage] Design loaded');
+                    // Export HTML when design loads
+                    if (editorRef && editorRef.exportHtml) {
+                      editorRef.exportHtml((data: any) => {
+                        setTemplateHtml(data.html);
+                      });
+                    }
+                  }}
                   onSave={handleSave}
+                  onDesignUpdate={(design, html) => {
+                    // Update template HTML whenever design changes
+                    setTemplateHtml(html);
+                  }}
                   hideBottomSaveButton={true}
                 />
                 <MergeTagAutocomplete
