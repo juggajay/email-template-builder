@@ -15,8 +15,14 @@ export function middleware(request: NextRequest) {
   // Security headers
   const headers = response.headers;
   
-  // Prevent clickjacking attacks
-  headers.set('X-Frame-Options', 'DENY');
+  // Check if this is a Shopify app route that needs to be embedded
+  const isShopifyApp = request.nextUrl.pathname.startsWith('/app/') || 
+                      request.nextUrl.pathname.startsWith('/shopify-app');
+  
+  // Prevent clickjacking attacks (except for Shopify app pages)
+  if (!isShopifyApp) {
+    headers.set('X-Frame-Options', 'DENY');
+  }
   
   // Prevent MIME type sniffing
   headers.set('X-Content-Type-Options', 'nosniff');
@@ -31,6 +37,10 @@ export function middleware(request: NextRequest) {
   headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   
   // Content Security Policy
+  const frameAncestors = isShopifyApp 
+    ? "frame-ancestors https://admin.shopify.com https://*.myshopify.com"
+    : "frame-ancestors 'none'";
+    
   const csp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://editor.unlayer.com https://*.stripe.com https://*.supabase.co https://*.bybit.com",
@@ -42,7 +52,7 @@ export function middleware(request: NextRequest) {
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
-    "frame-ancestors 'none'",
+    frameAncestors,
     "upgrade-insecure-requests"
   ].join('; ');
   
