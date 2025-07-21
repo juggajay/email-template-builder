@@ -479,63 +479,18 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
                 <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
                   <StripePattern animation="static" opacity={0.03} color="#00d4aa" />
                 </div>
-                
-                {/* Performance badge */}
-                {performanceBadge && (
-                  <div className={cn(
-                    "absolute top-2 right-2 z-20 px-2 py-1 rounded-full text-xs font-medium",
-                    performanceBadge === 'top-performer' && "bg-success-purple text-white",
-                    performanceBadge === 'rising' && "bg-growth-green text-white",
-                    performanceBadge === 'new' && "bg-alert-amber text-zebra-black"
-                  )}>
-                    {performanceBadge === 'top-performer' && "Top Performer"}
-                    {performanceBadge === 'rising' && "Rising Star"}
-                    {performanceBadge === 'new' && "New"}
-                  </div>
-                )}
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    {!showUserTemplates && template.category && (
-                      <Badge variant={getCategoryColor(template.category)}>
+              
+              <CardContent className="p-3 space-y-3">
+                {/* Template preview with category badge overlay */}
+                <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden relative">
+                  {/* Category badge overlay */}
+                  {!showUserTemplates && template.category && (
+                    <div className="absolute top-2 left-2 z-10">
+                      <Badge variant={getCategoryColor(template.category)} className="shadow-sm">
                         {template.category.replace('-', ' ')}
                       </Badge>
-                    )}
-                    {template.is_premium && (isPro || isAgency) && (
-                      <Badge variant="secondary">
-                        <Star className="w-3 h-3 mr-1" />
-                        Premium
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handlePreview(template);
-                      }}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Add to favorites
-                      }}
-                    >
-                      <Heart className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="space-y-4">
-                {/* Template preview */}
-                <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden relative group">
+                    </div>
+                  )}
                   {template.thumbnail_url ? (
                     <img 
                       src={template.thumbnail_url} 
@@ -569,57 +524,29 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
                 </div>
 
                 {/* Template info */}
-                <div className="space-y-2">
-                  <h3 className="font-bold text-zebra-black group-hover:text-growth-green transition-colors">
+                <div className="space-y-1">
+                  <h3 className="font-bold text-zebra-black group-hover:text-growth-green transition-colors line-clamp-1">
                     {template.name}
                   </h3>
                   {template.description && (
-                    <p className="text-sm text-gray-600 line-clamp-2">
+                    <p className="text-sm text-gray-600 line-clamp-1">
                       {template.description}
                     </p>
                   )}
                   
-                  {/* Revenue metrics - only for public templates */}
+                  {/* Compact metrics */}
                   {!showUserTemplates && (
-                    <div className="space-y-2 pt-2 border-t border-gray-100">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700">💰 Generates</span>
-                        <span className="text-sm font-bold text-growth-green">
-                          ${revenue.toLocaleString()}/mo avg
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Conversion</span>
-                        <div className="flex items-center gap-1">
-                          <span className="text-sm font-medium text-zebra-black">{conversionRate}%</span>
-                          {enhancedTemplate.performance?.trend === 'up' && (
-                            <TrendingUp className="w-3 h-3 text-growth-green" />
-                          )}
-                        </div>
-                      </div>
+                    <div className="flex items-center justify-between text-xs pt-1">
+                      <span className="text-gray-600">
+                        ${(revenue/1000).toFixed(0)}k/mo • {conversionRate}%
+                      </span>
                     </div>
                   )}
                   
-                  {/* Date info for user templates, growth stage for public */}
-                  {showUserTemplates ? (
-                    <div className="flex items-center justify-between pt-2">
-                      <span className="text-xs text-gray-600">Created</span>
-                      <span className="text-xs text-gray-500">
-                        {new Date(template.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between pt-2">
-                      <div className="flex items-center gap-2">
-                        <div className="flex gap-1">
-                          {[...Array(enhancedTemplate.growthStage === 'scale' ? 3 : enhancedTemplate.growthStage === 'growth' ? 2 : 1)].map((_, i) => (
-                            <div key={i} className="w-2 h-2 rounded-full bg-gray-300" />
-                          ))}
-                        </div>
-                        <span className="text-xs text-gray-600">
-                          {enhancedTemplate.growthStage === 'scale' ? 'Scale' : enhancedTemplate.growthStage === 'growth' ? 'Growth' : 'Starter'}
-                        </span>
-                      </div>
+                  {/* Date info for user templates only */}
+                  {showUserTemplates && (
+                    <div className="text-xs text-gray-500 pt-1">
+                      Created {new Date(template.created_at).toLocaleDateString()}
                     </div>
                   )}
                 </div>
@@ -635,7 +562,7 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
                     }}
                   >
                     <TargetIcon className="w-4 h-4 mr-2 transition-transform group-hover/btn:rotate-12" />
-                    {showUserTemplates ? 'Edit Template' : 'Start Growing'}
+                    {showUserTemplates ? 'Edit Template' : 'Start Building'}
                   </Button>
                   
                   <Button 
