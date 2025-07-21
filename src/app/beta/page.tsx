@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ZebCharacter } from '@/components/brand';
-import { CheckCircle, Mail, Key, Users } from 'lucide-react';
+import { CheckCircle, Mail, Key, Users, Gift, Clock, DollarSign, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 
 export default function BetaPage() {
@@ -17,9 +17,12 @@ export default function BetaPage() {
           <h1 className="text-4xl font-bold text-zebra-black mb-2">
             Welcome to ZebaMail Beta
           </h1>
-          <Badge variant="secondary" className="text-sm">PRIVATE BETA</Badge>
-          <p className="text-xl text-gray-600 mt-4">
-            Thank you for being an early adopter!
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Badge variant="secondary" className="text-sm">PRIVATE BETA</Badge>
+            <Badge variant="destructive" className="text-sm">92% FULL</Badge>
+          </div>
+          <p className="text-xl text-gray-600">
+            Join the exclusive group shaping the future of e-commerce email marketing
           </p>
         </div>
 
@@ -64,70 +67,145 @@ export default function BetaPage() {
           </CardContent>
         </Card>
 
-        {/* What's Included */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-growth-green" />
-              What's Included in Beta
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-3">
-              <li className="flex items-start gap-2">
-                <CheckCircle className="w-5 h-5 text-growth-green mt-0.5" />
-                <span>Full access to the email template builder</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle className="w-5 h-5 text-growth-green mt-0.5" />
-                <span>Unlimited template creation and editing</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle className="w-5 h-5 text-growth-green mt-0.5" />
-                <span>Advanced merge tags and conditional content</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle className="w-5 h-5 text-growth-green mt-0.5" />
-                <span>Early access to new features</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle className="w-5 h-5 text-growth-green mt-0.5" />
-                <span>Direct feedback channel to the development team</span>
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
+        {/* Beta Benefits */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <Card className="border-growth-green/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Gift className="w-5 h-5 text-growth-green" />
+                Exclusive Beta Benefits
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-2">
+                  <Clock className="w-5 h-5 text-growth-green mt-0.5" />
+                  <div>
+                    <span className="font-semibold">2 Weeks Free Access</span>
+                    <p className="text-sm text-gray-600">Full platform access with no credit card required</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2">
+                  <DollarSign className="w-5 h-5 text-growth-green mt-0.5" />
+                  <div>
+                    <span className="font-semibold">50% Lifetime Discount</span>
+                    <p className="text-sm text-gray-600">Lock in founder pricing forever</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2">
+                  <MessageSquare className="w-5 h-5 text-growth-green mt-0.5" />
+                  <div>
+                    <span className="font-semibold">Direct Dev Access</span>
+                    <p className="text-sm text-gray-600">Private Slack channel with our team</p>
+                  </div>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-5 h-5 text-growth-green mt-0.5" />
+                  <div>
+                    <span className="font-semibold">Feature Requests</span>
+                    <p className="text-sm text-gray-600">Your ideas become our roadmap</p>
+                  </div>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card className="border-success-purple/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <CheckCircle className="w-5 h-5 text-success-purple" />
+                What's Included
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-5 h-5 text-success-purple mt-0.5" />
+                  <span>Full email template builder access</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-5 h-5 text-success-purple mt-0.5" />
+                  <span>20+ pre-built e-commerce templates</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-5 h-5 text-success-purple mt-0.5" />
+                  <span>Advanced merge tags & personalization</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-5 h-5 text-success-purple mt-0.5" />
+                  <span>Export to Klaviyo, Mailchimp & more</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-5 h-5 text-success-purple mt-0.5" />
+                  <span>Priority support & onboarding</span>
+                </li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Beta Tester Expectations */}
-        <Card className="mb-8">
+        <Card className="mb-8 border-2 border-growth-green/20 bg-growth-green/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="w-5 h-5 text-growth-green" />
-              Beta Tester Expectations
+              What We Expect From Beta Testers
             </CardTitle>
+            <CardDescription>
+              Help us build the perfect email marketing tool for e-commerce
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-gray-600">
-              As a beta tester, we'd love your help with:
-            </p>
-            <ul className="space-y-2 ml-4">
-              <li className="flex items-start gap-2">
-                <span className="text-growth-green">•</span>
-                <span>Testing features and reporting any bugs</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-growth-green">•</span>
-                <span>Providing feedback on user experience</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-growth-green">•</span>
-                <span>Suggesting features that would help your business</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-growth-green">•</span>
-                <span>Sharing your success stories with ZebaMail</span>
-              </li>
-            </ul>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="font-semibold mb-3 text-zebra-black">Your Commitment</h3>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-growth-green">✓</span>
+                    <span><strong>Weekly feedback</strong> via our feedback form</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-growth-green">✓</span>
+                    <span><strong>Test templates</strong> with real campaigns</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-growth-green">✓</span>
+                    <span><strong>Report bugs</strong> and UX improvements</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-growth-green">✓</span>
+                    <span><strong>Share testimonials</strong> and case studies</span>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="font-semibold mb-3 text-zebra-black">How We'll Connect</h3>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-success-purple">•</span>
+                    <span><strong>Private Slack community</strong> for instant support</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-success-purple">•</span>
+                    <span><strong>Weekly office hours</strong> with founders</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-success-purple">•</span>
+                    <span><strong>Feature request voting</strong> system</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-success-purple">•</span>
+                    <span><strong>Early access</strong> to new features</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <p className="text-sm text-yellow-800">
+                <strong>Note:</strong> Active participation is required. Beta testers who don't engage for 2+ weeks may have their access revoked to make room for others.
+              </p>
+            </div>
           </CardContent>
         </Card>
 

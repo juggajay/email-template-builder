@@ -110,18 +110,73 @@ export function Hero() {
             </div>
             
             <div className="relative z-10 text-center">
-              <div className="inline-flex items-center justify-center mb-6">
-                <ZebCharacter variant="celebrate" size="lg" />
+              {/* Urgency Badge */}
+              <div className="inline-flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-full text-sm font-semibold mb-6">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                </span>
+                Beta Program 92% Full
               </div>
               
               <h2 className="text-3xl md:text-4xl font-bold text-zebra-black mb-4">
-                Join Our Exclusive Beta Test
+                Exclusive Beta Access - Limited Spots Remaining
               </h2>
               
+              {/* Beta Benefits */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-3xl mx-auto">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-growth-green mb-1">2 Weeks</div>
+                  <div className="text-sm text-gray-600">Free Full Access</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-growth-green mb-1">50% OFF</div>
+                  <div className="text-sm text-gray-600">Lifetime Discount</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-growth-green mb-1">Direct Access</div>
+                  <div className="text-sm text-gray-600">To Our Dev Team</div>
+                </div>
+              </div>
+              
+              {/* Progress Bar */}
+              <div className="w-full max-w-md mx-auto mb-6">
+                <div className="flex justify-between text-xs text-gray-600 mb-2">
+                  <span>8 spots remaining</span>
+                  <span>92 beta testers</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div className="bg-gradient-to-r from-growth-green to-growth-green-600 h-full rounded-full transition-all duration-500" style={{width: '92%'}}></div>
+                </div>
+              </div>
+              
               <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
-                Be among the first to experience ZebaMail's revenue-driving email templates. 
-                Limited spots available for our 2-week beta program.
+                Join our exclusive beta program and help shape the future of e-commerce email marketing. 
+                Get early access, lifetime benefits, and direct influence on our product roadmap.
               </p>
+              
+              {/* What We Expect */}
+              <div className="bg-gray-50 rounded-lg p-6 mb-8 max-w-2xl mx-auto text-left">
+                <h3 className="font-semibold text-zebra-black mb-3">What We Expect From Beta Testers:</h3>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li className="flex items-start gap-2">
+                    <span className="text-growth-green mt-0.5">✓</span>
+                    <span>Weekly feedback on features and user experience</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-growth-green mt-0.5">✓</span>
+                    <span>Test email templates with your actual campaigns</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-growth-green mt-0.5">✓</span>
+                    <span>Share testimonials and success stories</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-growth-green mt-0.5">✓</span>
+                    <span>Participate in our private Slack community</span>
+                  </li>
+                </ul>
+              </div>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 <Link href="/signup">
@@ -129,7 +184,7 @@ export function Hero() {
                     size="lg"
                     className="bg-growth-green hover:bg-growth-green-600 text-white px-8 py-6 text-lg font-semibold group shadow-lg"
                   >
-                    Request Beta Access
+                    Claim Your Beta Spot
                     <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
@@ -144,6 +199,10 @@ export function Hero() {
                   </Button>
                 </Link>
               </div>
+              
+              <p className="text-xs text-gray-500 mt-4">
+                * Exclusive offers including future feature requests and priority support
+              </p>
             </div>
           </div>
         </div>
