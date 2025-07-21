@@ -36,7 +36,6 @@ const getNavigation = (isAdmin: boolean) => {
     { name: 'Campaign Builder', href: '/editor', icon: Mail },
     { name: 'Settings', href: '/settings', icon: Settings },
     { name: 'Billing', href: '/billing', icon: CreditCard },
-    { name: 'Help', href: '/help', icon: HelpCircle },
   ];
 
   if (isAdmin) {

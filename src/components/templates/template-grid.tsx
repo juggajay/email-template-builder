@@ -496,7 +496,7 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    {!showUserTemplates && (
+                    {!showUserTemplates && template.category && (
                       <Badge variant={getCategoryColor(template.category)}>
                         {template.category.replace('-', ' ')}
                       </Badge>
