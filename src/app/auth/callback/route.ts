@@ -23,7 +23,8 @@ export async function GET(request: NextRequest) {
       
       if (error) {
         console.error('[Auth Callback] Session exchange error:', error);
-        return NextResponse.redirect(new URL('/login?error=auth_callback_failed', request.url));
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.zebamail.com';
+        return NextResponse.redirect(`${baseUrl}/login?error=auth_callback_failed`);
       }
 
       console.log('[Auth Callback] Session established for user:', data.user?.id);
@@ -46,12 +47,16 @@ export async function GET(request: NextRequest) {
         console.log('[Auth Callback] User beta status:', profile?.is_beta_tester);
 
         // Add a small delay to ensure session is propagated
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Redirect to dashboard with a success flag
-        const dashboardUrl = new URL('/dashboard', request.url);
-        dashboardUrl.searchParams.set('verified', 'true');
-        return NextResponse.redirect(dashboardUrl);
+        // Use absolute URL to ensure correct redirect
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.zebamail.com';
+        // Redirect to verifying page which will handle client-side redirect
+        const verifyingUrl = `${baseUrl}/auth/verifying?verified=true`;
+        
+        console.log('[Auth Callback] Redirecting to:', verifyingUrl);
+        
+        return NextResponse.redirect(verifyingUrl);
       }
       
       // Handle password reset flow
