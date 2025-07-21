@@ -96,9 +96,13 @@ export function SignupForm() {
         // Use the invite code after successful signup
         if (data.inviteCode && result.data.user) {
           try {
+            console.log('[Signup Form] Attempting to use invite code:', data.inviteCode, 'for user:', result.data.user.id);
             const inviteResult = await betaAccessService.useInviteCode(data.inviteCode, result.data.user.id);
             if (!inviteResult) {
               console.warn('[Signup Form] Failed to apply invite code, but user was created successfully');
+              console.warn('[Signup Form] This might mean the code is invalid, expired, or already used');
+            } else {
+              console.log('[Signup Form] Successfully applied invite code');
             }
           } catch (inviteError) {
             console.error('[Signup Form] Error applying invite code:', inviteError);

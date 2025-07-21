@@ -147,9 +147,16 @@ export class BetaAccessService {
 
       if (error) {
         console.error('Error using invite code:', error);
+        console.error('Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
         return false;
       }
 
+      console.log('Beta invite RPC result:', data);
       return data === true;
     } catch (error) {
       console.error('Error using invite code:', error);
