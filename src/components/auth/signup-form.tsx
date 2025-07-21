@@ -71,6 +71,7 @@ export function SignupForm() {
         password: data.password,
         fullName: data.fullName,
         companyName: data.companyName,
+        inviteCode: data.inviteCode,
       });
       
       if (result.error) {

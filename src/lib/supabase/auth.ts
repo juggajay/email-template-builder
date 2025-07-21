@@ -11,6 +11,7 @@ export interface SignUpData {
   password: string;
   fullName?: string;
   companyName?: string;
+  inviteCode?: string;
 }
 
 export interface SignInData {
@@ -21,7 +22,7 @@ export interface SignInData {
 export class AuthService {
   private supabase = createClient();
 
-  async signUp({ email, password, fullName, companyName }: SignUpData) {
+  async signUp({ email, password, fullName, companyName, inviteCode }: SignUpData) {
     try {
       const { data, error } = await this.supabase.auth.signUp({
         email,
@@ -30,8 +31,9 @@ export class AuthService {
           data: {
             full_name: fullName,
             company_name: companyName,
+            beta_invite_code: inviteCode,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback?type=signup`,
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/auth/callback?type=signup`,
         },
       });
 
