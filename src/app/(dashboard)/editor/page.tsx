@@ -22,7 +22,8 @@ import { findAllMergeTags } from '@/lib/merge-tags/parser';
 import { validateTemplate } from '@/lib/merge-tags/validator';
 import { getAllMergeTags } from '@/lib/merge-tags';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Eye, Filter, Save, ChevronDown } from 'lucide-react';
+import { Sparkles, Eye, Filter, Save, ChevronDown, Copy } from 'lucide-react';
+import { copyHTMLToClipboard } from '@/lib/email/export';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -294,6 +295,19 @@ function EditorContent() {
     }
   };
 
+  const handleCopyHTML = () => {
+    if (editorRef && editorRef.exportHtml) {
+      editorRef.exportHtml(async (data: any) => {
+        const { html } = data;
+        try {
+          await copyHTMLToClipboard(html);
+        } catch (error) {
+          console.error('Failed to copy HTML:', error);
+        }
+      });
+    }
+  };
+
   // Use mobile wrapper for mobile devices
   if (isMobile) {
     return (
@@ -372,6 +386,17 @@ function EditorContent() {
                 console.log('Test email sent:', result);
               }}
             />
+            
+            {/* Copy HTML Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyHTML}
+              className="flex items-center gap-2"
+            >
+              <Copy className="w-4 h-4" />
+              Copy HTML
+            </Button>
             
             {/* Save & Exit Dropdown */}
             <DropdownMenu>
