@@ -31,13 +31,13 @@ interface DashboardLayoutProps {
 }
 
 const getNavigation = (isAdmin: boolean) => {
-  const baseNav = [
+  const baseNav: Array<{ name: string; href: string; icon: any; badge?: string }> = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Templates', href: '/templates', icon: FileText },
     { name: 'Campaign Builder', href: '/editor', icon: Mail },
     { name: 'Settings', href: '/settings', icon: Settings },
     { name: 'Billing', href: '/billing', icon: CreditCard },
-    { name: 'Feedback', href: '/feedback', icon: MessageSquarePlus, badge: 'BETA' },
+    { name: 'Community', href: '/community', icon: MessageSquarePlus },
     { name: 'Help', href: '/help', icon: HelpCircle },
   ];
 
