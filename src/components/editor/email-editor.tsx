@@ -3,6 +3,8 @@
 import { useRef, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { copyHTMLToClipboard } from '@/lib/email/export';
+import { Copy } from 'lucide-react';
 
 interface EmailEditorProps {
   templateId?: string;
@@ -233,6 +235,20 @@ export function EmailEditor({ templateId, initialDesign, onSave, onExport }: Ema
     });
   };
 
+  const handleCopyHTML = () => {
+    const unlayer = editorRef.current;
+    if (!unlayer) return;
+
+    unlayer.exportHtml(async (data: any) => {
+      const { html } = data;
+      try {
+        await copyHTMLToClipboard(html);
+      } catch (error) {
+        console.error('Failed to copy HTML:', error);
+      }
+    });
+  };
+
   return (
     <div className="flex flex-col h-screen">
       <div className="border-b p-4 flex justify-between items-center">
@@ -241,8 +257,9 @@ export function EmailEditor({ templateId, initialDesign, onSave, onExport }: Ema
           <Button variant="outline" onClick={handleSave}>
             Save Template
           </Button>
-          <Button onClick={handleExport}>
-            Export
+          <Button onClick={handleCopyHTML}>
+            <Copy className="w-4 h-4 mr-2" />
+            Copy HTML
           </Button>
         </div>
       </div>
