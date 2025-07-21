@@ -252,7 +252,7 @@ export function SendTestEmail({
       if (data.success) {
         setResult({
           success: true,
-          message: 'Test email sent successfully!',
+          message: data.message || 'Test email sent successfully!',
           emailId: data.emailId
         });
         setShowSuccess(true);

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getEmailService } from '@/lib/email/email-service';
+import { getEmailService, validateEmailServiceConfig } from '@/lib/email/email-service';
+import { getMockEmailService } from '@/lib/email/mock-email-service';
 import { createClient } from '@/lib/supabase/server';
 
 // Rate limiting constants
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { to, html, templateData, provider } = body;
+    const { to, html, templateData, provider, subject } = body;
 
     // Validate required fields
     if (!to || !html) {
@@ -59,14 +60,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const emailService = getEmailService();
+    // Check if email service is properly configured
+    const { isValid } = validateEmailServiceConfig();
     
-    const result = await emailService.sendTestEmail(
-      to,
-      html,
-      templateData,
-      provider
-    );
+    let result;
+    if (!isValid) {
+      // Use mock service when no real providers are configured
+      console.log('Using mock email service - no real providers configured');
+      const mockService = getMockEmailService();
+      result = await mockService.sendTestEmail(to, html, templateData, provider);
+    } else {
+      // Use real email service
+      const emailService = getEmailService();
+      result = await emailService.sendTestEmail(to, html, templateData, provider);
+    }
 
     // Store test email record
     await supabase
@@ -76,7 +83,7 @@ export async function POST(request: NextRequest) {
         email_id: result.id,
         provider: result.provider,
         recipient: to,
-        subject: 'Test Email - Template Preview',
+        subject: subject || 'Test Email - Template Preview',
         status: result.status,
         is_test: true,
         sent_at: new Date().toISOString()
@@ -88,7 +95,7 @@ export async function POST(request: NextRequest) {
       status: result.status,
       provider: result.provider,
       message: result.status === 'sent' 
-        ? 'Test email sent successfully' 
+        ? (isValid ? 'Test email sent successfully' : 'Test email simulated (no email provider configured)') 
         : 'Test email failed to send'
     });
 
