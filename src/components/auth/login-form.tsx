@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
 import { authService } from '@/lib/supabase/auth';
+import { betaAccessService } from '@/lib/beta-access';
+import { BETA_CONFIG } from '@/lib/beta-config';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -40,8 +42,30 @@ export function LoginForm() {
       const result = await signIn(data.email, data.password);
       
       if (result.error) {
-        setError(result.error.message);
-      } else {
+        // Provide user-friendly error messages
+        if (result.error.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password. Please try again.');
+        } else if (result.error.message.includes('Email not confirmed')) {
+          setError('Please check your email to confirm your account before signing in.');
+        } else {
+          setError(result.error.message);
+        }
+      } else if (result.data?.user) {
+        // Skip beta check if disabled or email is bypassed
+        if (!BETA_CONFIG.IS_ENABLED || BETA_CONFIG.shouldBypassBeta(data.email)) {
+          router.push('/dashboard');
+          return;
+        }
+        
+        // Check if user has beta access
+        const hasBetaAccess = await betaAccessService.checkBetaAccess(result.data.user.id);
+        
+        if (!hasBetaAccess) {
+          await authService.signOut();
+          setError('Your account does not have beta access. Please contact us for an invite.');
+          return;
+        }
+        
         router.push('/dashboard');
       }
     } catch (err) {
@@ -69,15 +93,15 @@ export function LoginForm() {
 
   return (
     <Card className="w-full max-w-md">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl text-center">Sign in</CardTitle>
-        <CardDescription className="text-center">
-          Enter your email and password to access your account
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Input
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl text-center">Sign in</CardTitle>
+          <CardDescription className="text-center">
+            Enter your email and password to access your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <Input
             {...register('email')}
             type="email"
             label="Email"
@@ -98,8 +122,26 @@ export function LoginForm() {
           {error && (
             <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
               {error}
+              {error.includes('configured') && (
+                <a 
+                  href="/setup" 
+                  className="block mt-2 text-primary hover:underline"
+                >
+                  View setup guide →
+                </a>
+              )}
             </div>
           )}
+
+          <div className="flex items-center justify-end">
+            <button
+              type="button"
+              onClick={() => router.push('/forgot-password')}
+              className="text-sm text-primary hover:underline"
+            >
+              Forgot password?
+            </button>
+          </div>
 
           <Button 
             type="submit" 

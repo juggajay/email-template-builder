@@ -30,7 +30,26 @@
       "Bash(git restore:*)",
       "Bash(./quick-setup.sh:*)",
       "Bash(docker-compose up:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npm run build:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(npx tsc:*)",
+      "Bash(curl:*)",
+      "Bash(git fetch:*)",
+      "Bash(git tag:*)",
+      "Bash(npm run lint:*)",
+      "Bash(git revert:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm test:*)",
+      "Bash(npx shadcn-ui:*)",
+      "Bash(npx shadcn@latest add dropdown-menu:*)",
+      "Bash(npx shadcn:*)",
+      "Bash(node:*)",
+      "Bash(./test-oauth-redirect.sh:*)",
+      "Bash(npx playwright test:*)"
     ],
     "deny": []
   }

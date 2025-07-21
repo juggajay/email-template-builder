@@ -1,0 +1,53 @@
+# Vercelignore file
+# Files and directories to exclude from Vercel deployments
+
+# Development files
+.env.local
+.env.test
+.env.development
+
+# Test files
+**/*.test.ts
+**/*.test.tsx
+**/test-*
+**/debug-*
+playwright-test.js
+puppeteer-test.js
+test-all-pages.sh
+test-app.js
+
+# Documentation
+*.md
+!README.md
+
+# SQL files
+*.sql
+
+# Git
+.git
+.gitignore
+
+# Editor
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary documentation files
+QUICK_FIX_STEPS.md
+COMPLETE_*.md
+FINAL_*.md
+PROJECT_COMPLETION_SUMMARY.md
+RLS_FIX_INSTRUCTIONS.md
+MANUAL_TEST_CHECKLIST.md
+# Exclude specific fixed files but not component files
+supabase-complete-rls-fix.sql
+supabase-rls-fix-v2.sql
+supabase-rls-fix.sql
+supabase-schema-fixed.sql
+supabase-debug-fix.sql
+EDITOR_FIX.sql
+TEMPLATE_FIX.sql
+SUPABASE_QUICKFIX.md

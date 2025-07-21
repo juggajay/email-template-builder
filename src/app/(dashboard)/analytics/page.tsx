@@ -108,7 +108,7 @@ export default function AnalyticsPage() {
 
       // Process export types
       const typeCount: Record<string, number> = {};
-      exportsByType?.forEach(exp => {
+      exportsByType?.forEach((exp: any) => {
         typeCount[exp.export_type] = (typeCount[exp.export_type] || 0) + 1;
       });
 

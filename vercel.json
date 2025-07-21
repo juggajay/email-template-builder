@@ -1,0 +1,24 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "regions": ["iad1"],
+  "functions": {
+    "src/app/api/email/send/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/email/batch/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/shopify/sync/*/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/export/route.ts": {
+      "maxDuration": 30
+    }
+  },
+  "env": {
+    "NODE_ENV": "production"
+  }
+}

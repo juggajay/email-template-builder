@@ -7,6 +7,7 @@ import type { Database } from '@/lib/supabase/types';
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
+  const next = requestUrl.searchParams.get('next');
   const redirectTo = requestUrl.searchParams.get('redirectTo') || '/dashboard';
 
   if (code) {
@@ -19,6 +20,11 @@ export async function GET(request: NextRequest) {
       if (error) {
         console.error('Auth callback error:', error);
         return NextResponse.redirect(new URL('/login?error=auth_callback_failed', request.url));
+      }
+      
+      // Handle password reset flow
+      if (next === '/reset-password') {
+        return NextResponse.redirect(new URL('/reset-password', request.url));
       }
     } catch (error) {
       console.error('Auth callback error:', error);

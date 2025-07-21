@@ -38,6 +38,18 @@ export class AuthService {
 
       return { data, error: null };
     } catch (error) {
+      console.error('Sign up error:', error);
+      
+      // Handle specific error types
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        return {
+          data: null,
+          error: {
+            message: 'Connection error. Please check your internet connection and try again.',
+          },
+        };
+      }
+      
       return {
         data: null,
         error: {
@@ -58,6 +70,18 @@ export class AuthService {
 
       return { data, error: null };
     } catch (error) {
+      console.error('Sign in error:', error);
+      
+      // Handle specific error types
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        return {
+          data: null,
+          error: {
+            message: 'Connection error. Please check your internet connection and try again.',
+          },
+        };
+      }
+      
       return {
         data: null,
         error: {
@@ -106,7 +130,7 @@ export class AuthService {
   async resetPassword(email: string) {
     try {
       const { data, error } = await this.supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
       });
 
       if (error) throw error;

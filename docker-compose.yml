@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_SITE_URL=http://localhost:3000
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    command: sh -c "npm install && npm run dev"
+    depends_on:
+      - postgres
+    networks:
+      - template-builder
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: template_builder
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./supabase/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - template-builder
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Stripe CLI for webhook testing
+  stripe:
+    image: stripe/stripe-cli:latest
+    environment:
+      STRIPE_DEVICE_NAME: template-builder-docker
+    command: listen --forward-to http://app:3000/api/webhooks/stripe
+    networks:
+      - template-builder
+    profiles:
+      - stripe
+
+  # Playwright for E2E testing
+  playwright:
+    build:
+      context: .
+      dockerfile: Dockerfile.playwright
+    environment:
+      - BASE_URL=http://app:3000
+      - CI=true
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - template-builder
+    depends_on:
+      - app
+    profiles:
+      - test
+
+volumes:
+  postgres_data:
+
+networks:
+  template-builder:
+    driver: bridge

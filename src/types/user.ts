@@ -20,6 +20,10 @@ export interface UserProfile {
   usage_reset_date: string;
   created_at: string;
   updated_at: string;
+  role?: 'user' | 'admin';
+  is_beta_tester?: boolean;
+  beta_access_granted_at?: string;
+  beta_invite_code?: string;
 }
 
 export interface BrandColors {

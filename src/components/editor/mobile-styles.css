@@ -1,0 +1,328 @@
+/* Mobile-optimized styles for Email Template Builder */
+
+/* Base mobile styles */
+@media (max-width: 768px) {
+  /* Editor container adjustments */
+  #unlayer-editor, 
+  #unlayer-editor-fixed,
+  #simple-unlayer-editor {
+    height: calc(100vh - 120px);
+    min-height: 400px;
+  }
+
+  /* Make the editor header more compact */
+  .editor-header {
+    padding: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  /* Template name input mobile friendly */
+  .template-name-input {
+    font-size: 16px; /* Prevents zoom on iOS */
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Save button repositioning for mobile */
+  .editor-toolbar-save {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    top: auto;
+    z-index: 100;
+  }
+
+  /* Floating action button style */
+  .editor-toolbar-save button {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .editor-toolbar-save button span {
+    display: none;
+  }
+
+  /* Mobile navigation */
+  .mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+    padding: 0.5rem;
+    z-index: 90;
+    justify-content: space-around;
+  }
+
+  .mobile-nav button {
+    flex: 1;
+    padding: 0.5rem;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .mobile-nav svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Adjust main content for bottom nav */
+  .editor-main-content {
+    padding-bottom: 60px;
+  }
+}
+
+/* Smaller mobile devices */
+@media (max-width: 480px) {
+  /* Even more compact header */
+  .editor-header {
+    font-size: 14px;
+  }
+
+  /* Smaller padding */
+  .editor-container {
+    padding: 0.5rem;
+  }
+
+  /* Full width editor */
+  .editor-wrapper {
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* Touch-friendly adjustments */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets */
+  button, 
+  a, 
+  .clickable {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Better spacing for touch */
+  .button-group > * {
+    margin: 0.25rem;
+  }
+
+  /* Disable hover effects on touch devices */
+  .u-row:hover,
+  .u-column:hover,
+  .u-block:hover {
+    outline: none;
+  }
+}
+
+/* Landscape mobile optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+  #unlayer-editor, 
+  #unlayer-editor-fixed,
+  #simple-unlayer-editor {
+    height: calc(100vh - 80px);
+    min-height: 300px;
+  }
+
+  .editor-header {
+    padding: 0.25rem 0.5rem;
+  }
+
+  .mobile-nav {
+    padding: 0.25rem;
+  }
+
+  .mobile-nav button {
+    font-size: 11px;
+    padding: 0.25rem;
+  }
+}
+
+/* Loading state for mobile */
+@media (max-width: 768px) {
+  .editor-loading {
+    height: calc(100vh - 120px);
+  }
+
+  .editor-loading p {
+    font-size: 14px;
+  }
+}
+
+/* Templates page mobile optimization */
+@media (max-width: 768px) {
+  .templates-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .template-card {
+    width: 100%;
+  }
+
+  .template-preview {
+    height: 200px;
+  }
+}
+
+/* Mobile menu overlay */
+.mobile-menu-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+}
+
+.mobile-menu {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 16px 16px 0 0;
+  padding: 1rem;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.mobile-menu.open {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-overlay {
+    display: block;
+  }
+}
+
+/* Swipe gesture indicator */
+.swipe-indicator {
+  width: 40px;
+  height: 4px;
+  background: #cbd5e1;
+  border-radius: 2px;
+  margin: 0 auto 1rem;
+}
+
+/* Mobile-optimized buttons */
+@media (max-width: 768px) {
+  .mobile-button {
+    width: 100%;
+    padding: 1rem;
+    font-size: 16px;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+  }
+
+  .button-icon-mobile {
+    width: 24px;
+    height: 24px;
+    margin-right: 0.5rem;
+  }
+}
+
+/* Responsive text */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  p, .text-base {
+    font-size: 14px;
+  }
+
+  .text-sm {
+    font-size: 12px;
+  }
+}
+
+/* Mobile-specific utility classes */
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
+  }
+
+  .show-mobile {
+    display: block !important;
+  }
+
+  .mobile-full-width {
+    width: 100% !important;
+  }
+
+  .mobile-padding {
+    padding: 1rem !important;
+  }
+
+  .mobile-margin {
+    margin: 0.5rem !important;
+  }
+}
+
+/* Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+/* Ensure Unlayer is mobile-optimized */
+@media (max-width: 768px) {
+  /* Fix tools panel for mobile */
+  #unlayer-editor-fixed iframe,
+  #unlayer-editor iframe {
+    /* Force mobile-friendly view */
+    min-width: 100% !important;
+  }
+  
+  /* Make tool icons larger on mobile */
+  .u-tool-icon {
+    width: 48px !important;
+    height: 48px !important;
+  }
+}
+
+/* PWA-style safe areas for notched devices */
+@supports (padding: max(0px)) {
+  .editor-header {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
+  
+  .mobile-nav {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+}
