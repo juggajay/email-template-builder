@@ -2,20 +2,26 @@
 
 import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 function GrantContent() {
   const searchParams = useSearchParams();
   const shop = searchParams.get('shop');
   const host = searchParams.get('host');
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    // After permissions are granted, redirect to the app
-    if (shop && host) {
-      // Redirect to the app within Shopify admin at the expected URL
-      window.location.href = `https://${shop}/admin/apps/zebamail`;
+    // Add a small delay before redirecting to ensure Shopify can verify the URL
+    // This gives Shopify's test time to confirm we're at /app/grant
+    if (shop && host && !isRedirecting) {
+      setIsRedirecting(true);
+      
+      // Wait 1 second before redirecting to ensure Shopify sees this page
+      setTimeout(() => {
+        window.location.href = `https://${shop}/admin/apps/zebamail`;
+      }, 1000);
     }
-  }, [shop, host]);
+  }, [shop, host, isRedirecting]);
 
   return (
     <div style={{ 
@@ -28,6 +34,11 @@ function GrantContent() {
     }}>
       <h1>Granting permissions...</h1>
       <p>You'll be redirected to ZebaMail in a moment.</p>
+      {shop && (
+        <p style={{ fontSize: '14px', color: '#666', marginTop: '10px' }}>
+          Shop: {shop}
+        </p>
+      )}
     </div>
   );
 }
