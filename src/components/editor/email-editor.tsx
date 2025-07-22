@@ -8,6 +8,7 @@ import { Download, Copy, Eye, Save, Send, Settings2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ExportDialog } from '@/components/email/export-dialog';
 import { inliningStrategies } from '@/lib/email/export-options';
+import { EmailExportService } from '@/lib/email/export';
 
 interface EmailEditorProps {
   templateId?: string;
@@ -31,27 +32,12 @@ export function EmailEditorComponent({ templateId, onSave }: EmailEditorProps) {
       const { design, html } = data;
       
       try {
-        // Call API to inline CSS for better email client compatibility
-        const response = await fetch('/api/email/export', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            html,
-            format: 'html',
-            options: {
-              preserveMediaQueries: true,
-              preserveFontFaces: true,
-            },
-          }),
+        // Inline CSS for better email client compatibility
+        const inlinedHtml = EmailExportService.inlineCSS(html, {
+          preserveMediaQueries: true,
+          preserveFontFaces: true,
+          preserveKeyFrames: true,
         });
-
-        if (!response.ok) {
-          throw new Error('Export failed');
-        }
-
-        const { content: inlinedHtml } = await response.json();
         
         switch (action) {
           case 'copy':
@@ -131,26 +117,14 @@ export function EmailEditorComponent({ templateId, onSave }: EmailEditorProps) {
       const { html } = data;
       
       try {
-        const response = await fetch('/api/email/export', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            html,
-            format: 'platform',
-            platform,
-            options: {
-              preserveMediaQueries: true,
-            },
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Export failed');
-        }
-
-        const { content: processedHtml } = await response.json();
+        const processedHtml = await EmailExportService.exportForPlatform(
+          html, 
+          platform,
+          {
+            inlineCSS: true,
+            preserveMediaQueries: true,
+          }
+        );
         
         await navigator.clipboard.writeText(processedHtml);
         
@@ -180,25 +154,10 @@ export function EmailEditorComponent({ templateId, onSave }: EmailEditorProps) {
       
       try {
         // Inline CSS before saving
-        const response = await fetch('/api/email/export', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            html,
-            format: 'html',
-            options: {
-              inlineCSS: true,
-            },
-          }),
+        const inlinedHtml = EmailExportService.inlineCSS(html, {
+          preserveMediaQueries: true,
+          preserveFontFaces: true,
         });
-
-        if (!response.ok) {
-          throw new Error('Export failed');
-        }
-
-        const { content: inlinedHtml } = await response.json();
         
         if (onSave) {
           onSave(design, inlinedHtml);
@@ -224,25 +183,13 @@ export function EmailEditorComponent({ templateId, onSave }: EmailEditorProps) {
       const { html } = data;
       
       try {
-        const response = await fetch('/api/email/export', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            html,
-            format: 'html',
-            options: {
-              strategy,
-            },
-          }),
+        // Use the enhanced export service for strategy-based inlining
+        const processedHtml = await EmailExportService.exportAsHTML(html, {
+          inlineCSS: true,
+          strategy,
+          preserveMediaQueries: true,
+          preserveFontFaces: true,
         });
-
-        if (!response.ok) {
-          throw new Error('Export failed');
-        }
-
-        const { content: processedHtml } = await response.json();
         
         // Download the file
         const blob = new Blob([processedHtml], { type: 'text/html' });
