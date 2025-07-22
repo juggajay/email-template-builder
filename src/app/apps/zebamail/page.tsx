@@ -1,8 +1,9 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function ShopifyApp() {
+function ShopifyAppContent() {
   const searchParams = useSearchParams();
   const shop = searchParams.get('shop');
 
@@ -168,5 +169,26 @@ export default function ShopifyApp() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ShopifyApp() {
+  return (
+    <Suspense fallback={
+      <div style={{ 
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#f3f4f6'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <h1 style={{ fontSize: '24px', marginBottom: '8px' }}>Loading...</h1>
+          <p style={{ color: '#6b7280' }}>Please wait</p>
+        </div>
+      </div>
+    }>
+      <ShopifyAppContent />
+    </Suspense>
   );
 }
