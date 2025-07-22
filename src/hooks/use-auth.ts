@@ -56,7 +56,7 @@ export function useAuth() {
         }
 
         // Set up auth state listener
-        authSubscription = authService.onAuthStateChange(
+        const { data } = authService.onAuthStateChange(
           async (event, session) => {
             if (!mounted) return;
 
@@ -93,6 +93,8 @@ export function useAuth() {
             }
           }
         );
+        
+        authSubscription = data?.subscription;
       } catch (error) {
         if (mounted) {
           setState(prev => ({

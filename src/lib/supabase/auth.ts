@@ -226,9 +226,44 @@ export class AuthService {
         .from('user_profiles')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      // If no profile exists, create a default one
+      if (!data) {
+        const user = await this.getCurrentUser();
+        if (!user) return null;
+
+        const newProfile = {
+          user_id: userId,
+          email: user.email || '',
+          full_name: '',
+          company_name: '',
+          subscription_tier: 'free' as const,
+          subscription_status: 'active' as const,
+          usage_count: 0,
+          usage_reset_date: new Date().toISOString(),
+          brand_colors: {},
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        const { data: createdProfile, error: createError } = await this.supabase
+          .from('user_profiles')
+          .insert(newProfile)
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating user profile:', createError);
+          return null;
+        }
+
+        return createdProfile as UserProfile;
+      }
 
       return data as UserProfile;
     } catch (error) {
@@ -268,9 +303,35 @@ export class AuthService {
         .from('subscriptions')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      // If no subscription exists, create a default free one
+      if (!data) {
+        const newSubscription = {
+          user_id: userId,
+          plan: 'free',
+          status: 'active',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        const { data: createdSubscription, error: createError } = await this.supabase
+          .from('subscriptions')
+          .insert(newSubscription)
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating user subscription:', createError);
+          return null;
+        }
+
+        return createdSubscription as Subscription;
+      }
 
       return data as Subscription;
     } catch (error) {
