@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 
 // Server Component to handle redirects
-export default async function ShopifyApp({
+export default function ShopifyApp({
   searchParams,
 }: {
   searchParams: { shop?: string; host?: string };
