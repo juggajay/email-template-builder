@@ -1,19 +1,23 @@
-import { redirect } from 'next/navigation';
+'use client';
 
-// This page handles when Shopify hits our /app/grant URL during installation
-export default function ShopifyAppGrant({
-  searchParams,
-}: {
-  searchParams: { shop?: string; host?: string };
-}) {
-  // If Shopify provides shop parameter, redirect to Shopify admin
-  if (searchParams.shop) {
-    const shopId = searchParams.shop.replace('.myshopify.com', '');
-    // Redirect to Shopify admin's app grant page
-    redirect(`https://admin.shopify.com/store/${shopId}/app/grant`);
-  }
+import { useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 
-  // If no shop parameter, show a static page
+// This page is loaded by Shopify after OAuth completion
+export default function ShopifyAppGrant() {
+  const searchParams = useSearchParams();
+  const shop = searchParams.get('shop');
+  const host = searchParams.get('host');
+
+  useEffect(() => {
+    // After OAuth is complete, redirect to the actual app interface
+    // This happens inside Shopify's admin iframe
+    if (shop || host) {
+      // Redirect to the app homepage
+      window.location.href = '/apps/zebamail';
+    }
+  }, [shop, host]);
+
   return (
     <div style={{ 
       display: 'flex', 
@@ -24,9 +28,9 @@ export default function ShopifyAppGrant({
       fontFamily: 'system-ui, -apple-system, sans-serif',
       textAlign: 'center'
     }}>
-      <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>Installing ZebaMail</h1>
+      <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>Loading ZebaMail...</h1>
       <p style={{ fontSize: '16px', color: '#666' }}>
-        Please wait while we complete the installation.
+        Redirecting to your app...
       </p>
     </div>
   );
