@@ -4,7 +4,7 @@ A production-ready SaaS application for creating professional e-commerce email t
 
 ## 🚀 Live Demo
 
-Visit the live application at: [http://localhost:3000](http://localhost:3000)
+Visit the live application at: [https://www.zebamail.com](https://www.zebamail.com)
 
 ## ✨ Features
 
