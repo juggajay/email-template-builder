@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
           minify: options?.minify || false,
           preserveMediaQueries: true,
           preserveFontFaces: true,
+          strategy: options?.strategy,
         });
         break;
 

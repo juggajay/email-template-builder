@@ -4,8 +4,10 @@ import { useRef, useState } from 'react';
 import EmailEditor from 'react-email-editor';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Download, Copy, Eye, Save, Send } from 'lucide-react';
+import { Download, Copy, Eye, Save, Send, Settings2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ExportDialog } from '@/components/email/export-dialog';
+import { inliningStrategies } from '@/lib/email/export-options';
 
 interface EmailEditorProps {
   templateId?: string;
@@ -15,6 +17,7 @@ interface EmailEditorProps {
 export function EmailEditorComponent({ templateId, onSave }: EmailEditorProps) {
   const emailEditorRef = useRef<any>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [currentHtml, setCurrentHtml] = useState<string>('');
   const { toast } = useToast();
 
   // Export HTML with inline CSS
@@ -210,6 +213,64 @@ export function EmailEditorComponent({ templateId, onSave }: EmailEditorProps) {
     });
   };
 
+  // Export with specific strategy
+  const exportWithStrategy = async (strategy: keyof typeof inliningStrategies) => {
+    const unlayer = emailEditorRef.current?.editor;
+    if (!unlayer) return;
+
+    setIsExporting(true);
+    
+    unlayer.exportHtml(async (data: any) => {
+      const { html } = data;
+      
+      try {
+        const response = await fetch('/api/email/export', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            html,
+            format: 'html',
+            options: {
+              strategy,
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Export failed');
+        }
+
+        const { content: processedHtml } = await response.json();
+        
+        // Download the file
+        const blob = new Blob([processedHtml], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `email-template-${strategy}-${Date.now()}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        toast({
+          title: 'Exported!',
+          description: `Email template exported with ${strategy} strategy`,
+        });
+      } catch (error) {
+        toast({
+          title: 'Export Error',
+          description: 'Failed to export email template',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsExporting(false);
+      }
+    });
+  };
+
   // Unlayer configuration
   const unlayerOptions = {
     displayMode: 'email' as const,
@@ -256,6 +317,18 @@ export function EmailEditorComponent({ templateId, onSave }: EmailEditorProps) {
               <Download className="w-4 h-4 mr-2" />
               Download
             </Button>
+
+            {/* Advanced Export Options */}
+            <ExportDialog
+              html={currentHtml}
+              onExport={exportWithStrategy}
+              trigger={
+                <Button variant="outline" size="sm" disabled={isExporting}>
+                  <Settings2 className="w-4 h-4 mr-2" />
+                  Advanced
+                </Button>
+              }
+            />
           </div>
 
           <div className="flex gap-2">
@@ -298,6 +371,22 @@ export function EmailEditorComponent({ templateId, onSave }: EmailEditorProps) {
             // Load template if ID provided
             if (templateId) {
               // Load template design
+            }
+            
+            // Capture HTML periodically for export dialog
+            const unlayer = emailEditorRef.current?.editor;
+            if (unlayer) {
+              const captureHtml = () => {
+                unlayer.exportHtml((data: any) => {
+                  setCurrentHtml(data.html);
+                });
+              };
+              
+              // Initial capture
+              setTimeout(captureHtml, 1000);
+              
+              // Capture on changes
+              unlayer.addEventListener('design:updated', captureHtml);
             }
           }}
           options={unlayerOptions}

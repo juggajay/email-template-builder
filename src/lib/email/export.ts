@@ -2,6 +2,7 @@ import juice from 'juice';
 import JSZip from 'jszip';
 import { toast } from 'sonner';
 import type { EmailTemplate, ExportType } from '@/types';
+import { inliningStrategies, EnhancedEmailExportService } from './export-options';
 
 export interface ExportOptions {
   inlineCSS?: boolean;
@@ -10,6 +11,7 @@ export interface ExportOptions {
   preserveFontFaces?: boolean;
   preserveKeyFrames?: boolean;
   preservePseudos?: boolean;
+  strategy?: keyof typeof inliningStrategies;
 }
 
 export interface ExportResult {
@@ -52,12 +54,28 @@ export class EmailExportService {
    * Export email as HTML with inline CSS
    */
   static async exportAsHTML(html: string, options: ExportOptions = {}): Promise<string> {
-    // Always inline CSS for email exports
-    let processedHtml = this.inlineCSS(html, options);
+    let processedHtml = html;
+    
+    // Use strategy-based inlining if specified
+    if (options.strategy) {
+      processedHtml = await EnhancedEmailExportService.exportWithStrategy(html, options.strategy);
+    } else if (options.inlineCSS !== false) {
+      // Use legacy inlining method
+      processedHtml = this.inlineCSS(html, options);
+    }
     
     // Optionally minify
     if (options.minify) {
       processedHtml = this.minifyHTML(processedHtml);
+    }
+
+    // Validate the output
+    const validation = EnhancedEmailExportService.validateInlinedHTML(processedHtml);
+    if (!validation.isValid) {
+      console.error('Email validation errors:', validation.errors);
+    }
+    if (validation.warnings.length > 0) {
+      console.warn('Email validation warnings:', validation.warnings);
     }
 
     return processedHtml;
@@ -90,8 +108,33 @@ export class EmailExportService {
     platform: 'klaviyo' | 'mailchimp' | 'sendgrid' | 'other',
     options: ExportOptions = {}
   ): Promise<string> {
-    // Always inline CSS for email platforms
-    let processedHtml = this.inlineCSS(html, options);
+    // Analyze HTML to get recommendations
+    const analysis = EnhancedEmailExportService.analyzeAndRecommend(html);
+    console.log(`Platform: ${platform}, Recommended strategy: ${analysis.recommended}`, analysis.reasons);
+    
+    // Use platform-appropriate strategy
+    let strategy: keyof typeof inliningStrategies = 'standard';
+    
+    // Override strategy based on platform if not explicitly set
+    if (!options.strategy) {
+      switch (platform) {
+        case 'klaviyo':
+        case 'mailchimp':
+          strategy = 'standard'; // These support most CSS features
+          break;
+        case 'sendgrid':
+          strategy = 'mobileFriendly'; // Focus on responsive
+          break;
+        default:
+          strategy = analysis.recommended;
+      }
+    }
+    
+    // Apply CSS inlining with appropriate strategy
+    let processedHtml = await EnhancedEmailExportService.exportWithStrategy(
+      html, 
+      options.strategy || strategy
+    );
 
     // Platform-specific processing
     switch (platform) {
