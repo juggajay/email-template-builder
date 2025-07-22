@@ -12,9 +12,10 @@ export default function ShopifyAppGrant() {
   useEffect(() => {
     // After OAuth is complete, redirect to the actual app interface
     // This happens inside Shopify's admin iframe
-    if (shop || host) {
-      // Redirect to the app homepage
-      window.location.href = '/apps/zebamail';
+    if (shop && host) {
+      // Use the full URL to ensure proper navigation within Shopify admin
+      const appUrl = `https://${shop}/admin/apps/zebamail`;
+      window.location.href = appUrl;
     }
   }, [shop, host]);
 
