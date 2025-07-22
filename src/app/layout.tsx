@@ -49,7 +49,6 @@ export const metadata: Metadata = {
   verification: {
     google: 'your-google-site-verification',
     yandex: 'your-yandex-verification',
-    bing: 'your-bing-verification',
   },
   icons: {
     icon: '/favicon.ico',

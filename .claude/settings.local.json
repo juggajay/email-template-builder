@@ -50,7 +50,8 @@
       "Bash(node:*)",
       "Bash(./test-oauth-redirect.sh:*)",
       "Bash(npx playwright test:*)",
-      "Bash(git rebase:*)"
+      "Bash(git rebase:*)",
+      "Bash(NODE_ENV=development npm run build)"
     ],
     "deny": []
   }

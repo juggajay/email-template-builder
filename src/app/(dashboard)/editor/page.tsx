@@ -3,10 +3,10 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 
 // Dynamically import heavy editor components
-const UnlayerWrapperFixed = dynamic(
+const UnlayerWrapperFixed = dynamicImport(
   () => import('@/components/editor/unlayer-wrapper-fixed').then(mod => mod.UnlayerWrapperFixed),
   {
     ssr: false,
@@ -21,7 +21,7 @@ const UnlayerWrapperFixed = dynamic(
   }
 );
 
-const MobileEditorWrapper = dynamic(
+const MobileEditorWrapper = dynamicImport(
   () => import('@/components/editor/mobile-editor-wrapper').then(mod => mod.MobileEditorWrapper),
   {
     ssr: false,
