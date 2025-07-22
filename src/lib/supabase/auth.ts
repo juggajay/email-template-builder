@@ -33,7 +33,7 @@ export class AuthService {
             company_name: companyName,
             beta_invite_code: inviteCode,
           },
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/auth/callback?type=signup`,
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.zebamail.com'}/auth/callback?type=signup`,
         },
       });
 
@@ -119,7 +119,7 @@ export class AuthService {
       const { data, error } = await this.supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.zebamail.com'}/auth/callback`,
         },
       });
 
@@ -153,7 +153,7 @@ export class AuthService {
   async resetPassword(email: string) {
     try {
       const { data, error } = await this.supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.zebamail.com'}/auth/callback?next=/reset-password`,
       });
 
       if (error) throw error;
