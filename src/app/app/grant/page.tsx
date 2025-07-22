@@ -12,11 +12,8 @@ function GrantContent() {
   useEffect(() => {
     // After permissions are granted, redirect to the app
     if (shop && host) {
-      // Use the app handle from environment or default to 'zebamail'
-      const appHandle = process.env.NEXT_PUBLIC_SHOPIFY_APP_HANDLE || 'zebamail';
-      
-      // Redirect to the app within Shopify admin
-      window.location.href = `https://${shop}/admin/apps/${appHandle}`;
+      // Redirect to the app within Shopify admin at the expected URL
+      window.location.href = `https://${shop}/admin/apps/zebamail`;
     }
   }, [shop, host]);
 
