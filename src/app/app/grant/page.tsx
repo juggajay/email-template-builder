@@ -27,13 +27,15 @@ function GrantAppContent() {
     if (shopParam) {
       setShop(shopParam);
       
-      // If OAuth just completed, redirect to Shopify admin
-      if (oauthComplete === 'true') {
+      // Check if we're being loaded from Shopify admin (has host parameter)
+      // OR if OAuth just completed
+      if (hostParam || oauthComplete === 'true') {
         const shopId = shopParam.replace('.myshopify.com', '');
         const redirectUrl = `https://admin.shopify.com/store/${shopId}/app/grant`;
         console.log('REDIRECTING TO:', redirectUrl);
         console.log('Shop param:', shopParam);
         console.log('Shop ID:', shopId);
+        console.log('Host param:', hostParam);
         // Use window.location.replace to do a full page redirect
         window.location.replace(redirectUrl);
         return;
