@@ -1,6 +1,16 @@
-import type { EmailTemplate, ExportType } from '@/types';
 import juice from 'juice';
+import JSZip from 'jszip';
 import { toast } from 'sonner';
+import type { EmailTemplate, ExportType } from '@/types';
+
+export interface ExportOptions {
+  inlineCSS?: boolean;
+  minify?: boolean;
+  preserveMediaQueries?: boolean;
+  preserveFontFaces?: boolean;
+  preserveKeyFrames?: boolean;
+  preservePseudos?: boolean;
+}
 
 export interface ExportResult {
   success: boolean;
@@ -9,6 +19,168 @@ export interface ExportResult {
   downloadUrl?: string;
 }
 
+export class EmailExportService {
+  /**
+   * Inline CSS into HTML for better email client compatibility
+   */
+  static inlineCSS(html: string, options: ExportOptions = {}): string {
+    const juiceOptions = {
+      preserveMediaQueries: options.preserveMediaQueries ?? true,
+      preserveFontFaces: options.preserveFontFaces ?? true,
+      preserveKeyFrames: options.preserveKeyFrames ?? true,
+      preservePseudos: options.preservePseudos ?? false,
+      insertPreservedExtraCss: true,
+      removeStyleTags: false,
+      preserveImportant: true,
+      applyWidthAttributes: true,
+      applyHeightAttributes: true,
+      applyAttributesTableElements: true,
+      webResources: {
+        relativeTo: process.cwd(),
+      }
+    };
+
+    try {
+      return juice(html, juiceOptions);
+    } catch (error) {
+      console.error('Error inlining CSS:', error);
+      return html; // Return original HTML if inlining fails
+    }
+  }
+
+  /**
+   * Export email as HTML with inline CSS
+   */
+  static async exportAsHTML(html: string, options: ExportOptions = {}): Promise<string> {
+    // Always inline CSS for email exports
+    let processedHtml = this.inlineCSS(html, options);
+    
+    // Optionally minify
+    if (options.minify) {
+      processedHtml = this.minifyHTML(processedHtml);
+    }
+
+    return processedHtml;
+  }
+
+  /**
+   * Export email as ZIP file containing HTML and assets
+   */
+  static async exportAsZip(html: string, design: any): Promise<Blob> {
+    const zip = new JSZip();
+    
+    // Inline CSS before adding to ZIP
+    const inlinedHtml = this.inlineCSS(html);
+    
+    // Add HTML file
+    zip.file('email.html', inlinedHtml);
+    
+    // Add design JSON for re-importing
+    zip.file('design.json', JSON.stringify(design, null, 2));
+    
+    // Generate ZIP
+    return await zip.generateAsync({ type: 'blob' });
+  }
+
+  /**
+   * Export for specific email platforms
+   */
+  static async exportForPlatform(
+    html: string, 
+    platform: 'klaviyo' | 'mailchimp' | 'sendgrid' | 'other',
+    options: ExportOptions = {}
+  ): Promise<string> {
+    // Always inline CSS for email platforms
+    let processedHtml = this.inlineCSS(html, options);
+
+    // Platform-specific processing
+    switch (platform) {
+      case 'klaviyo':
+        processedHtml = this.processForKlaviyo(processedHtml);
+        break;
+      case 'mailchimp':
+        processedHtml = this.processForMailchimp(processedHtml);
+        break;
+      case 'sendgrid':
+        processedHtml = this.processForSendGrid(processedHtml);
+        break;
+    }
+
+    return processedHtml;
+  }
+
+  /**
+   * Process HTML for Klaviyo
+   */
+  private static processForKlaviyo(html: string): string {
+    // Replace merge tags with Klaviyo syntax
+    return html
+      .replace(/\{\{(\w+)\}\}/g, '{{ person.$1 }}')
+      .replace(/\{\{product\.(\w+)\}\}/g, '{{ event.$1 }}');
+  }
+
+  /**
+   * Process HTML for Mailchimp
+   */
+  private static processForMailchimp(html: string): string {
+    // Replace merge tags with Mailchimp syntax
+    return html
+      .replace(/\{\{(\w+)\}\}/g, '*|$1|*')
+      .replace(/\{\{product\.(\w+)\}\}/g, '*|PRODUCT:$1|*');
+  }
+
+  /**
+   * Process HTML for SendGrid
+   */
+  private static processForSendGrid(html: string): string {
+    // Replace merge tags with SendGrid syntax
+    return html
+      .replace(/\{\{(\w+)\}\}/g, '{{$1}}')
+      .replace(/\{\{product\.(\w+)\}\}/g, '{{product.$1}}');
+  }
+
+  /**
+   * Minify HTML
+   */
+  private static minifyHTML(html: string): string {
+    return html
+      .replace(/\n\s+/g, ' ')
+      .replace(/>\s+</g, '><')
+      .trim();
+  }
+
+  /**
+   * Validate email HTML
+   */
+  static validateEmailHTML(html: string): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
+    
+    // Check for common email client issues
+    if (html.includes('<script')) {
+      errors.push('JavaScript is not supported in most email clients');
+    }
+    
+    if (html.includes('<form')) {
+      errors.push('Forms are not supported in most email clients');
+    }
+    
+    if (html.includes('<iframe')) {
+      errors.push('iFrames are not supported in email clients');
+    }
+    
+    // Check for external stylesheets
+    if (html.includes('<link') && html.includes('stylesheet')) {
+      errors.push('External stylesheets should be inlined for better compatibility');
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }
+}
+
+// Legacy exports for backward compatibility
 export const exportToHTML = async (template: EmailTemplate): Promise<ExportResult> => {
   try {
     if (!template.html_content) {
@@ -18,11 +190,11 @@ export const exportToHTML = async (template: EmailTemplate): Promise<ExportResul
       };
     }
 
-    // Clean and optimize HTML for email clients
-    const cleanedHTML = cleanEmailHTML(template.html_content);
+    // Use new EmailExportService for CSS inlining
+    const processedHTML = await EmailExportService.exportAsHTML(template.html_content);
     
     // Create a blob with the HTML content
-    const blob = new Blob([cleanedHTML], { type: 'text/html' });
+    const blob = new Blob([processedHTML], { type: 'text/html' });
     const downloadUrl = URL.createObjectURL(blob);
 
     return {
@@ -41,11 +213,26 @@ export const exportToHTML = async (template: EmailTemplate): Promise<ExportResul
   }
 };
 
-export const exportToZip = async (template: EmailTemplate): Promise<ExportResult> => {
+export const exportToZip = async (template: EmailTemplate, design?: any): Promise<ExportResult> => {
   try {
-    // This would require a zip library like JSZip
-    // For now, return HTML export
-    return exportToHTML(template);
+    if (!template.html_content) {
+      return {
+        success: false,
+        error: 'Template has no HTML content to export',
+      };
+    }
+
+    const zipBlob = await EmailExportService.exportAsZip(template.html_content, design || {});
+    const downloadUrl = URL.createObjectURL(zipBlob);
+
+    return {
+      success: true,
+      downloadUrl,
+      data: {
+        filename: `${template.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.zip`,
+        size: zipBlob.size,
+      },
+    };
   } catch (error) {
     return {
       success: false,
@@ -60,15 +247,21 @@ export const exportToPlatform = async (
   credentials: Record<string, any>
 ): Promise<ExportResult> => {
   try {
+    // First process the HTML for the platform
+    const processedHTML = await EmailExportService.exportForPlatform(
+      template.html_content || '',
+      platform as any
+    );
+
     switch (platform) {
       case 'klaviyo':
-        return exportToKlaviyo(template, credentials as { apiKey: string });
+        return exportToKlaviyo({ ...template, html_content: processedHTML }, credentials as { apiKey: string });
       case 'mailchimp':
-        return exportToMailchimp(template, credentials as { apiKey: string });
+        return exportToMailchimp({ ...template, html_content: processedHTML }, credentials as { apiKey: string });
       case 'shopify':
-        return exportToShopify(template, credentials as { accessToken: string; shop: string });
+        return exportToShopify({ ...template, html_content: processedHTML }, credentials as { accessToken: string; shop: string });
       case 'omnisend':
-        return exportToOmnisend(template, credentials as { apiKey: string });
+        return exportToOmnisend({ ...template, html_content: processedHTML }, credentials as { apiKey: string });
       default:
         return {
           success: false,
@@ -81,36 +274,6 @@ export const exportToPlatform = async (
       error: error instanceof Error ? error.message : 'Platform export failed',
     };
   }
-};
-
-const cleanEmailHTML = (html: string): string => {
-  // Remove script tags
-  html = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
-  
-  // Remove link tags (except stylesheets)
-  html = html.replace(/<link(?![^>]*rel="stylesheet")[^>]*>/gi, '');
-  
-  // Inline CSS for email compatibility
-  html = juice(html, {
-    removeStyleTags: false, // Keep media queries in style tags
-    preserveMediaQueries: true,
-    preserveFontFaces: true,
-    preserveKeyFrames: true,
-    preservePseudos: true,
-  });
-  
-  // Remove any editor-specific attributes
-  html = html
-    .replace(/data-editor-[^=]*="[^"]*"/g, '')
-    .replace(/contenteditable="[^"]*"/g, '')
-    .replace(/data-unlayer-[^=]*="[^"]*"/g, '');
-  
-  // Add email-safe DOCTYPE if not present
-  if (!html.includes('<!DOCTYPE')) {
-    html = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\n' + html;
-  }
-  
-  return html;
 };
 
 const exportToKlaviyo = async (
@@ -269,9 +432,10 @@ const extractTextFromHTML = (html: string): string => {
 
 export const copyHTMLToClipboard = async (html: string): Promise<void> => {
   try {
-    const cleanedHTML = cleanEmailHTML(html);
-    await navigator.clipboard.writeText(cleanedHTML);
-    toast.success('HTML copied to clipboard!');
+    // Use EmailExportService for CSS inlining
+    const processedHTML = await EmailExportService.exportAsHTML(html);
+    await navigator.clipboard.writeText(processedHTML);
+    toast.success('HTML with inline CSS copied to clipboard!');
   } catch (err) {
     console.error('Failed to copy HTML:', err);
     toast.error('Failed to copy. Please try again.');

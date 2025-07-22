@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
+import { EmailExportService } from '@/lib/email/export';
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,9 +23,16 @@ export async function POST(request: NextRequest) {
 
     switch (format) {
       case 'html':
+        // Use EmailExportService to inline CSS
+        const processedHTML = await EmailExportService.exportAsHTML(html, {
+          inlineCSS: true,
+          minify: false,
+          preserveMediaQueries: true,
+          preserveFontFaces: true
+        });
         headers['Content-Type'] = 'text/html';
         headers['Content-Disposition'] = `attachment; filename="${filename || 'template.html'}"`;
-        response = new Response(html, { headers });
+        response = new Response(processedHTML, { headers });
         break;
 
       case 'json':
