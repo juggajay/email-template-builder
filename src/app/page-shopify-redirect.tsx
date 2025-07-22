@@ -13,16 +13,17 @@ export function ShopifyRedirectHandler() {
     const host = searchParams.get('host');
     const code = searchParams.get('code');
     
-    // Only redirect if we have OAuth parameters but NOT a code (which means it's not OAuth callback)
-    if (shop && hmac && host && !code) {
-      console.log('Detected Shopify embedded app params:', {
+    // If we have a shop parameter, immediately start OAuth flow
+    // This handles both embedded and non-embedded installation
+    if (shop && !code) {
+      console.log('Detected Shopify installation request:', {
         shop,
         hmac,
         host
       });
       
-      // Redirect to our app page
-      window.location.href = `/app/grant?shop=${encodeURIComponent(shop)}&host=${encodeURIComponent(host)}`;
+      // Immediately redirect to OAuth flow - no UI, no authentication check
+      window.location.href = `/api/shopify/auth?shop=${encodeURIComponent(shop)}`;
     }
   }, [searchParams]);
   
