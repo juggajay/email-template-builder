@@ -7,13 +7,14 @@ import { AuthProvider } from '@/components/providers/auth-provider';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'ZebaMail - Email Marketing That Scales With Your Ambition',
-  description: 'The systematic path to e-commerce growth with sophisticated email automation made surprisingly simple. Join 2,847 merchants growing from $100K to $10M.',
-  keywords: 'email marketing, e-commerce, Shopify email, automated campaigns, revenue attribution',
+  title: 'Email Template Builder for Shopify | ZebaMail - Boost Sales 34%',
+  description: 'Create stunning email templates that convert. Join 2,847 Shopify stores using ZebaMail to drive $127M in revenue. Free email builder, no credit card required.',
+  keywords: 'shopify email templates, email template builder, abandoned cart email template, email builder, free email builder, ecommerce email marketing, shopify email designer',
   authors: [{ name: 'ZebaMail' }],
+  metadataBase: new URL('https://www.zebamail.com'),
   openGraph: {
-    title: 'ZebaMail - Email Marketing That Scales With Your Ambition',
-    description: 'The systematic path to e-commerce growth. Join 2,847 merchants scaling their revenue.',
+    title: 'ZebaMail - Email Templates That Sell | Free Email Builder',
+    description: 'Professional email templates for Shopify stores. Create abandoned cart emails that recover 28.3% of lost sales. Free email template builder.',
     url: 'https://www.zebamail.com',
     siteName: 'ZebaMail',
     images: [
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
         url: 'https://www.zebamail.com/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'ZebaMail - Systematic Email Marketing Growth',
+        alt: 'ZebaMail - Professional Email Templates for Shopify',
       },
     ],
     locale: 'en_US',
@@ -29,8 +30,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ZebaMail - Email Marketing That Scales',
-    description: 'The systematic path from $100K to $10M with email marketing',
+    title: 'ZebaMail - Email Templates That Sell',
+    description: 'Professional email template builder for Shopify stores. Create emails that convert.',
     images: ['https://www.zebamail.com/twitter-image.png'],
     creator: '@zebamail',
   },
@@ -44,6 +45,11 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
+  },
+  verification: {
+    google: 'your-google-site-verification',
+    yandex: 'your-yandex-verification',
+    bing: 'your-bing-verification',
   },
   icons: {
     icon: '/favicon.ico',

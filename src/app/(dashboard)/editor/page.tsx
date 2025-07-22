@@ -3,12 +3,38 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
-import { UnlayerWrapper } from '@/components/editor/unlayer-wrapper';
-import { UnlayerWrapperSimple } from '@/components/editor/unlayer-wrapper-simple';
-import { UnlayerWrapperFixed } from '@/components/editor/unlayer-wrapper-fixed';
-import { UnlayerWrapperFast } from '@/components/editor/unlayer-wrapper-fast';
-import { UnlayerWrapperClean } from '@/components/editor/unlayer-wrapper-clean';
-import { MobileEditorWrapper } from '@/components/editor/mobile-editor-wrapper';
+import dynamic from 'next/dynamic';
+
+// Dynamically import heavy editor components
+const UnlayerWrapperFixed = dynamic(
+  () => import('@/components/editor/unlayer-wrapper-fixed').then(mod => mod.UnlayerWrapperFixed),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading email editor...</p>
+        </div>
+      </div>
+    ),
+  }
+);
+
+const MobileEditorWrapper = dynamic(
+  () => import('@/components/editor/mobile-editor-wrapper').then(mod => mod.MobileEditorWrapper),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading mobile editor...</p>
+        </div>
+      </div>
+    ),
+  }
+);
 import { EnhancedMergeTagsPanel } from '@/components/editor/merge-tags-enhanced/panel';
 import { PreviewDataEditor } from '@/components/editor/merge-tags-enhanced/preview-data';
 import { ConditionalEditor } from '@/components/editor/merge-tags-enhanced/conditional-editor';
