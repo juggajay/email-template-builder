@@ -165,15 +165,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <div className="relative">
                 <Avatar
                   src={profile?.logo_url}
-                  alt={profile?.full_name || 'User'}
-                  fallback={profile?.full_name || 'User'}
+                  alt={profile?.full_name || user?.email || 'User'}
+                  fallback={profile?.full_name || user?.email || 'U'}
                   size="md"
                 />
                 <ZebCharacter variant="default" size="sm" className="absolute -bottom-1 -right-1 w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-zebra-black truncate">
-                  {profile?.full_name || 'User'}
+                  {profile?.full_name || user?.email || 'Loading...'}
                 </p>
                 <div className="flex items-center space-x-2 mt-1">
                   <Badge
@@ -183,15 +183,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     {isAgency ? (
                       <>
                         <Crown className="w-3 h-3 mr-1" />
-                        Agency
+                        Agency Plan
                       </>
                     ) : isPro ? (
                       <>
                         <Zap className="w-3 h-3 mr-1" />
-                        Pro
+                        Pro Plan
                       </>
                     ) : (
-                      'Free'
+                      'Free Plan'
                     )}
                   </Badge>
                 </div>
