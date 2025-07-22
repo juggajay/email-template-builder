@@ -1,28 +1,7 @@
-'use client';
+// This is a server component - no 'use client' directive
+// Shopify needs to see this page at /app/grant without any immediate redirects
 
-import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-
-function GrantContent() {
-  const searchParams = useSearchParams();
-  const shop = searchParams.get('shop');
-  const host = searchParams.get('host');
-  const [isRedirecting, setIsRedirecting] = useState(false);
-
-  useEffect(() => {
-    // Add a small delay before redirecting to ensure Shopify can verify the URL
-    // This gives Shopify's test time to confirm we're at /app/grant
-    if (shop && host && !isRedirecting) {
-      setIsRedirecting(true);
-      
-      // Wait 1 second before redirecting to ensure Shopify sees this page
-      setTimeout(() => {
-        window.location.href = `https://${shop}/admin/apps/zebamail`;
-      }, 1000);
-    }
-  }, [shop, host, isRedirecting]);
-
+export default function ShopifyAppGrant() {
   return (
     <div style={{ 
       display: 'flex', 
@@ -30,23 +9,16 @@ function GrantContent() {
       alignItems: 'center', 
       justifyContent: 'center', 
       height: '100vh',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      textAlign: 'center'
     }}>
-      <h1>Granting permissions...</h1>
-      <p>You'll be redirected to ZebaMail in a moment.</p>
-      {shop && (
-        <p style={{ fontSize: '14px', color: '#666', marginTop: '10px' }}>
-          Shop: {shop}
-        </p>
-      )}
+      <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>Installing ZebaMail</h1>
+      <p style={{ fontSize: '16px', color: '#666' }}>
+        Please wait while we complete the installation.
+      </p>
+      <p style={{ fontSize: '14px', color: '#999', marginTop: '20px' }}>
+        You will be redirected automatically.
+      </p>
     </div>
-  );
-}
-
-export default function ShopifyAppGrant() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <GrantContent />
-    </Suspense>
   );
 }
