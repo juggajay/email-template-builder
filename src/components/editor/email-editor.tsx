@@ -1,269 +1,261 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
+import EmailEditor from 'react-email-editor';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { copyHTMLToClipboard } from '@/lib/email/export';
-import { Copy } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Download, Copy, Eye, Save, Send } from 'lucide-react';
+import { EmailExportService } from '@/lib/email/export';
+import { useToast } from '@/hooks/use-toast';
 
 interface EmailEditorProps {
   templateId?: string;
-  initialDesign?: any;
   onSave?: (design: any, html: string) => void;
-  onExport?: (html: string, design: any) => void;
 }
 
-// E-commerce specific custom blocks
-const ecommerceBlocks = {
-  'product-showcase': {
-    name: 'Product Showcase',
-    label: 'Product Card',
-    media: '<svg>...</svg>',
-    content: {
-      type: 'product-showcase',
-      attributes: {},
-      innerBlocks: []
-    }
-  },
-  'abandoned-cart': {
-    name: 'Abandoned Cart',
-    label: 'Cart Items',
-    media: '<svg>...</svg>',
-    content: {
-      type: 'abandoned-cart',
-      attributes: {},
-      innerBlocks: []
-    }
-  }
-};
+export function EmailEditorComponent({ templateId, onSave }: EmailEditorProps) {
+  const emailEditorRef = useRef<any>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const { toast } = useToast();
 
-export function EmailEditor({ templateId, initialDesign, onSave, onExport }: EmailEditorProps) {
-  const editorRef = useRef<any>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  // Export HTML with inline CSS
+  const exportHtml = async (action: 'copy' | 'download' | 'preview') => {
+    const unlayer = emailEditorRef.current?.editor;
+    if (!unlayer) return;
 
-  useEffect(() => {
-    loadUnlayerScript();
-  }, []);
-
-  const loadUnlayerScript = () => {
-    if ((window as any).unlayer) {
-      initializeEditor();
-      return;
-    }
-
-    const script = document.createElement('script');
-    script.src = 'https://editor.unlayer.com/embed.js';
-    script.onload = () => initializeEditor();
-    document.body.appendChild(script);
-  };
-
-  const initializeEditor = () => {
-    const unlayer = (window as any).unlayer;
+    setIsExporting(true);
     
-    unlayer.init({
-      id: 'editor-container',
-      projectId: process.env.NEXT_PUBLIC_UNLAYER_PROJECT_ID,
-      displayMode: 'email',
-      appearance: {
-        theme: 'modern_light',
-        panels: {
-          tools: {
-            dock: 'left'
-          }
+    unlayer.exportHtml(async (data: any) => {
+      const { design, html } = data;
+      
+      try {
+        // Inline CSS for better email client compatibility
+        const inlinedHtml = await EmailExportService.exportAsHTML(html, {
+          inlineCSS: true,
+          preserveMediaQueries: true,
+          preserveFontFaces: true,
+        });
+        
+        switch (action) {
+          case 'copy':
+            await handleCopyHTML(inlinedHtml);
+            break;
+          case 'download':
+            await handleDownloadHTML(inlinedHtml);
+            break;
+          case 'preview':
+            handlePreview(inlinedHtml);
+            break;
         }
-      },
-      tools: {
-        'custom#product-showcase': {
-          name: 'Product Showcase',
-          label: 'Product',
-          icon: 'fa-shopping-bag',
-          supportedDisplayModes: ['email'],
-          options: {
-            productImage: {
-              title: 'Product Image',
-              position: 1,
-              options: {
-                imageUrl: {
-                  label: 'Image URL',
-                  defaultValue: 'https://via.placeholder.com/300x300',
-                  widget: 'text'
-                }
-              }
-            },
-            productName: {
-              title: 'Product Name',
-              position: 2,
-              options: {
-                text: {
-                  label: 'Name',
-                  defaultValue: 'Amazing Product',
-                  widget: 'text'
-                }
-              }
-            },
-            productPrice: {
-              title: 'Price',
-              position: 3,
-              options: {
-                price: {
-                  label: 'Price',
-                  defaultValue: '$99.99',
-                  widget: 'text'
-                }
-              }
-            }
-          },
-          values: {},
-          renderer: {
-            Viewer: unlayer.createViewer({
-              render(values: any) {
-                return `
-                  <div style="text-align: center; padding: 20px;">
-                    <img src="${values.productImage.imageUrl}" alt="${values.productName.text}" style="max-width: 100%; height: auto;">
-                    <h3>${values.productName.text}</h3>
-                    <p style="font-size: 24px; color: #333;">${values.productPrice.price}</p>
-                    <a href="#" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; display: inline-block;">Shop Now</a>
-                  </div>
-                `;
-              }
-            }),
-            exporters: {
-              email: function(values: any) {
-                return `
-                  <table width="100%" cellpadding="0" cellspacing="0">
-                    <tr>
-                      <td align="center" style="padding: 20px;">
-                        <img src="${values.productImage.imageUrl}" alt="${values.productName.text}" style="max-width: 300px; width: 100%; height: auto;">
-                      </td>
-                    </tr>
-                    <tr>
-                      <td align="center" style="padding: 10px;">
-                        <h3 style="margin: 0;">${values.productName.text}</h3>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td align="center" style="padding: 10px;">
-                        <p style="font-size: 24px; color: #333; margin: 0;">${values.productPrice.price}</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td align="center" style="padding: 20px;">
-                        <a href="#" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; display: inline-block;">Shop Now</a>
-                      </td>
-                    </tr>
-                  </table>
-                `;
-              }
-            },
-            head: {
-              css: function(values: any) {
-                return '';
-              }
-            }
-          }
-        }
-      },
-      mergeTags: {
-        customer: {
-          name: 'Customer',
-          mergeTags: {
-            first_name: {
-              name: 'First Name',
-              value: '{{customer.first_name}}'
-            },
-            email: {
-              name: 'Email',
-              value: '{{customer.email}}'
-            }
-          }
-        },
-        order: {
-          name: 'Order',
-          mergeTags: {
-            order_number: {
-              name: 'Order Number',
-              value: '{{order.number}}'
-            },
-            total: {
-              name: 'Total',
-              value: '{{order.total}}'
-            }
-          }
-        }
+      } catch (error) {
+        toast({
+          title: 'Export Error',
+          description: 'Failed to export email template',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsExporting(false);
       }
     });
+  };
 
-    unlayer.addEventListener('design:loaded', () => {
-      setIsLoaded(true);
-    });
-
-    unlayer.addEventListener('design:updated', () => {
-      // Auto-save functionality could go here
-    });
-
-    editorRef.current = unlayer;
-
-    if (initialDesign) {
-      unlayer.loadDesign(initialDesign);
+  // Copy HTML to clipboard
+  const handleCopyHTML = async (html: string) => {
+    try {
+      await navigator.clipboard.writeText(html);
+      toast({
+        title: 'Copied!',
+        description: 'HTML with inline CSS copied to clipboard',
+      });
+    } catch (error) {
+      toast({
+        title: 'Copy Failed',
+        description: 'Failed to copy HTML to clipboard',
+        variant: 'destructive',
+      });
     }
   };
 
-  const handleSave = () => {
-    const unlayer = editorRef.current;
-    if (!unlayer) return;
-
-    unlayer.saveDesign((design: any) => {
-      unlayer.exportHtml((data: any) => {
-        const { html } = data;
-        if (onSave) {
-          onSave(design, html);
-        }
-        toast.success('Template saved successfully!');
-      });
+  // Download HTML file
+  const handleDownloadHTML = async (html: string) => {
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `email-template-${Date.now()}.html`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: 'Downloaded!',
+      description: 'Email template downloaded with inline CSS',
     });
   };
 
-  const handleExport = () => {
-    const unlayer = editorRef.current;
+  // Preview in new window
+  const handlePreview = (html: string) => {
+    const previewWindow = window.open('', '_blank');
+    if (previewWindow) {
+      previewWindow.document.write(html);
+      previewWindow.document.close();
+    }
+  };
+
+  // Export for specific platform
+  const exportForPlatform = async (platform: 'klaviyo' | 'mailchimp' | 'sendgrid') => {
+    const unlayer = emailEditorRef.current?.editor;
     if (!unlayer) return;
 
-    unlayer.exportHtml((data: any) => {
-      const { design, html } = data;
-      if (onExport) {
-        onExport(html, design);
+    setIsExporting(true);
+    
+    unlayer.exportHtml(async (data: any) => {
+      const { html } = data;
+      
+      try {
+        const processedHtml = await EmailExportService.exportForPlatform(
+          html, 
+          platform,
+          {
+            inlineCSS: true,
+            preserveMediaQueries: true,
+          }
+        );
+        
+        await navigator.clipboard.writeText(processedHtml);
+        
+        toast({
+          title: `Exported for ${platform}!`,
+          description: `HTML optimized for ${platform} copied to clipboard`,
+        });
+      } catch (error) {
+        toast({
+          title: 'Export Error',
+          description: `Failed to export for ${platform}`,
+          variant: 'destructive',
+        });
+      } finally {
+        setIsExporting(false);
       }
     });
   };
 
-  const handleCopyHTML = () => {
-    const unlayer = editorRef.current;
+  // Save template
+  const saveTemplate = () => {
+    const unlayer = emailEditorRef.current?.editor;
     if (!unlayer) return;
 
     unlayer.exportHtml(async (data: any) => {
-      const { html } = data;
-      try {
-        await copyHTMLToClipboard(html);
-      } catch (error) {
-        console.error('Failed to copy HTML:', error);
+      const { design, html } = data;
+      
+      // Inline CSS before saving
+      const inlinedHtml = await EmailExportService.exportAsHTML(html, {
+        inlineCSS: true,
+      });
+      
+      if (onSave) {
+        onSave(design, inlinedHtml);
       }
     });
   };
 
+  // Unlayer configuration
+  const unlayerOptions = {
+    displayMode: 'email' as const,
+    features: {
+      stockImages: true,
+    },
+    appearance: {
+      theme: 'modern_light' as const,
+    },
+  };
+
   return (
-    <div className="flex flex-col h-screen">
-      <div className="border-b p-4 flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Email Template Editor</h2>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleSave}>
-            Save Template
-          </Button>
-          <Button onClick={handleCopyHTML}>
-            <Copy className="w-4 h-4 mr-2" />
-            Copy HTML
-          </Button>
+    <div className="h-full flex flex-col">
+      {/* Toolbar */}
+      <Card className="rounded-none border-x-0 border-t-0 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportHtml('preview')}
+              disabled={isExporting}
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              Preview
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportHtml('copy')}
+              disabled={isExporting}
+            >
+              <Copy className="w-4 h-4 mr-2" />
+              Copy HTML
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportHtml('download')}
+              disabled={isExporting}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Download
+            </Button>
+          </div>
+
+          <div className="flex gap-2">
+            {/* Platform exports */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportForPlatform('klaviyo')}
+              disabled={isExporting}
+            >
+              Export for Klaviyo
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportForPlatform('mailchimp')}
+              disabled={isExporting}
+            >
+              Export for Mailchimp
+            </Button>
+
+            {/* Save button */}
+            <Button
+              onClick={saveTemplate}
+              disabled={isExporting}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Save Template
+            </Button>
+          </div>
         </div>
+      </Card>
+
+      {/* Email Editor */}
+      <div className="flex-1">
+        <EmailEditor
+          ref={emailEditorRef}
+          onReady={() => {
+            // Load template if ID provided
+            if (templateId) {
+              // Load template design
+            }
+          }}
+          options={unlayerOptions}
+        />
       </div>
-      <div id="editor-container" className="flex-1" />
     </div>
   );
 }
+
+// Keep the old EmailEditor export for backward compatibility
+export { EmailEditorComponent as EmailEditor };

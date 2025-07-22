@@ -167,9 +167,7 @@ function EditorContent() {
   return (
     <EmailEditor
       templateId={templateId || undefined}
-      initialDesign={initialDesign}
       onSave={handleSave}
-      onExport={handleExport}
     />
   );
 }
