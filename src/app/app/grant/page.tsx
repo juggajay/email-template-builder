@@ -18,20 +18,7 @@ function GrantAppContent() {
     
     if (shopParam) {
       setShop(shopParam);
-      
-      // If we have a shop parameter and we're coming from OAuth callback,
-      // redirect to Shopify admin
-      const isOAuthCallback = window.location.pathname === '/app/grant' && shopParam;
-      if (isOAuthCallback) {
-        // Extract shop ID from shop domain (e.g., uvszh1-m5.myshopify.com -> uvszh1-m5)
-        const shopId = shopParam.replace('.myshopify.com', '');
-        // Use the generic /apps page which will show all installed apps
-        const shopifyAdminUrl = `https://admin.shopify.com/store/${shopId}/apps`;
-        
-        // Redirect to Shopify admin apps page
-        window.location.href = shopifyAdminUrl;
-        return;
-      }
+      // Don't redirect - Shopify expects the app to render on this page
     } else if (hostParam) {
       // Decode host parameter if provided
       try {
@@ -49,8 +36,9 @@ function GrantAppContent() {
   }, [searchParams]);
 
   const navigateToSection = (section: string) => {
-    // Navigate to specific sections of your app
-    window.location.href = `/${section}?shop=${shop}`;
+    // When embedded in Shopify admin, we need to use the shop parameter
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
+    window.location.href = `${baseUrl}/${section}?shop=${shop}`;
   };
 
   if (loading) {
