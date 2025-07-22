@@ -198,6 +198,28 @@ export class AuthService {
     }
   }
 
+  async getSession() {
+    try {
+      const { data: { session }, error } = await this.supabase.auth.getSession();
+      if (error) throw error;
+      return session;
+    } catch (error) {
+      console.error('Error getting session:', error);
+      return null;
+    }
+  }
+
+  async refreshSession() {
+    try {
+      const { data: { session }, error } = await this.supabase.auth.refreshSession();
+      if (error) throw error;
+      return session;
+    } catch (error) {
+      console.error('Error refreshing session:', error);
+      return null;
+    }
+  }
+
   async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
       const { data, error } = await this.supabase

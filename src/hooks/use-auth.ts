@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { authService } from '@/lib/supabase/auth';
 import type { User, UserProfile, Subscription, AuthState } from '@/types';
+import { useRouter } from 'next/navigation';
 
 export function useAuth() {
+  const router = useRouter();
   const [state, setState] = useState<AuthState>({
     user: null,
     profile: null,
@@ -11,59 +13,88 @@ export function useAuth() {
     error: null,
   });
 
+  // Load user data function
+  const loadUserData = useCallback(async (user: User) => {
+    try {
+      const [profile, subscription] = await Promise.all([
+        authService.getUserProfile(user.id),
+        authService.getUserSubscription(user.id),
+      ]);
+
+      setState({
+        user,
+        profile,
+        subscription,
+        loading: false,
+        error: null,
+      });
+    } catch (error) {
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        error: error instanceof Error ? error.message : 'Failed to load user data',
+      }));
+    }
+  }, []);
+
   useEffect(() => {
     let mounted = true;
-    let retryCount = 0;
-    const maxRetries = 3;
+    let authSubscription: { unsubscribe: () => void } | null = null;
 
-    // Get initial session with retry logic
-    const getInitialSession = async () => {
+    const initializeAuth = async () => {
       try {
-        const user = await authService.getCurrentUser();
+        // Get the current session
+        const session = await authService.getSession();
         
-        if (user && mounted) {
-          const [profile, subscription] = await Promise.all([
-            authService.getUserProfile(user.id),
-            authService.getUserSubscription(user.id),
-          ]);
-
-          setState({
-            user,
-            profile,
-            subscription,
-            loading: false,
-            error: null,
-          });
+        if (session?.user && mounted) {
+          await loadUserData(session.user);
         } else if (mounted) {
-          // If no user but we're on a verified redirect, retry
-          const urlParams = new URLSearchParams(window.location.search);
-          if (urlParams.get('verified') === 'true' && retryCount < maxRetries) {
-            retryCount++;
-            console.log(`[Auth Hook] No user found on verified redirect, retrying (${retryCount}/${maxRetries})...`);
-            setTimeout(() => {
-              if (mounted) getInitialSession();
-            }, 500 * retryCount); // Exponential backoff
-            return;
-          }
-          
           setState(prev => ({
             ...prev,
             loading: false,
           }));
         }
+
+        // Set up auth state listener
+        authSubscription = authService.onAuthStateChange(
+          async (event, session) => {
+            if (!mounted) return;
+
+            console.log('Auth event:', event);
+
+            switch (event) {
+              case 'SIGNED_IN':
+              case 'TOKEN_REFRESHED':
+                if (session?.user) {
+                  await loadUserData(session.user);
+                }
+                break;
+
+              case 'SIGNED_OUT':
+                setState({
+                  user: null,
+                  profile: null,
+                  subscription: null,
+                  loading: false,
+                  error: null,
+                });
+                router.push('/login');
+                break;
+
+              case 'USER_UPDATED':
+                if (session?.user) {
+                  // Reload user data when user is updated
+                  await loadUserData(session.user);
+                }
+                break;
+
+              default:
+                break;
+            }
+          }
+        );
       } catch (error) {
         if (mounted) {
-          // Retry on error if we're on a verified redirect
-          const urlParams = new URLSearchParams(window.location.search);
-          if (urlParams.get('verified') === 'true' && retryCount < maxRetries) {
-            retryCount++;
-            console.log(`[Auth Hook] Error getting session on verified redirect, retrying (${retryCount}/${maxRetries})...`);
-            setTimeout(() => {
-              if (mounted) getInitialSession();
-            }, 500 * retryCount);
-            return;
-          }
-          
           setState(prev => ({
             ...prev,
             loading: false,
@@ -73,43 +104,13 @@ export function useAuth() {
       }
     };
 
-    getInitialSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = authService.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-
-        if (event === 'SIGNED_IN' && session?.user) {
-          const [profile, userSubscription] = await Promise.all([
-            authService.getUserProfile(session.user.id),
-            authService.getUserSubscription(session.user.id),
-          ]);
-
-          setState({
-            user: session.user,
-            profile,
-            subscription: userSubscription,
-            loading: false,
-            error: null,
-          });
-        } else if (event === 'SIGNED_OUT') {
-          setState({
-            user: null,
-            profile: null,
-            subscription: null,
-            loading: false,
-            error: null,
-          });
-        }
-      }
-    );
+    initializeAuth();
 
     return () => {
       mounted = false;
-      subscription?.unsubscribe();
+      authSubscription?.unsubscribe();
     };
-  }, []);
+  }, [loadUserData, router]);
 
   const signIn = async (email: string, password: string) => {
     setState(prev => ({ ...prev, loading: true, error: null }));
@@ -132,7 +133,6 @@ export function useAuth() {
     password: string;
     fullName?: string;
     companyName?: string;
-    inviteCode?: string;
   }) => {
     setState(prev => ({ ...prev, loading: true, error: null }));
     
@@ -152,6 +152,15 @@ export function useAuth() {
   const signOut = async () => {
     setState(prev => ({ ...prev, loading: true }));
     const result = await authService.signOut();
+    
+    if (result.error) {
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        error: result.error.message,
+      }));
+    }
+    
     return result;
   };
 
@@ -180,6 +189,14 @@ export function useAuth() {
     return authService.recordExport(state.user.id, templateId, exportType);
   };
 
+  const refreshSession = async () => {
+    const session = await authService.refreshSession();
+    if (session?.user) {
+      await loadUserData(session.user);
+    }
+    return session;
+  };
+
   return {
     ...state,
     signIn,
@@ -188,6 +205,7 @@ export function useAuth() {
     updateProfile,
     canExport,
     recordExport,
+    refreshSession,
     isAuthenticated: !!state.user,
     isPro: state.subscription?.plan === 'pro',
     isAgency: state.subscription?.plan === 'agency',
