@@ -93,9 +93,9 @@ export async function GET(request: NextRequest) {
     // Extract shop ID by removing .myshopify.com
     const shopId = shop.replace('.myshopify.com', '');
     
-    // CRITICAL: Redirect to Shopify admin apps page
+    // MUST redirect to /app/grant - NOT /apps/zebamail
     const response = NextResponse.redirect(
-      `https://admin.shopify.com/store/${shopId}/apps/zebamail`
+      `https://admin.shopify.com/store/${shopId}/app/grant`
     );
     response.cookies.delete('shopify_oauth_state');
 
