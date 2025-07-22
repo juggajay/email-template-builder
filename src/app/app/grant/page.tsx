@@ -15,10 +15,18 @@ function GrantAppContent() {
     // Get shop from URL params
     const shopParam = searchParams.get('shop');
     const hostParam = searchParams.get('host');
+    const oauthComplete = searchParams.get('oauth_complete');
     
     if (shopParam) {
       setShop(shopParam);
-      // Don't redirect - Shopify expects the app to render on this page
+      
+      // If OAuth just completed, redirect to Shopify admin
+      if (oauthComplete === 'true') {
+        const shopId = shopParam.replace('.myshopify.com', '');
+        // Use window.location.replace to do a full page redirect
+        window.location.replace(`https://admin.shopify.com/store/${shopId}/app/grant`);
+        return;
+      }
     } else if (hostParam) {
       // Decode host parameter if provided
       try {
