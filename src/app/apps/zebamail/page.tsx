@@ -6,6 +6,23 @@ import { useSearchParams } from 'next/navigation';
 function ShopifyAppContent() {
   const searchParams = useSearchParams();
   const shop = searchParams.get('shop');
+  const host = searchParams.get('host');
+
+  // If we have shop but no host, this is an installation attempt
+  // Redirect to OAuth flow
+  if (shop && !host) {
+    window.location.href = `/api/shopify/auth?shop=${encodeURIComponent(shop)}`;
+    return (
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        height: '100vh' 
+      }}>
+        <p>Redirecting to Shopify authorization...</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ 
