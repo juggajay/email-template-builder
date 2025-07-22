@@ -20,7 +20,6 @@ import {
   Zap,
   Crown,
   FolderOpen,
-  ShieldCheck,
   MessageSquarePlus
 } from 'lucide-react';
 import { ZebCharacter, StripePattern } from '@/components/brand';
@@ -41,9 +40,6 @@ const getNavigation = (isAdmin: boolean) => {
     { name: 'Help', href: '/help', icon: HelpCircle },
   ];
 
-  if (isAdmin) {
-    baseNav.push({ name: 'Beta Invites', href: '/admin/beta-invites', icon: ShieldCheck });
-  }
 
   return baseNav;
 };
@@ -72,7 +68,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="flex items-center gap-2">
               <span className="text-xl font-bold text-zebra-black">ZebaMail</span>
               <ZebCharacter variant="default" size="sm" className="w-6 h-6" />
-              <Badge variant="secondary" className="text-xs">BETA</Badge>
             </div>
             <Button
               variant="ghost"
@@ -127,7 +122,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="flex items-center gap-2">
               <span className="text-xl font-bold text-zebra-black">ZebaMail</span>
               <ZebCharacter variant="default" size="sm" className="w-6 h-6" />
-              <Badge variant="secondary" className="text-xs">BETA</Badge>
             </div>
           </div>
           

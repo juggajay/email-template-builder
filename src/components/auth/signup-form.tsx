@@ -10,8 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
 import { authService } from '@/lib/supabase/auth';
-import { betaAccessService } from '@/lib/beta-access';
-import { AlertCircle } from 'lucide-react';
 
 const signupSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -19,7 +17,6 @@ const signupSchema = z.object({
   confirmPassword: z.string(),
   fullName: z.string().min(2, 'Name must be at least 2 characters'),
   companyName: z.string().optional(),
-  inviteCode: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -47,31 +44,11 @@ export function SignupForm() {
     setError(null);
 
     try {
-      // Check if beta access is required
-      const isBetaAllowed = await betaAccessService.isEmailAllowedForBeta(data.email);
-      
-      if (!isBetaAllowed && !data.inviteCode) {
-        setError('ZebaMail is currently in beta. Please enter your invite code or contact us for access.');
-        setIsLoading(false);
-        return;
-      }
-
-      // Validate invite code if provided
-      if (data.inviteCode && !isBetaAllowed) {
-        const { valid, reason } = await betaAccessService.validateInviteCode(data.inviteCode);
-        if (!valid) {
-          setError(reason || 'Invalid or expired invite code. Please check your code or contact us for access.');
-          setIsLoading(false);
-          return;
-        }
-      }
-
       const result = await signUp({
         email: data.email,
         password: data.password,
         fullName: data.fullName,
         companyName: data.companyName,
-        inviteCode: data.inviteCode,
       });
       
       if (result.error) {
@@ -80,45 +57,11 @@ export function SignupForm() {
           setError('This email is already registered. Please sign in instead.');
         } else if (result.error.message.includes('weak_password')) {
           setError('Password is too weak. Please use a stronger password.');
-        } else if (result.error.message.includes('Email link is invalid')) {
-          setError('Email confirmations may be disabled. Please contact support.');
         } else {
           setError(result.error.message);
         }
-      } else if (result.data?.user) {
-        // Check if email confirmation is required
-        console.log('[Signup Form] User created:', {
-          id: result.data.user.id,
-          email: result.data.user.email,
-          emailConfirmedAt: result.data.user.email_confirmed_at,
-          confirmationSentAt: result.data.user.confirmation_sent_at,
-        });
-
-        // Use the invite code after successful signup
-        if (data.inviteCode && result.data.user) {
-          try {
-            console.log('[Signup Form] Attempting to use invite code:', data.inviteCode, 'for user:', result.data.user.id);
-            const inviteResult = await betaAccessService.useInviteCode(data.inviteCode, result.data.user.id);
-            if (!inviteResult) {
-              console.warn('[Signup Form] Failed to apply invite code, but user was created successfully');
-              console.warn('[Signup Form] This might mean the code is invalid, expired, or already used');
-            } else {
-              console.log('[Signup Form] Successfully applied invite code');
-            }
-          } catch (inviteError) {
-            console.error('[Signup Form] Error applying invite code:', inviteError);
-            // Don't fail the signup if invite code fails - user is already created
-          }
-        }
-        
-        // If user is already confirmed (e.g., OAuth), redirect to dashboard
-        if (result.data.user.email_confirmed_at) {
-          router.push('/dashboard');
-        } else {
-          setSuccess(true);
-        }
       } else {
-        setError('Signup failed. Please try again.');
+        setSuccess(true);
       }
     } catch (err) {
       setError('An unexpected error occurred');
@@ -238,21 +181,6 @@ export function SignupForm() {
             error={errors.confirmPassword?.message}
             disabled={isLoading}
           />
-
-          <div className="space-y-2">
-            <Input
-              {...register('inviteCode')}
-              type="text"
-              label="Beta Invite Code"
-              placeholder="BETA-XXXXXXXX"
-              error={errors.inviteCode?.message}
-              disabled={isLoading}
-            />
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <AlertCircle className="w-3 h-3" />
-              ZebaMail is in beta. Enter your invite code or request access.
-            </p>
-          </div>
 
           {error && (
             <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
