@@ -17,29 +17,8 @@ function GrantAppContent() {
     const hostParam = searchParams.get('host');
     const oauthComplete = searchParams.get('oauth_complete');
     
-    console.log('[Grant Page] URL params:', {
-      shop: shopParam,
-      host: hostParam,
-      oauth_complete: oauthComplete,
-      fullUrl: window.location.href
-    });
-    
     if (shopParam) {
       setShop(shopParam);
-      
-      // Check if we're being loaded from Shopify admin (has host parameter)
-      // OR if OAuth just completed
-      if (hostParam || oauthComplete === 'true') {
-        const shopId = shopParam.replace('.myshopify.com', '');
-        const redirectUrl = `https://admin.shopify.com/store/${shopId}/app/grant`;
-        console.log('REDIRECTING TO:', redirectUrl);
-        console.log('Shop param:', shopParam);
-        console.log('Shop ID:', shopId);
-        console.log('Host param:', hostParam);
-        // Use window.location.replace to do a full page redirect
-        window.location.replace(redirectUrl);
-        return;
-      }
     } else if (hostParam) {
       // Decode host parameter if provided
       try {
