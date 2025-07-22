@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { ShopifyService } from '@/lib/integrations/shopify/service';
 import { isValidShopDomain } from '@/lib/integrations/shopify/utils';
 
@@ -17,14 +16,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check authentication
-    const supabase = createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Generate OAuth URL
+    // Generate OAuth URL - NO authentication check during installation
+    // Shopify requires direct OAuth flow without intermediate pages
     const redirectUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/shopify/callback`;
     const { authUrl, state } = ShopifyService.generateAuthUrl(shop, redirectUrl);
 
