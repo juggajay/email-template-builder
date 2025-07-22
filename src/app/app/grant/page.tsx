@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, Suspense } from 'react';
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 function GrantContent() {
@@ -8,18 +8,20 @@ function GrantContent() {
   const shop = searchParams.get('shop');
   const host = searchParams.get('host');
 
-  useEffect(() => {
-    // After grant, redirect to your main app interface
-    if (shop && host) {
-      // Redirect to your app's main page within Shopify admin
-      window.location.href = `https://${shop}/admin/apps/${process.env.NEXT_PUBLIC_SHOPIFY_APP_HANDLE || 'zebamail'}`;
-    }
-  }, [shop, host]);
+  // Don't redirect - Shopify expects this page to stay at /app/grant
+  // This page should display while Shopify completes the installation
 
   return (
-    <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h1>Granting permissions...</h1>
-      <p>Redirecting to ZebaMail...</p>
+    <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <h1 style={{ fontSize: '24px', marginBottom: '16px' }}>Installing ZebaMail...</h1>
+      <p style={{ fontSize: '16px', color: '#666', marginBottom: '24px' }}>
+        Please wait while we set up your email marketing tools.
+      </p>
+      {shop && (
+        <p style={{ fontSize: '14px', color: '#999' }}>
+          Shop: {shop}
+        </p>
+      )}
     </div>
   );
 }
