@@ -10,8 +10,6 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/use-auth';
 import { authService } from '@/lib/supabase/auth';
-import { betaAccessService } from '@/lib/beta-access';
-import { BETA_CONFIG } from '@/lib/beta-config';
 
 const loginSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -51,21 +49,6 @@ export function LoginForm() {
           setError(result.error.message);
         }
       } else if (result.data?.user) {
-        // Skip beta check if disabled or email is bypassed
-        if (!BETA_CONFIG.IS_ENABLED || BETA_CONFIG.shouldBypassBeta(data.email)) {
-          router.push('/dashboard');
-          return;
-        }
-        
-        // Check if user has beta access
-        const hasBetaAccess = await betaAccessService.checkBetaAccess(result.data.user.id);
-        
-        if (!hasBetaAccess) {
-          await authService.signOut();
-          setError('Your account does not have beta access. Please contact us for an invite.');
-          return;
-        }
-        
         router.push('/dashboard');
       }
     } catch (err) {
