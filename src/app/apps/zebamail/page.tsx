@@ -1,27 +1,15 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
-
-function ShopifyAppContent() {
-  const searchParams = useSearchParams();
-  const shop = searchParams.get('shop');
-  const host = searchParams.get('host');
-
+// Server Component to handle redirects
+export default async function ShopifyApp({
+  searchParams,
+}: {
+  searchParams: { shop?: string; host?: string };
+}) {
   // If we have shop but no host, this is an installation attempt
   // Redirect to OAuth flow
-  if (shop && !host) {
-    window.location.href = `/api/shopify/auth?shop=${encodeURIComponent(shop)}`;
-    return (
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
-        height: '100vh' 
-      }}>
-        <p>Redirecting to Shopify authorization...</p>
-      </div>
-    );
+  if (searchParams.shop && !searchParams.host) {
+    redirect(`/api/shopify/auth?shop=${encodeURIComponent(searchParams.shop)}`);
   }
 
   return (
@@ -50,9 +38,9 @@ function ShopifyAppContent() {
           <p style={{ fontSize: '16px', color: '#6b7280' }}>
             Create and manage professional email templates for your Shopify store
           </p>
-          {shop && (
+          {searchParams.shop && (
             <p style={{ fontSize: '14px', color: '#9ca3af', marginTop: '8px' }}>
-              Connected to: {shop}
+              Connected to: {searchParams.shop}
             </p>
           )}
         </header>
@@ -186,26 +174,5 @@ function ShopifyAppContent() {
         </div>
       </div>
     </div>
-  );
-}
-
-export default function ShopifyApp() {
-  return (
-    <Suspense fallback={
-      <div style={{ 
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#f3f4f6'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <h1 style={{ fontSize: '24px', marginBottom: '8px' }}>Loading...</h1>
-          <p style={{ color: '#6b7280' }}>Please wait</p>
-        </div>
-      </div>
-    }>
-      <ShopifyAppContent />
-    </Suspense>
   );
 }
