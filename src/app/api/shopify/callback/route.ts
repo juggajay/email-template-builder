@@ -90,18 +90,13 @@ export async function GET(request: NextRequest) {
       console.error('Background sync failed:', error);
     });
 
-    // After successful OAuth, we need to redirect to a page that will handle the final redirect
-    // We can't directly redirect to Shopify admin from our server
-    const appUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'https://www.zebamail.com'}/app/grant`;
-    const redirectParams = new URLSearchParams({
-      shop,
-      oauth_complete: 'true'
-    });
+    // Extract shop ID by removing .myshopify.com
+    const shopId = shop.replace('.myshopify.com', '');
     
-    const redirectUrl = `${appUrl}?${redirectParams.toString()}`;
-    
-    // Clear OAuth state cookie
-    const response = NextResponse.redirect(redirectUrl);
+    // CRITICAL: Redirect to Shopify admin, NOT your website
+    const response = NextResponse.redirect(
+      `https://admin.shopify.com/store/${shopId}/app/grant`
+    );
     response.cookies.delete('shopify_oauth_state');
 
     return response;
