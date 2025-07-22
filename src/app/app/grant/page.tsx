@@ -17,14 +17,25 @@ function GrantAppContent() {
     const hostParam = searchParams.get('host');
     const oauthComplete = searchParams.get('oauth_complete');
     
+    console.log('[Grant Page] URL params:', {
+      shop: shopParam,
+      host: hostParam,
+      oauth_complete: oauthComplete,
+      fullUrl: window.location.href
+    });
+    
     if (shopParam) {
       setShop(shopParam);
       
       // If OAuth just completed, redirect to Shopify admin
       if (oauthComplete === 'true') {
         const shopId = shopParam.replace('.myshopify.com', '');
+        const redirectUrl = `https://admin.shopify.com/store/${shopId}/app/grant`;
+        console.log('REDIRECTING TO:', redirectUrl);
+        console.log('Shop param:', shopParam);
+        console.log('Shop ID:', shopId);
         // Use window.location.replace to do a full page redirect
-        window.location.replace(`https://admin.shopify.com/store/${shopId}/app/grant`);
+        window.location.replace(redirectUrl);
         return;
       }
     } else if (hostParam) {

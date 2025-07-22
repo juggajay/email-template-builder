@@ -100,6 +100,10 @@ export async function GET(request: NextRequest) {
     
     const redirectUrl = `${appUrl}?${redirectParams.toString()}`;
     
+    console.log('[OAuth Callback] Redirecting to grant page:', redirectUrl);
+    console.log('[OAuth Callback] Shop:', shop);
+    console.log('[OAuth Callback] App URL:', appUrl);
+    
     // Clear OAuth state cookie
     const response = NextResponse.redirect(redirectUrl);
     response.cookies.delete('shopify_oauth_state');
