@@ -5,7 +5,6 @@ import EmailEditor from 'react-email-editor';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Download, Copy, Eye, Save, Send } from 'lucide-react';
-import { EmailExportService } from '@/lib/email/export';
 import { useToast } from '@/hooks/use-toast';
 
 interface EmailEditorProps {
@@ -29,12 +28,27 @@ export function EmailEditorComponent({ templateId, onSave }: EmailEditorProps) {
       const { design, html } = data;
       
       try {
-        // Inline CSS for better email client compatibility
-        const inlinedHtml = await EmailExportService.exportAsHTML(html, {
-          inlineCSS: true,
-          preserveMediaQueries: true,
-          preserveFontFaces: true,
+        // Call API to inline CSS for better email client compatibility
+        const response = await fetch('/api/email/export', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            html,
+            format: 'html',
+            options: {
+              preserveMediaQueries: true,
+              preserveFontFaces: true,
+            },
+          }),
         });
+
+        if (!response.ok) {
+          throw new Error('Export failed');
+        }
+
+        const { content: inlinedHtml } = await response.json();
         
         switch (action) {
           case 'copy':
@@ -114,14 +128,26 @@ export function EmailEditorComponent({ templateId, onSave }: EmailEditorProps) {
       const { html } = data;
       
       try {
-        const processedHtml = await EmailExportService.exportForPlatform(
-          html, 
-          platform,
-          {
-            inlineCSS: true,
-            preserveMediaQueries: true,
-          }
-        );
+        const response = await fetch('/api/email/export', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            html,
+            format: 'platform',
+            platform,
+            options: {
+              preserveMediaQueries: true,
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Export failed');
+        }
+
+        const { content: processedHtml } = await response.json();
         
         await navigator.clipboard.writeText(processedHtml);
         
@@ -149,13 +175,37 @@ export function EmailEditorComponent({ templateId, onSave }: EmailEditorProps) {
     unlayer.exportHtml(async (data: any) => {
       const { design, html } = data;
       
-      // Inline CSS before saving
-      const inlinedHtml = await EmailExportService.exportAsHTML(html, {
-        inlineCSS: true,
-      });
-      
-      if (onSave) {
-        onSave(design, inlinedHtml);
+      try {
+        // Inline CSS before saving
+        const response = await fetch('/api/email/export', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            html,
+            format: 'html',
+            options: {
+              inlineCSS: true,
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Export failed');
+        }
+
+        const { content: inlinedHtml } = await response.json();
+        
+        if (onSave) {
+          onSave(design, inlinedHtml);
+        }
+      } catch (error) {
+        toast({
+          title: 'Save Error',
+          description: 'Failed to process email template',
+          variant: 'destructive',
+        });
       }
     });
   };
