@@ -43,9 +43,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check authentication
+    // For Shopify OAuth, we need to complete the OAuth flow first
+    // The user might not be authenticated yet during app installation
     const supabase = createClient();
-    console.log('Checking authentication in Shopify callback...');
+    console.log('Processing Shopify OAuth callback...');
+    
+    // Check if we have an authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     console.log('Auth check result:', {
@@ -54,16 +57,21 @@ export async function GET(request: NextRequest) {
       authError: authError?.message
     });
     
-    if (authError || !user) {
-      console.error('No authenticated user in Shopify callback:', authError);
-      return NextResponse.redirect(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/login?redirect=/settings`
-      );
+    // During Shopify app installation, create/link user automatically
+    let userId: string;
+    
+    if (!user) {
+      console.log('No authenticated user during Shopify installation - creating guest session');
+      // For Shopify app installations, we'll create a connection without a user
+      // The merchant can link their account later
+      userId = 'shopify_' + shop; // Temporary ID for the connection
+    } else {
+      userId = user.id;
     }
 
     // Complete OAuth flow
-    console.log('About to call completeOAuth with:', { shop, code, userId: user.id });
-    const connection = await ShopifyService.completeOAuth(shop, code, user.id);
+    console.log('About to call completeOAuth with:', { shop, code, userId });
+    const connection = await ShopifyService.completeOAuth(shop, code, userId);
     
     console.log('Connection returned from completeOAuth:', {
       connectionId: connection.id,
@@ -93,9 +101,9 @@ export async function GET(request: NextRequest) {
     // Extract shop ID by removing .myshopify.com
     const shopId = shop.replace('.myshopify.com', '');
     
-    // MUST redirect to /app/grant - NOT /apps/zebamail
+    // Redirect to Shopify admin apps page as expected by Shopify
     const response = NextResponse.redirect(
-      `https://admin.shopify.com/store/${shopId}/app/grant`
+      `https://admin.shopify.com/store/${shopId}/apps/zebamail`
     );
     response.cookies.delete('shopify_oauth_state');
 
