@@ -175,7 +175,73 @@ export function UnlayerWrapper({
                 }
               }
             }
-          }
+          },
+          // ZebaMail Branded Styles
+          customCSS: [
+            `.blockbuilder-content-wrapper,
+            .blockbuilder-content,
+            .u-row,
+            .u-col {
+              background-color: transparent !important;
+            }
+            
+            .blockbuilder-content {
+              border: 2px solid #e5e7eb !important;
+              border-radius: 8px !important;
+              background: #ffffff !important;
+            }
+            
+            /* Green hover states */
+            .u-row.ui-droppable-hover,
+            .u-col.ui-droppable-hover,
+            .u-row-droppable-hover,
+            .u-col-droppable-hover {
+              background-color: rgba(16, 185, 129, 0.05) !important;
+              outline: 2px solid #10b981 !important;
+              outline-offset: -2px;
+            }
+            
+            .u-row:hover,
+            .u-col:hover {
+              outline: 1px solid #10b981 !important;
+              background-color: rgba(16, 185, 129, 0.02) !important;
+            }
+            
+            /* Green selected states */
+            .blockbuilder-layer-selected,
+            .u-row.selected,
+            .u-col.selected {
+              background-color: rgba(16, 185, 129, 0.05) !important;
+              outline: 2px solid #10b981 !important;
+              box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1) !important;
+            }
+            
+            /* Green add buttons */
+            .blockbuilder-row-add-button,
+            .blockbuilder-add-button {
+              background-color: #ffffff !important;
+              border: 2px solid #e5e7eb !important;
+              color: #10b981 !important;
+            }
+            
+            .blockbuilder-row-add-button:hover,
+            .blockbuilder-add-button:hover {
+              background-color: #10b981 !important;
+              border-color: #10b981 !important;
+              color: #ffffff !important;
+            }
+            
+            /* Override blue inline styles */
+            [style*="background-color: rgb(51, 130, 206)"],
+            [style*="background-color: #3382ce"] {
+              background-color: #10b981 !important;
+            }
+            
+            [style*="border-color: rgb(51, 130, 206)"],
+            [style*="border-color: #3382ce"] {
+              border-color: #10b981 !important;
+            }`
+          ]
         });
 
         window.unlayer.addEventListener('editor:ready', () => {

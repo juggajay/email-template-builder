@@ -170,7 +170,111 @@ export function UnlayerWrapperFixed({
             allowContentDragDrop: true
           },
           // Comprehensive merge tags for e-commerce
-          mergeTags: mergeTags
+          mergeTags: mergeTags,
+          // ZebaMail Branded Styles
+          customCSS: [
+            /* Remove blue backgrounds and add green theme */
+            `.blockbuilder-content-wrapper,
+            .blockbuilder-content,
+            .u-row,
+            .u-col {
+              background-color: transparent !important;
+            }
+            
+            .blockbuilder-content {
+              border: 2px solid #e5e7eb !important;
+              border-radius: 8px !important;
+              background: #ffffff !important;
+            }
+            
+            /* Green hover states */
+            .u-row.ui-droppable-hover,
+            .u-col.ui-droppable-hover,
+            .u-row-droppable-hover,
+            .u-col-droppable-hover {
+              background-color: rgba(16, 185, 129, 0.05) !important;
+              outline: 2px solid #10b981 !important;
+              outline-offset: -2px;
+            }
+            
+            .u-row:hover,
+            .u-col:hover {
+              outline: 1px solid #10b981 !important;
+              background-color: rgba(16, 185, 129, 0.02) !important;
+            }
+            
+            /* Green selected states */
+            .blockbuilder-layer-selected,
+            .u-row.selected,
+            .u-col.selected,
+            .u-row-selected,
+            .u-col-selected {
+              background-color: rgba(16, 185, 129, 0.05) !important;
+              outline: 2px solid #10b981 !important;
+              outline-offset: -2px;
+              box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1) !important;
+            }
+            
+            /* Green add buttons */
+            .blockbuilder-row-add,
+            .blockbuilder-row-add-button,
+            .blockbuilder-add-button,
+            button.add-row {
+              background-color: #ffffff !important;
+              border: 2px solid #e5e7eb !important;
+              color: #10b981 !important;
+            }
+            
+            .blockbuilder-row-add:hover,
+            .blockbuilder-row-add-button:hover,
+            .blockbuilder-add-button:hover,
+            button.add-row:hover {
+              background-color: #10b981 !important;
+              border-color: #10b981 !important;
+              color: #ffffff !important;
+            }
+            
+            /* Override blue inline styles */
+            [style*="background-color: rgb(51, 130, 206)"],
+            [style*="background-color: #3382ce"],
+            [style*="background: rgb(51, 130, 206)"],
+            [style*="background: #3382ce"] {
+              background-color: #10b981 !important;
+            }
+            
+            [style*="border-color: rgb(51, 130, 206)"],
+            [style*="border-color: #3382ce"] {
+              border-color: #10b981 !important;
+            }
+            
+            /* Tool panel styling */
+            .blockbuilder-tools {
+              background-color: #ffffff !important;
+              border-right: 1px solid #e5e7eb !important;
+            }
+            
+            /* Active tool state */
+            .blockbuilder-tool-active,
+            .tool-active {
+              background-color: #10b981 !important;
+              color: #ffffff !important;
+            }
+            
+            /* Row/column resize handles */
+            .gjs-resizer-h,
+            .gjs-resizer-v,
+            .ui-resizable-handle {
+              background-color: #10b981 !important;
+            }
+            
+            /* Dropzone indicators */
+            .gjs-dropzone,
+            .u-row-dropzone,
+            .u-col-dropzone {
+              border: 2px dashed #10b981 !important;
+              background-color: rgba(16, 185, 129, 0.05) !important;
+            }`
+          ]
         });
 
         window.unlayer.addEventListener('editor:ready', async () => {
