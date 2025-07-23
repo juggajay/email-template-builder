@@ -255,3 +255,83 @@
     @apply hidden;
   }
 }
+
+/* ===== ZebaMail Branded Email Editor Styles ===== */
+
+/* Remove blue background from content area */
+.blockbuilder-content-wrapper,
+.blockbuilder-content,
+.blockbuilder-layer,
+.blockbuilder-layer-selector,
+.u-row,
+.u-col {
+  background-color: transparent !important;
+}
+
+/* Clean outline for the main content area */
+.blockbuilder-content {
+  border: 2px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Style the empty state message */
+.blockbuilder-placeholder,
+.blockbuilder-empty-state {
+  background-color: #f9fafb !important;
+  border: 2px dashed #d1d5db !important;
+  border-radius: 8px !important;
+  color: #6b7280 !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Remove blue selection highlights - use green theme */
+.u-row.ui-droppable-hover,
+.u-col.ui-droppable-hover,
+.blockbuilder-content .ui-sortable-helper {
+  background-color: rgba(16, 185, 129, 0.05) !important;
+  outline: 2px solid #10b981 !important;
+  outline-offset: -2px;
+  transition: all 0.2s ease !important;
+}
+
+/* Clean hover states with green accent */
+.u-row:hover,
+.u-col:hover {
+  outline: 1px solid #10b981 !important;
+  background-color: rgba(16, 185, 129, 0.02) !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Remove all blue backgrounds from rows */
+.u-row-container,
+.u-row-wrapper {
+  background-color: transparent !important;
+}
+
+/* Style the add row button with green theme */
+.blockbuilder-row-add-button,
+.blockbuilder-add-button {
+  background-color: #ffffff !important;
+  border: 2px solid #e5e7eb !important;
+  color: #10b981 !important;
+  transition: all 0.2s ease !important;
+}
+
+.blockbuilder-row-add-button:hover,
+.blockbuilder-add-button:hover {
+  background-color: #10b981 !important;
+  border-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+/* Remove blue from selected elements - use green */
+.blockbuilder-layer-selected,
+.u-row.selected,
+.u-col.selected {
+  background-color: rgba(16, 185, 129, 0.05) !important;
+  outline: 2px solid #10b981 !important;
+  outline-offset: -2px;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1) !important;
+}

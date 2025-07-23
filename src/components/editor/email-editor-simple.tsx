@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { EmailExportService } from '@/lib/email/export';
 import { useToast } from '@/hooks/use-toast';
+import './editor-styles.css';
 
 interface SimpleEmailEditorProps {
   templateId?: string;
@@ -191,6 +192,72 @@ export function SimpleEmailEditor({ templateId, onSave }: SimpleEmailEditorProps
               // Load template design
               console.log('Loading template:', templateId);
             }
+            
+            // Inject custom styles into the iframe
+            setTimeout(() => {
+              const iframe = document.querySelector('iframe') as HTMLIFrameElement;
+              if (iframe && iframe.contentDocument) {
+                const style = iframe.contentDocument.createElement('style');
+                style.textContent = `
+                  /* ZebaMail Branded Styles - Injected */
+                  .blockbuilder-content-wrapper,
+                  .blockbuilder-content,
+                  .u-row,
+                  .u-col {
+                    background-color: transparent !important;
+                  }
+                  
+                  .blockbuilder-content {
+                    border: 2px solid #e5e7eb !important;
+                    border-radius: 8px !important;
+                    background: #ffffff !important;
+                  }
+                  
+                  .u-row.ui-droppable-hover,
+                  .u-col.ui-droppable-hover {
+                    background-color: rgba(16, 185, 129, 0.05) !important;
+                    outline: 2px solid #10b981 !important;
+                  }
+                  
+                  .u-row:hover,
+                  .u-col:hover {
+                    outline: 1px solid #10b981 !important;
+                    background-color: rgba(16, 185, 129, 0.02) !important;
+                  }
+                  
+                  .blockbuilder-layer-selected,
+                  .u-row.selected,
+                  .u-col.selected {
+                    background-color: rgba(16, 185, 129, 0.05) !important;
+                    outline: 2px solid #10b981 !important;
+                    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1) !important;
+                  }
+                  
+                  .blockbuilder-row-add-button {
+                    background-color: #ffffff !important;
+                    border: 2px solid #e5e7eb !important;
+                    color: #10b981 !important;
+                  }
+                  
+                  .blockbuilder-row-add-button:hover {
+                    background-color: #10b981 !important;
+                    color: #ffffff !important;
+                  }
+                  
+                  /* Override any inline styles */
+                  [style*="background-color: rgb(51, 130, 206)"],
+                  [style*="background-color: #3382ce"] {
+                    background-color: #10b981 !important;
+                  }
+                  
+                  [style*="border-color: rgb(51, 130, 206)"],
+                  [style*="border-color: #3382ce"] {
+                    border-color: #10b981 !important;
+                  }
+                `;
+                iframe.contentDocument.head.appendChild(style);
+              }
+            }, 2000); // Wait for iframe to fully load
           }}
           options={{
             displayMode: 'email' as const,
