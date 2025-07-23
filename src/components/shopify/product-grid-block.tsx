@@ -80,7 +80,7 @@ export function ProductGridPreview({
     id: i + 1,
     title: `Product ${i + 1}`,
     price: (29.99 + i * 10).toFixed(2),
-    image: `https://via.placeholder.com/300x300?text=Product+${i + 1}`
+    image: `/images/template-placeholder.svg`
   }));
 
   return (

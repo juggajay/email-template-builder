@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, memo } from 'react';
 import { mergeTags } from '@/lib/merge-tags';
 import { registerShopifyBlocks, hasShopifyConnection, loadShopifyProducts } from '@/lib/editor/shopify-blocks';
 import './editor-styles.css';
@@ -326,14 +326,22 @@ export function UnlayerWrapperFixed({
             }
           }, 1000); // Wait for Unlayer to fully initialize
           
-          // Register Shopify blocks
+          // Register Shopify blocks with proper error handling
           try {
-            console.log('[UnlayerFixed] Registering Shopify blocks...');
-            registerShopifyBlocks(window.unlayer);
-            
-            // Check if user has connection and products
-            const hasShopify = await hasShopifyConnection();
-            console.log('[UnlayerFixed] Has Shopify connection:', hasShopify);
+            if (window.unlayer && typeof window.unlayer.registerTool === 'function') {
+              if (process.env.NODE_ENV === 'development') {
+                console.log('[UnlayerFixed] Registering Shopify blocks...');
+              }
+              registerShopifyBlocks(window.unlayer);
+              
+              // Check if user has connection and products
+              const hasShopify = await hasShopifyConnection();
+              if (process.env.NODE_ENV === 'development') {
+                console.log('[UnlayerFixed] Has Shopify connection:', hasShopify);
+              }
+            } else {
+              console.warn('[UnlayerFixed] Unlayer registerTool method not available, skipping Shopify blocks registration');
+            }
             
             if (hasShopify) {
               // Load products for dropdown
@@ -448,7 +456,10 @@ export function UnlayerWrapperFixed({
 
         // Listen for design updates
         window.unlayer.addEventListener('design:updated', (data: any) => {
-          console.log('[UnlayerFixed] Design updated', data);
+          // Only log in development mode
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[UnlayerFixed] Design updated');
+          }
           // Export HTML on design update
           if (onDesignUpdate) {
             window.unlayer.exportHtml((exportData: any) => {
@@ -457,31 +468,16 @@ export function UnlayerWrapperFixed({
           }
         });
 
-        // Listen for various drag events
-        window.unlayer.addEventListener('block:drag:start', (data: any) => {
-          console.log('[UnlayerFixed] Block drag started', data);
-        });
+        // Listen for important events only (remove excessive logging)
+        if (process.env.NODE_ENV === 'development') {
+          window.unlayer.addEventListener('block:drag:start', () => {
+            console.log('[UnlayerFixed] Block drag started');
+          });
 
-        window.unlayer.addEventListener('block:drag:end', (data: any) => {
-          console.log('[UnlayerFixed] Block drag ended', data);
-        });
-        
-        // Additional event listeners for debugging
-        window.unlayer.addEventListener('row:drag:start', (data: any) => {
-          console.log('[UnlayerFixed] Row drag started', data);
-        });
-        
-        window.unlayer.addEventListener('row:drag:end', (data: any) => {
-          console.log('[UnlayerFixed] Row drag ended', data);
-        });
-        
-        window.unlayer.addEventListener('content:drag:start', (data: any) => {
-          console.log('[UnlayerFixed] Content drag started', data);
-        });
-        
-        window.unlayer.addEventListener('content:drag:end', (data: any) => {
-          console.log('[UnlayerFixed] Content drag ended', data);
-        });
+          window.unlayer.addEventListener('block:drag:end', () => {
+            console.log('[UnlayerFixed] Block drag ended');
+          });
+        }
 
       } catch (err) {
         console.error('[UnlayerFixed] Initialization error:', err);
@@ -533,9 +529,13 @@ export function UnlayerWrapperFixed({
       return;
     }
 
-    console.log('[UnlayerFixed] Getting design...');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[UnlayerFixed] Getting design...');
+    }
     editorRef.current.saveDesign((design: any) => {
-      console.log('[UnlayerFixed] Design obtained:', design);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[UnlayerFixed] Design obtained:', design);
+      }
       handleExport();
     });
   };
@@ -617,3 +617,15 @@ export function UnlayerWrapperFixed({
     </div>
   );
 }
+
+// Memoized export with deep comparison for design prop
+export default memo(UnlayerWrapperFixed, (prevProps, nextProps) => {
+  // Deep compare design objects
+  const designEqual = JSON.stringify(prevProps.initialDesign) === JSON.stringify(nextProps.initialDesign);
+  
+  // Compare other props
+  const otherPropsEqual = 
+    prevProps.hideBottomSaveButton === nextProps.hideBottomSaveButton;
+  
+  return designEqual && otherPropsEqual;
+});

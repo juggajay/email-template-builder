@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { authService } from '@/lib/supabase/auth';
 import type { User, UserProfile, Subscription, AuthState } from '@/types';
 import { useRouter } from 'next/navigation';
+import { debounce } from '@/lib/utils/performance';
 
 export function useAuth() {
   const router = useRouter();
@@ -55,44 +56,49 @@ export function useAuth() {
           }));
         }
 
-        // Set up auth state listener
-        const { data } = authService.onAuthStateChange(
-          async (event, session) => {
-            if (!mounted) return;
+        // Debounced auth event handler to prevent excessive re-renders
+        const handleAuthEvent = debounce(async (event: string, session: any) => {
+          if (!mounted) return;
 
+          // Only log significant auth events
+          const significantEvents = ['SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED', 'USER_UPDATED'];
+          if (significantEvents.includes(event)) {
             console.log('Auth event:', event);
-
-            switch (event) {
-              case 'SIGNED_IN':
-              case 'TOKEN_REFRESHED':
-                if (session?.user) {
-                  await loadUserData(session.user);
-                }
-                break;
-
-              case 'SIGNED_OUT':
-                setState({
-                  user: null,
-                  profile: null,
-                  subscription: null,
-                  loading: false,
-                  error: null,
-                });
-                router.push('/login');
-                break;
-
-              case 'USER_UPDATED':
-                if (session?.user) {
-                  // Reload user data when user is updated
-                  await loadUserData(session.user);
-                }
-                break;
-
-              default:
-                break;
-            }
           }
-        );
+
+          switch (event) {
+            case 'SIGNED_IN':
+            case 'TOKEN_REFRESHED':
+              if (session?.user) {
+                await loadUserData(session.user);
+              }
+              break;
+
+            case 'SIGNED_OUT':
+              setState({
+                user: null,
+                profile: null,
+                subscription: null,
+                loading: false,
+                error: null,
+              });
+              router.push('/login');
+              break;
+
+            case 'USER_UPDATED':
+              if (session?.user) {
+                // Reload user data when user is updated
+                await loadUserData(session.user);
+              }
+              break;
+
+            default:
+              break;
+          }
+        }, 100);
+
+        // Set up auth state listener
+        const { data } = authService.onAuthStateChange(handleAuthEvent);
         
         authSubscription = data?.subscription;
       } catch (error) {

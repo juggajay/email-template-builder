@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatPrice } from '@/lib/integrations/shopify/utils';
 import { ShoppingCart, ArrowRight, Package } from 'lucide-react';
+import { getImageUrl, handleImageError } from '@/lib/utils/image-fallback';
 
 interface AbandonedCartBlockProps {
   email?: string;
@@ -107,11 +108,12 @@ export function AbandonedCartBlock({
         <div className="divide-y">
           {cart.line_items.map((item: any, index: number) => (
             <div key={index} className="p-4 flex gap-4">
-              {showImage && item.image && (
+              {showImage && (
                 <img
-                  src={item.image}
+                  src={getImageUrl(item.image)}
                   alt={item.title}
                   className="w-20 h-20 object-cover rounded"
+                  onError={handleImageError}
                 />
               )}
               <div className="flex-1">
@@ -195,7 +197,7 @@ export function AbandonedCartPreview() {
         price: '79.99',
         linePrice: '79.99',
         compareAtPrice: '99.99',
-        image: 'https://via.placeholder.com/150'
+        image: '/images/template-placeholder.svg'
       },
       {
         title: 'Laptop Stand',
@@ -203,7 +205,7 @@ export function AbandonedCartPreview() {
         quantity: 2,
         price: '34.99',
         linePrice: '69.98',
-        image: 'https://via.placeholder.com/150'
+        image: '/images/template-placeholder.svg'
       }
     ]
   };

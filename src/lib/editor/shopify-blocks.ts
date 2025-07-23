@@ -77,7 +77,7 @@ export function registerShopifyBlocks(unlayer: any) {
               <td style="padding: 20px;">
                 <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px;">
                   ${imagePosition === 'top' ? `
-                    <img src="https://via.placeholder.com/600x400/f0f0f0/666?text=Product+Image" 
+                    <img src="/images/template-placeholder.svg" 
                          alt="Product" 
                          style="width: 100%; max-width: 600px; height: auto; margin-bottom: 20px; border-radius: 4px;">
                   ` : ''}
@@ -86,7 +86,7 @@ export function registerShopifyBlocks(unlayer: any) {
                     <tr>
                       ${imagePosition === 'left' ? `
                         <td width="200" style="padding-right: 20px;">
-                          <img src="https://via.placeholder.com/200x200/f0f0f0/666?text=Product" 
+                          <img src="/images/template-placeholder.svg" 
                                alt="Product" 
                                style="width: 100%; max-width: 200px; height: auto; border-radius: 4px;">
                         </td>
@@ -120,7 +120,7 @@ export function registerShopifyBlocks(unlayer: any) {
                       
                       ${imagePosition === 'right' ? `
                         <td width="200" style="padding-left: 20px;">
-                          <img src="https://via.placeholder.com/200x200/f0f0f0/666?text=Product" 
+                          <img src="/images/template-placeholder.svg" 
                                alt="Product" 
                                style="width: 100%; max-width: 200px; height: auto; border-radius: 4px;">
                         </td>
@@ -228,7 +228,7 @@ export function registerShopifyBlocks(unlayer: any) {
           productsHtml += `
             <td width="${width}" style="padding: 10px; vertical-align: top;">
               <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; text-align: center;">
-                <img src="https://via.placeholder.com/200x200/f0f0f0/666?text=Product+${i + 1}" 
+                <img src="/images/template-placeholder.svg+${i + 1}" 
                      alt="Product ${i + 1}" 
                      style="width: 100%; max-width: 200px; height: auto; margin-bottom: 10px; border-radius: 4px;">
                 <h4 style="margin: 0 0 5px 0; color: #333;">Product ${i + 1}</h4>

@@ -1,4 +1,6 @@
 // Template designs for Unlayer editor
+import { getBase64Placeholder } from '@/lib/utils/image-fallback';
+
 export const templateDesigns = {
   'abandoned-cart': {
     body: {
@@ -51,7 +53,7 @@ export const templateDesigns = {
                     containerPadding: '10px',
                     anchor: '',
                     src: {
-                      url: 'https://via.placeholder.com/600x400?text=Product+Image',
+                      url: getBase64Placeholder(600, 400, 'Product Image'),
                       width: 600,
                       height: 400
                     },
@@ -374,7 +376,7 @@ export const templateDesigns = {
                   values: {
                     containerPadding: '10px',
                     src: {
-                      url: 'https://via.placeholder.com/600x400?text=New+Product',
+                      url: getBase64Placeholder(600, 400, 'New Product'),
                       width: 600,
                       height: 400
                     },
@@ -493,7 +495,7 @@ export const templateDesigns = {
                   values: {
                     containerPadding: '10px',
                     src: {
-                      url: 'https://via.placeholder.com/250x250?text=Product+1',
+                      url: getBase64Placeholder(250, 250, 'Product 1'),
                       width: 250,
                       height: 250
                     },
@@ -519,7 +521,7 @@ export const templateDesigns = {
                   values: {
                     containerPadding: '10px',
                     src: {
-                      url: 'https://via.placeholder.com/250x250?text=Product+2',
+                      url: getBase64Placeholder(250, 250, 'Product 2'),
                       width: 250,
                       height: 250
                     },

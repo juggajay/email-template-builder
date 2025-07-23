@@ -1,0 +1,12 @@
+<svg width="600" height="400" viewBox="0 0 600 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="400" fill="#F5F5F5"/>
+  <rect x="0.5" y="0.5" width="599" height="399" stroke="#E0E0E0" stroke-dasharray="8 4"/>
+  <g opacity="0.5">
+    <path d="M300 140C283.431 140 270 153.431 270 170V230C270 246.569 283.431 260 300 260C316.569 260 330 246.569 330 230V170C330 153.431 316.569 140 300 140Z" fill="#BDBDBD"/>
+    <path d="M240 180C223.431 180 210 193.431 210 210V230C210 246.569 223.431 260 240 260H270V210C270 193.431 256.569 180 240 180Z" fill="#BDBDBD"/>
+    <path d="M360 180C343.431 180 330 193.431 330 210V260H360C376.569 260 390 246.569 390 230V210C390 193.431 376.569 180 360 180Z" fill="#BDBDBD"/>
+  </g>
+  <text x="300" y="320" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#757575" text-anchor="middle">
+    Email Template
+  </text>
+</svg>

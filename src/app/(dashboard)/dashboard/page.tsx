@@ -25,7 +25,7 @@ import {
   DollarSignIcon,
   TrendingUpIcon as GeometricTrendingUpIcon,
   ChartIcon
-} from '@/components/brand/GeometricIcons';
+} from '@/components/brand/GeometricIcons';\nimport { retryWithBackoff } from '@/lib/utils/retry';\nimport { CacheManager } from '@/lib/api/cache';
 
 // Dashboard skeleton component
 function DashboardSkeleton() {
@@ -96,6 +96,12 @@ function DashboardSkeleton() {
 export default function DashboardPage() {
   const { user, isPro, isAgency, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [cachedData, setCachedData] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Cache manager instance
+  const cacheManager = new CacheManager({ maxSize: 100 });
+  const CACHE_KEY = 'dashboard-data';
   const [dashboardData, setDashboardData] = useState<{
     stats: {
       totalTemplates: number;
