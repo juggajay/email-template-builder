@@ -214,9 +214,9 @@ test('Unlayer initialization check', async ({ page }) => {
   });
   
   expect(unlayerInfo).toBeTruthy();
-  expect(unlayerInfo.hasInit).toBe(true);
-  expect(unlayerInfo.hasLoadDesign).toBe(true);
-  expect(unlayerInfo.hasSaveDesign).toBe(true);
-  expect(unlayerInfo.hasExportHtml).toBe(true);
-  expect(unlayerInfo.hasAddEventListener).toBe(true);
+  expect(unlayerInfo!.hasInit).toBe(true);
+  expect(unlayerInfo!.hasLoadDesign).toBe(true);
+  expect(unlayerInfo!.hasSaveDesign).toBe(true);
+  expect(unlayerInfo!.hasExportHtml).toBe(true);
+  expect(unlayerInfo!.hasAddEventListener).toBe(true);
 });

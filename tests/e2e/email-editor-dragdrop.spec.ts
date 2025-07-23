@@ -148,7 +148,7 @@ test.describe('Email Editor Drag and Drop', () => {
       if (window.unlayer) {
         // Try to get the current design
         return new Promise((resolve) => {
-          window.unlayer.saveDesign((design) => {
+          window.unlayer.saveDesign((design: any) => {
             resolve({
               hasUnlayer: true,
               hasDesign: !!design,
@@ -161,7 +161,7 @@ test.describe('Email Editor Drag and Drop', () => {
     });
     
     console.log('Editor state:', result);
-    expect(result.hasUnlayer).toBe(true);
+    expect((result as any).hasUnlayer).toBe(true);
   });
 
   test('debug: log Unlayer configuration', async ({ page }) => {
@@ -171,7 +171,7 @@ test.describe('Email Editor Drag and Drop', () => {
         // Get iframe src to check configuration
         const iframe = document.querySelector('#unlayer-editor iframe');
         return {
-          iframeSrc: iframe?.src,
+          iframeSrc: (iframe as HTMLIFrameElement)?.src,
           unlayerMethods: Object.keys(window.unlayer).filter(key => typeof window.unlayer[key] === 'function')
         };
       }

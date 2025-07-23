@@ -4,20 +4,14 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import dynamicImport from 'next/dynamic';
+import { EditorSkeleton, PanelSkeleton } from '@/components/editor/editor-skeleton';
 
 // Dynamically import heavy editor components
 const UnlayerWrapperFixed = dynamicImport(
   () => import('@/components/editor/unlayer-wrapper-fixed').then(mod => mod.UnlayerWrapperFixed),
   {
     ssr: false,
-    loading: () => (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading email editor...</p>
-        </div>
-      </div>
-    ),
+    loading: () => <EditorSkeleton />
   }
 );
 
@@ -35,7 +29,15 @@ const MobileEditorWrapper = dynamicImport(
     ),
   }
 );
-import { EnhancedMergeTagsPanel } from '@/components/editor/merge-tags-enhanced/panel';
+// Dynamically import enhanced merge tags components
+const EnhancedMergeTagsPanel = dynamicImport(
+  () => import('@/components/editor/merge-tags-enhanced/panel').then(mod => mod.EnhancedMergeTagsPanel),
+  {
+    ssr: false,
+    loading: () => <PanelSkeleton />
+  }
+);
+
 import { PreviewDataEditor } from '@/components/editor/merge-tags-enhanced/preview-data';
 import { ConditionalEditor } from '@/components/editor/merge-tags-enhanced/conditional-editor';
 import { MergeTagAutocomplete } from '@/components/editor/merge-tags-enhanced/autocomplete';

@@ -1,0 +1,26 @@
+{
+  "timestamp": "2025-07-23T00:15:45.702Z",
+  "chunks": {
+    "3079.fc63eb2e6b7621d8.js": 7842,
+    "8819.53766dbaf4ba7298.js": 6862,
+    "common-9b1c0df93590fd28.js": 65792,
+    "main-648699fe49f75387.js": 155,
+    "main-app-a67d72cc1249a3f2.js": 466,
+    "polyfills-42372ed130431b0a.js": 112594,
+    "vendor-18e9b383e0f42f4d.js": 1534899,
+    "webpack-121c5ccab6636fa2.js": 5056
+  },
+  "css": {
+    "2a6397d882dd2cd1.css": 2356,
+    "4f0b3f67165fbcfe.css": 67601,
+    "656b8ea9931688f7.css": 3167
+  },
+  "total": {
+    "js": 1733666,
+    "css": 73124
+  },
+  "recommendations": [
+    "Reduce JavaScript bundle size",
+    "Split 1 large chunks"
+  ]
+}

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, memo, useMemo } from 'react';
+import { useDebounce } from '@/lib/utils/performance';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -47,6 +48,7 @@ import { ZebCharacter, StripePattern } from '@/components/brand';
 import { TargetIcon } from '@/components/brand/GeometricIcons';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { OptimizedTemplateGrid } from './virtual-template-grid';
 
 // Template performance data interface
 interface TemplatePerformanceData {
@@ -70,6 +72,185 @@ interface TemplateGridProps {
   showUserTemplates?: boolean;
   onViewModeChange?: (mode: 'public' | 'my-templates') => void;
 }
+
+// Props for TemplateCard
+interface TemplateCardProps {
+  template: EnhancedTemplate;
+  onSelect: (template: EmailTemplate) => void;
+  onPreview: (template: any) => void;
+  onDelete?: (templateId: string) => void;
+  showUserTemplates: boolean;
+  getCategoryColor: (categoryId: string) => 'default' | 'secondary' | 'outline';
+}
+
+// Memoized TemplateCard component
+export const TemplateCard = memo(({ 
+  template, 
+  onSelect, 
+  onPreview, 
+  onDelete, 
+  showUserTemplates,
+  getCategoryColor 
+}: TemplateCardProps) => {
+  const handleClick = useCallback(() => {
+    onSelect(template);
+  }, [template, onSelect]);
+  
+  const handlePreviewClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onPreview(template);
+  }, [template, onPreview]);
+  
+  const handleDeleteClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDelete) {
+      onDelete(template.id);
+    }
+  }, [template.id, onDelete]);
+  
+  const performanceData = useMemo(() => {
+    const performanceBadge = template.performanceBadge || 
+      (template.usage_count > 1000 ? 'top-performer' : 
+       template.usage_count > 500 ? 'rising' : 'new');
+    const revenue = template.performance?.monthlyRevenue || 
+      Math.floor(Math.random() * 50000) + 5000;
+    const conversionRate = template.performance?.conversionRate || 
+      (Math.random() * 4 + 1).toFixed(1);
+    
+    return {
+      performanceBadge,
+      revenue: `$${(revenue/1000).toFixed(0)}k/mo`,
+      conversionRate: `${conversionRate}%`,
+      metrics: `$${(revenue/1000).toFixed(0)}k/mo • ${conversionRate}%`
+    };
+  }, [template.performance, template.usage_count]);
+  
+  const createdDate = useMemo(() => {
+    return showUserTemplates ? new Date(template.created_at).toLocaleDateString() : null;
+  }, [showUserTemplates, template.created_at]);
+  
+  return (
+    <Card 
+      className="group relative hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-growth-green/30 hover:-translate-y-1 overflow-hidden"
+      onClick={handleClick}
+    >
+      {/* Stripe pattern on hover */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+        <StripePattern animation="static" opacity={0.03} color="#00d4aa" />
+      </div>
+    
+      <CardContent className="p-3 space-y-3">
+        {/* Template preview with category badge overlay */}
+        <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden relative">
+          {/* Category badge overlay */}
+          {!showUserTemplates && template.category && (
+            <div className="absolute top-2 left-2 z-10">
+              <Badge variant={getCategoryColor(template.category)} className="shadow-sm">
+                {template.category.replace('-', ' ')}
+              </Badge>
+            </div>
+          )}
+          {template.thumbnail_url ? (
+            <img 
+              src={template.thumbnail_url} 
+              alt={template.name}
+              className="w-full h-full object-cover"
+            />
+          ) : showUserTemplates && template.html_content ? (
+            <div 
+              className="w-full h-full"
+              dangerouslySetInnerHTML={{ 
+                __html: `
+                  <div style="transform: scale(0.3); transform-origin: top left; width: 333.33%; height: 333.33%; position: absolute; top: 0; left: 0;">
+                    ${template.html_content}
+                  </div>
+                ` 
+              }}
+            />
+          ) : (
+            <div 
+              className="w-full h-full"
+              dangerouslySetInnerHTML={{ 
+                __html: `
+                  <div style="transform: scale(0.3); transform-origin: top left; width: 333.33%; height: 333.33%; position: absolute; top: 0; left: 0;">
+                    ${getTemplatePreview(template.name, template.category)}
+                  </div>
+                ` 
+              }}
+            />
+          )}
+          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200" />
+        </div>
+
+        {/* Template info */}
+        <div className="space-y-1">
+          <h3 className="font-bold text-zebra-black group-hover:text-growth-green transition-colors line-clamp-1">
+            {template.name}
+          </h3>
+          {template.description && (
+            <p className="text-sm text-gray-600 line-clamp-1">
+              {template.description}
+            </p>
+          )}
+          
+          {/* Compact metrics */}
+          {!showUserTemplates && (
+            <div className="flex items-center justify-between text-xs pt-1">
+              <span className="text-gray-600">
+                {performanceData.metrics}
+              </span>
+            </div>
+          )}
+          
+          {/* Date info for user templates only */}
+          {showUserTemplates && createdDate && (
+            <div className="text-xs text-gray-500 pt-1">
+              Created {createdDate}
+            </div>
+          )}
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex space-x-2 relative z-10">
+          <Button 
+            size="sm" 
+            className="flex-1 bg-growth-green hover:bg-growth-green-600 text-white group/btn"
+            onClick={handleClick}
+          >
+            <TargetIcon className="w-4 h-4 mr-2 transition-transform group-hover/btn:rotate-12" />
+            {showUserTemplates ? 'Edit Template' : 'Start Building'}
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={handlePreviewClick}
+            className="hover:border-growth-green hover:text-growth-green"
+          >
+            <Eye className="w-4 h-4" />
+          </Button>
+          
+          {showUserTemplates && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleDeleteClick}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}, (prevProps, nextProps) => {
+  return prevProps.template.id === nextProps.template.id &&
+         prevProps.template.updated_at === nextProps.template.updated_at &&
+         prevProps.showUserTemplates === nextProps.showUserTemplates;
+});
+
+TemplateCard.displayName = 'TemplateCard';
 
 // Template skeleton component
 function TemplateSkeleton() {
@@ -107,6 +288,7 @@ function TemplateSkeleton() {
 export function TemplateGrid({ category, showUserTemplates = false, onViewModeChange }: TemplateGridProps) {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategory | 'all'>('all');
   const [selectedPerformance, setSelectedPerformance] = useState<'all' | 'top-performer' | 'rising' | 'new'>('all');
@@ -114,6 +296,18 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
   const [error, setError] = useState<string | null>(null);
   const [previewTemplate, setPreviewTemplate] = useState<any>(null);
   const { user, isPro, isAgency } = useAuth();
+
+  // Debounced search handler
+  const debouncedSearch = useDebounce((query: string) => {
+    setSearchQuery(query);
+  }, 300);
+
+  // Handle search input change
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchInput(value);
+    debouncedSearch(value);
+  }, [debouncedSearch]);
 
   // Sort options for dropdown
   const sortOptions = [
@@ -284,15 +478,15 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
     fetchTemplates();
   }, [selectedCategory, searchQuery, showUserTemplates]);
 
-  const handleTemplateSelect = (template: EmailTemplate) => {
+  const handleTemplateSelect = useCallback((template: EmailTemplate) => {
     window.location.href = `/editor?template=${template.id}`;
-  };
+  }, []);
 
-  const handlePreview = (template: any) => {
+  const handlePreview = useCallback((template: any) => {
     setPreviewTemplate(template);
-  };
+  }, []);
 
-  const handleDelete = async (templateId: string) => {
+  const handleDelete = useCallback(async (templateId: string) => {
     if (!window.confirm('Are you sure you want to delete this template?')) {
       return;
     }
@@ -308,19 +502,19 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
       if (error) throw error;
 
       // Remove from local state
-      setTemplates(templates.filter(t => t.id !== templateId));
+      setTemplates(prevTemplates => prevTemplates.filter(t => t.id !== templateId));
     } catch (error) {
       console.error('Error deleting template:', error);
       alert('Failed to delete template. Please try again.');
     }
-  };
+  }, [user?.id]);
 
-  const getCategoryIcon = (categoryId: string) => {
+  const getCategoryIcon = useCallback((categoryId: string) => {
     const category = categories.find(cat => cat.id === categoryId);
     return category?.icon;
-  };
+  }, []);
 
-  const getCategoryColor = (categoryId: string): 'default' | 'secondary' | 'outline' => {
+  const getCategoryColor = useCallback((categoryId: string): 'default' | 'secondary' | 'outline' => {
     switch (categoryId) {
       case 'abandoned-cart':
         return 'default';
@@ -331,7 +525,7 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
       default:
         return 'outline';
     }
-  };
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -405,8 +599,8 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             placeholder="Search templates..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={searchInput}
+            onChange={handleSearchChange}
             className="pl-10 pr-4"
           />
         </div>
@@ -448,140 +642,15 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {templates.map((template) => {
-            const enhancedTemplate = template as EnhancedTemplate;
-            const performanceBadge = enhancedTemplate.performanceBadge || (enhancedTemplate.usage_count > 1000 ? 'top-performer' : enhancedTemplate.usage_count > 500 ? 'rising' : 'new');
-            const revenue = enhancedTemplate.performance?.monthlyRevenue || Math.floor(Math.random() * 50000) + 5000;
-            const conversionRate = enhancedTemplate.performance?.conversionRate || (Math.random() * 4 + 1).toFixed(1);
-            
-            return (
-              <Card 
-                key={template.id} 
-                className="group relative hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-growth-green/30 hover:-translate-y-1 overflow-hidden"
-                onClick={() => handleTemplateSelect(template)}
-              >
-                {/* Stripe pattern on hover */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                  <StripePattern animation="static" opacity={0.03} color="#00d4aa" />
-                </div>
-              
-              <CardContent className="p-3 space-y-3">
-                {/* Template preview with category badge overlay */}
-                <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden relative">
-                  {/* Category badge overlay */}
-                  {!showUserTemplates && template.category && (
-                    <div className="absolute top-2 left-2 z-10">
-                      <Badge variant={getCategoryColor(template.category)} className="shadow-sm">
-                        {template.category.replace('-', ' ')}
-                      </Badge>
-                    </div>
-                  )}
-                  {template.thumbnail_url ? (
-                    <img 
-                      src={template.thumbnail_url} 
-                      alt={template.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : showUserTemplates && template.html_content ? (
-                    <div 
-                      className="w-full h-full"
-                      dangerouslySetInnerHTML={{ 
-                        __html: `
-                          <div style="transform: scale(0.3); transform-origin: top left; width: 333.33%; height: 333.33%; position: absolute; top: 0; left: 0;">
-                            ${template.html_content}
-                          </div>
-                        ` 
-                      }}
-                    />
-                  ) : (
-                    <div 
-                      className="w-full h-full"
-                      dangerouslySetInnerHTML={{ 
-                        __html: `
-                          <div style="transform: scale(0.3); transform-origin: top left; width: 333.33%; height: 333.33%; position: absolute; top: 0; left: 0;">
-                            ${getTemplatePreview(template.name, template.category)}
-                          </div>
-                        ` 
-                      }}
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200" />
-                </div>
-
-                {/* Template info */}
-                <div className="space-y-1">
-                  <h3 className="font-bold text-zebra-black group-hover:text-growth-green transition-colors line-clamp-1">
-                    {template.name}
-                  </h3>
-                  {template.description && (
-                    <p className="text-sm text-gray-600 line-clamp-1">
-                      {template.description}
-                    </p>
-                  )}
-                  
-                  {/* Compact metrics */}
-                  {!showUserTemplates && (
-                    <div className="flex items-center justify-between text-xs pt-1">
-                      <span className="text-gray-600">
-                        ${(revenue/1000).toFixed(0)}k/mo • {conversionRate}%
-                      </span>
-                    </div>
-                  )}
-                  
-                  {/* Date info for user templates only */}
-                  {showUserTemplates && (
-                    <div className="text-xs text-gray-500 pt-1">
-                      Created {new Date(template.created_at).toLocaleDateString()}
-                    </div>
-                  )}
-                </div>
-
-                {/* Action buttons */}
-                <div className="flex space-x-2 relative z-10">
-                  <Button 
-                    size="sm" 
-                    className="flex-1 bg-growth-green hover:bg-growth-green-600 text-white group/btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleTemplateSelect(template);
-                    }}
-                  >
-                    <TargetIcon className="w-4 h-4 mr-2 transition-transform group-hover/btn:rotate-12" />
-                    {showUserTemplates ? 'Edit Template' : 'Start Building'}
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePreview(template);
-                    }}
-                    className="hover:border-growth-green hover:text-growth-green"
-                  >
-                    <Eye className="w-4 h-4" />
-                  </Button>
-                  
-                  {showUserTemplates && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(template.id);
-                      }}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-            );
-          })}
-        </div>
+        <OptimizedTemplateGrid
+          templates={templates}
+          onSelect={handleTemplateSelect}
+          onPreview={handlePreview}
+          onDelete={handleDelete}
+          showUserTemplates={showUserTemplates}
+          getCategoryColor={getCategoryColor}
+          enableVirtualization={templates.length > 20}
+        />
       )}
 
       {/* Preview Modal */}

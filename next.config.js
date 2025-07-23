@@ -1,3 +1,8 @@
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+  openAnalyzer: true,
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
@@ -17,6 +22,8 @@ const nextConfig = {
       },
     ],
     formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 750, 828, 1080, 1200],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
   },
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
@@ -44,7 +51,18 @@ const nextConfig = {
   compress: true,
   productionBrowserSourceMaps: false,
   
+  // Enable SWC minification
+  swcMinify: true,
+  
   webpack: (config, { isServer }) => {
+    // Tree shaking optimization
+    config.optimization = {
+      ...config.optimization,
+      usedExports: true,
+      sideEffects: false,
+    };
+    
+    // Split chunks more aggressively
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -52,9 +70,32 @@ const nextConfig = {
         net: false,
         tls: false,
       };
+      
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          default: false,
+          vendors: false,
+          vendor: {
+            name: 'vendor',
+            chunks: 'all',
+            test: /node_modules/,
+            priority: 20
+          },
+          common: {
+            name: 'common',
+            minChunks: 2,
+            chunks: 'all',
+            priority: 10,
+            reuseExistingChunk: true,
+            enforce: true
+          }
+        }
+      };
     }
+    
     return config;
   },
 };
 
-module.exports = nextConfig;
+module.exports = withBundleAnalyzer(nextConfig);

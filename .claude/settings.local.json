@@ -51,7 +51,10 @@
       "Bash(./test-oauth-redirect.sh:*)",
       "Bash(npx playwright test:*)",
       "Bash(git rebase:*)",
-      "Bash(NODE_ENV=development npm run build)"
+      "Bash(NODE_ENV=development npm run build)",
+      "Bash(cross-env ANALYZE=true npm run build:next)",
+      "Bash(npx cross-env:*)",
+      "Bash(npm run export:*)"
     ],
     "deny": []
   }

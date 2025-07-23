@@ -24,7 +24,7 @@ test.describe('Shopify OAuth API Tests', () => {
       });
       
       const status = response.status();
-      const headers = await response.allHeaders();
+      const headers = await response.headers();
       
       console.log('\nResponse details:');
       console.log('Status:', status);
@@ -65,7 +65,7 @@ test.describe('Shopify OAuth API Tests', () => {
       }
       
     } catch (error) {
-      console.log('❌ Error testing callback:', error.message);
+      console.log('❌ Error testing callback:', (error as Error).message);
     }
   });
 

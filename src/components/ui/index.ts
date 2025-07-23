@@ -5,3 +5,4 @@ export { Badge, badgeVariants } from './badge';
 export { Loading } from './loading';
 export { Avatar } from './avatar';
 export { Tooltip } from './tooltip';
+export { Progress } from './progress';

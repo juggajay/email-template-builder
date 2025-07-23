@@ -43,7 +43,7 @@ test.describe('Shopify OAuth Flow', () => {
       }
       
     } catch (error) {
-      console.log('Error during redirect test:', error.message);
+      console.log('Error during redirect test:', (error as Error).message);
       
       // If we can't follow the redirect due to CORS or domain restrictions,
       // let's at least test the API response
@@ -61,7 +61,7 @@ test.describe('Shopify OAuth Flow', () => {
       });
       
       console.log('Response status:', apiResponse.status());
-      console.log('Response headers:', await apiResponse.allHeaders());
+      console.log('Response headers:', await apiResponse.headers());
       
       // Check for redirect status
       if (apiResponse.status() === 302 || apiResponse.status() === 307) {
