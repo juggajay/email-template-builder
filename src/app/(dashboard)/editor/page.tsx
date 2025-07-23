@@ -58,6 +58,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import '@/styles/unlayer-mobile.css';
 
 export const dynamic = 'force-dynamic';
 

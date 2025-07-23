@@ -17,6 +17,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import EmailEditor from 'react-email-editor';
+import '@/styles/unlayer-mobile.css';
 
 interface MobileEditorWrapperProps {
   templateId?: string;
@@ -172,7 +173,7 @@ export function MobileEditorWrapper({ templateId, initialDesign, onSave, templat
         {/* Mobile Content */}
         <div className="flex-1 overflow-hidden">
           {activeTab === 'edit' ? (
-            <div className="h-full">
+            <div id="editor-container" className="h-full">
               <EmailEditor
                 ref={emailEditorRef}
                 onReady={() => setEditorLoaded(true)}
@@ -293,7 +294,7 @@ export function MobileEditorWrapper({ templateId, initialDesign, onSave, templat
       </div>
       
       {/* Desktop editor */}
-      <div className="flex-1">
+      <div id="editor-container" className="flex-1">
         <EmailEditor
           ref={emailEditorRef}
           onReady={() => setEditorLoaded(true)}
