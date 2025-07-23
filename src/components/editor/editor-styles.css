@@ -184,3 +184,187 @@
 .unlayer-editor-wrapper button {
   z-index: 50 !important;
 }
+
+/* ===== ZebaMail Branded Editor Styles ===== */
+
+/* Remove blue background from content area */
+.blockbuilder-content-wrapper,
+.blockbuilder-content,
+.blockbuilder-layer,
+.blockbuilder-layer-selector,
+.u-row,
+.u-col {
+  background-color: transparent !important;
+}
+
+/* Clean outline for the main content area */
+.blockbuilder-content {
+  border: 2px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Style the empty state message */
+.blockbuilder-placeholder,
+.blockbuilder-empty-state {
+  background-color: #f9fafb !important;
+  border: 2px dashed #d1d5db !important;
+  border-radius: 8px !important;
+  color: #6b7280 !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Remove blue selection highlights - use green theme */
+.u-row.ui-droppable-hover,
+.u-col.ui-droppable-hover,
+.blockbuilder-content .ui-sortable-helper {
+  background-color: rgba(16, 185, 129, 0.05) !important;
+  outline: 2px solid #10b981 !important;
+  outline-offset: -2px;
+  transition: all 0.2s ease !important;
+}
+
+/* Clean hover states with green accent */
+.u-row:hover,
+.u-col:hover {
+  outline: 1px solid #10b981 !important;
+  background-color: rgba(16, 185, 129, 0.02) !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Remove all blue backgrounds from rows */
+.u-row-container,
+.u-row-wrapper {
+  background-color: transparent !important;
+}
+
+/* Style the add row button with green theme */
+.blockbuilder-row-add-button,
+.blockbuilder-add-button {
+  background-color: #ffffff !important;
+  border: 2px solid #e5e7eb !important;
+  color: #10b981 !important;
+  transition: all 0.2s ease !important;
+}
+
+.blockbuilder-row-add-button:hover,
+.blockbuilder-add-button:hover {
+  background-color: #10b981 !important;
+  border-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+/* Remove blue from selected elements - use green */
+.blockbuilder-layer-selected,
+.u-row.selected,
+.u-col.selected {
+  background-color: rgba(16, 185, 129, 0.05) !important;
+  outline: 2px solid #10b981 !important;
+  outline-offset: -2px;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1) !important;
+}
+
+/* Style tool panels with clean design */
+.blockbuilder-tools,
+.blockbuilder-sidebar {
+  background-color: #ffffff !important;
+  border-right: 1px solid #e5e7eb !important;
+}
+
+/* Style tool buttons with green accent */
+.blockbuilder-tool-button:hover,
+.tool-button:hover {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+  color: #10b981 !important;
+}
+
+/* Active tool state */
+.blockbuilder-tool-button.active,
+.tool-button.active {
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+/* Style dropzone indicators */
+.u-row-dropzone,
+.u-col-dropzone {
+  border: 2px dashed #10b981 !important;
+  background-color: rgba(16, 185, 129, 0.05) !important;
+}
+
+/* Style resize handles */
+.ui-resizable-handle {
+  background-color: #10b981 !important;
+  opacity: 0.6 !important;
+}
+
+.ui-resizable-handle:hover {
+  opacity: 1 !important;
+}
+
+/* Style context menus and tooltips */
+.blockbuilder-context-menu,
+.blockbuilder-tooltip {
+  background-color: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Style form inputs in editor */
+.blockbuilder-input,
+.blockbuilder-select {
+  border: 1px solid #e5e7eb !important;
+  transition: all 0.2s ease !important;
+}
+
+.blockbuilder-input:focus,
+.blockbuilder-select:focus {
+  border-color: #10b981 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+}
+
+/* Style save/action buttons */
+.blockbuilder-save-button,
+.blockbuilder-action-button {
+  background-color: #10b981 !important;
+  color: #ffffff !important;
+  border: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.blockbuilder-save-button:hover,
+.blockbuilder-action-button:hover {
+  background-color: #059669 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Remove any remaining blue accents */
+[style*="background-color: rgb(51, 130, 206)"],
+[style*="background-color: #3382ce"],
+[style*="background: rgb(51, 130, 206)"],
+[style*="background: #3382ce"] {
+  background-color: #10b981 !important;
+}
+
+/* Override any blue borders */
+[style*="border-color: rgb(51, 130, 206)"],
+[style*="border-color: #3382ce"] {
+  border-color: #10b981 !important;
+}
+
+/* Clean loading states */
+.blockbuilder-loading {
+  background-color: rgba(16, 185, 129, 0.05) !important;
+  border: 2px solid #10b981 !important;
+}
+
+/* Smooth transitions for all interactive elements */
+.u-row,
+.u-col,
+.blockbuilder-tool,
+.blockbuilder-layer {
+  transition: all 0.2s ease !important;
+}
