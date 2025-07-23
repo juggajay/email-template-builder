@@ -1,240 +1,319 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { 
+  Smartphone, 
+  Monitor, 
+  Tablet,
+  Save,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Copy,
+  Download,
+  X
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
-import Script from 'next/script';
-import { UnlayerWrapperFixed } from './unlayer-wrapper-fixed';
-import './mobile-styles.css';
+import EmailEditor from 'react-email-editor';
 
 interface MobileEditorWrapperProps {
+  templateId?: string;
   initialDesign?: any;
   onSave?: (design: any, html: string) => void;
-  templateName: string;
-  onTemplateNameChange: (name: string) => void;
+  templateName?: string;
+  onTemplateNameChange?: (name: string) => void;
 }
 
-export function MobileEditorWrapper({
-  initialDesign,
-  onSave,
-  templateName,
-  onTemplateNameChange
-}: MobileEditorWrapperProps) {
-  const router = useRouter();
-  const [showMenu, setShowMenu] = useState(false);
+export function MobileEditorWrapper({ templateId, initialDesign, onSave, templateName, onTemplateNameChange }: MobileEditorWrapperProps) {
   const [isMobile, setIsMobile] = useState(false);
-  const [showSaveSuccess, setShowSaveSuccess] = useState(false);
+  const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [editorLoaded, setEditorLoaded] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState('');
+  const emailEditorRef = useRef<any>(null);
+  const router = useRouter();
 
+  // Detect mobile device
   useEffect(() => {
-    // Check if mobile
     const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
+      setIsMobile(window.innerWidth < 768);
     };
-
+    
     checkMobile();
     window.addEventListener('resize', checkMobile);
-
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handleSave = async (design: any, html: string) => {
-    if (onSave) {
-      await onSave(design, html);
-      setShowSaveSuccess(true);
-      setTimeout(() => setShowSaveSuccess(false), 3000);
+  // Load initial design when editor is ready
+  useEffect(() => {
+    if (editorLoaded && initialDesign && emailEditorRef.current?.editor) {
+      emailEditorRef.current.editor.loadDesign(initialDesign);
     }
-  };
+  }, [editorLoaded, initialDesign]);
 
-  const handleExport = () => {
-    // Trigger export from the editor
-    const unlayer = (window as any).unlayer;
-    if (unlayer) {
+  const handleSave = async () => {
+    const unlayer = emailEditorRef.current?.editor;
+    if (!unlayer) return;
+
+    unlayer.saveDesign((design: any) => {
       unlayer.exportHtml((data: any) => {
         const { html } = data;
-        const blob = new Blob([html], { type: 'text/html' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${templateName.toLowerCase().replace(/\s+/g, '-')}.html`;
-        a.click();
-        URL.revokeObjectURL(url);
+        if (onSave) {
+          onSave(design, html);
+        }
       });
-    }
+    });
+  };
+
+  const handleExportHtml = async () => {
+    const unlayer = emailEditorRef.current?.editor;
+    if (!unlayer) return;
+
+    unlayer.exportHtml((data: any) => {
+      const { html } = data;
+      navigator.clipboard.writeText(html);
+      // Show toast notification
+      alert('HTML copied to clipboard!');
+    });
   };
 
   const handlePreview = () => {
-    const unlayer = (window as any).unlayer;
-    if (unlayer) {
-      unlayer.exportHtml((data: any) => {
-        const { html } = data;
-        const previewWindow = window.open('', '_blank');
-        if (previewWindow) {
-          previewWindow.document.write(html);
-          previewWindow.document.close();
-        }
-      });
-    }
+    const unlayer = emailEditorRef.current?.editor;
+    if (!unlayer) return;
+
+    unlayer.exportHtml((data: any) => {
+      const { html } = data;
+      setPreviewHtml(html);
+      setActiveTab('preview');
+    });
   };
 
+  const handleDownload = () => {
+    const unlayer = emailEditorRef.current?.editor;
+    if (!unlayer) return;
+
+    unlayer.exportHtml((data: any) => {
+      const { html } = data;
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${templateName || 'email-template'}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  };
+
+  // Mobile View
+  if (isMobile) {
+    return (
+      <div className="h-screen flex flex-col bg-gray-50">
+        {/* Mobile Header */}
+        <header className="bg-white border-b px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.back()}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-lg font-semibold">Email Editor</h1>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleSave}
+            >
+              <Save className="h-4 w-4" />
+            </Button>
+          </div>
+        </header>
+
+        {/* Mobile Tab Bar */}
+        <div className="bg-white border-b">
+          <div className="flex">
+            <button
+              className={cn(
+                "flex-1 py-3 text-sm font-medium transition-colors",
+                activeTab === 'edit' 
+                  ? "text-green-600 border-b-2 border-green-600" 
+                  : "text-gray-500"
+              )}
+              onClick={() => setActiveTab('edit')}
+            >
+              Edit
+            </button>
+            <button
+              className={cn(
+                "flex-1 py-3 text-sm font-medium transition-colors",
+                activeTab === 'preview' 
+                  ? "text-green-600 border-b-2 border-green-600" 
+                  : "text-gray-500"
+              )}
+              onClick={handlePreview}
+            >
+              Preview
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Content */}
+        <div className="flex-1 overflow-hidden">
+          {activeTab === 'edit' ? (
+            <div className="h-full">
+              <EmailEditor
+                ref={emailEditorRef}
+                onReady={() => setEditorLoaded(true)}
+                minHeight="100%"
+                options={{
+                  displayMode: 'email',
+                  features: {
+                    stockImages: false, // Disable for mobile performance
+                  },
+                  tools: {
+                    // Simplified tools for mobile
+                    heading: { enabled: true },
+                    text: { enabled: true },
+                    image: { enabled: true },
+                    button: { enabled: true },
+                    divider: { enabled: true },
+                    spacer: { enabled: true },
+                    social: { enabled: true },
+                    html: { enabled: false },
+                  },
+                  appearance: {
+                    theme: 'light',
+                    panels: {
+                      tools: {
+                        dock: 'left', // Keep default dock position
+                        collapsible: true,
+                      }
+                    }
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            <div className="h-full p-4 overflow-auto">
+              <div className="bg-white rounded-lg shadow-sm p-4">
+                <h3 className="font-medium mb-2">Mobile Preview</h3>
+                <div className="border rounded-lg overflow-hidden">
+                  <iframe 
+                    srcDoc={previewHtml}
+                    className="w-full h-96"
+                    title="Email Preview"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Actions Sidebar */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 z-50 bg-black/50" onClick={() => setSidebarOpen(false)}>
+            <div className="absolute right-0 top-0 h-full w-72 bg-white shadow-lg" onClick={e => e.stopPropagation()}>
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold">Actions</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={handleExportHtml}
+                  >
+                    <Copy className="h-4 w-4 mr-2" />
+                    Copy HTML
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={handleDownload}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                  
+                  <hr className="my-4" />
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                  >
+                    <Smartphone className="h-4 w-4 mr-2" />
+                    Test on Device
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Desktop View (unchanged)
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Mobile Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-2 flex-shrink-0 editor-header">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => router.push('/templates')}
-            className="p-2 -ml-2 text-gray-600 hover:text-gray-800 lg:hidden"
-            aria-label="Back"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          
-          <input
-            type="text"
-            value={templateName}
-            onChange={(e) => onTemplateNameChange(e.target.value)}
-            className="flex-1 text-center lg:text-left text-lg font-medium border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none px-2 template-name-input"
-            placeholder="Template name"
-          />
-          
-          <button
-            onClick={() => setShowMenu(true)}
-            className="p-2 -mr-2 text-gray-600 hover:text-gray-800 lg:hidden"
-            aria-label="Menu"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-
-          {/* Desktop navigation */}
-          <div className="hidden lg:flex items-center space-x-2">
-            <button
-              onClick={() => router.push('/templates')}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800"
-            >
-              Back to Templates
-            </button>
-          </div>
+    <div className="h-screen flex flex-col">
+      {/* Desktop toolbar */}
+      <div className="border-b p-4 flex items-center justify-between bg-white">
+        <h1 className="text-xl font-semibold">Email Template Editor</h1>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleExportHtml}>
+            <Copy className="h-4 w-4 mr-2" />
+            Copy HTML
+          </Button>
+          <Button onClick={handleSave}>
+            <Save className="h-4 w-4 mr-2" />
+            Save Template
+          </Button>
         </div>
       </div>
-
-      {/* Editor Container */}
-      <div className="flex-1 overflow-hidden editor-main-content">
-        <div className="h-full editor-container">
-          <div className="h-full bg-white rounded-lg shadow-lg overflow-hidden relative editor-wrapper">
-            <UnlayerWrapperFixed
-              initialDesign={initialDesign}
-              onReady={() => console.log('[MobileEditor] Ready')}
-              onDesignLoad={() => console.log('[MobileEditor] Design loaded')}
-              onSave={handleSave}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Bottom Navigation */}
-      {isMobile && (
-        <div className="mobile-nav">
-          <button onClick={handlePreview} className="text-gray-600 hover:text-blue-600">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-            <span>Preview</span>
-          </button>
-          
-          <button onClick={handleExport} className="text-gray-600 hover:text-blue-600">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            <span>Export</span>
-          </button>
-          
-          <button onClick={() => router.push('/templates')} className="text-gray-600 hover:text-blue-600">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-            </svg>
-            <span>Templates</span>
-          </button>
-        </div>
-      )}
-
-      {/* Mobile Menu Overlay */}
-      {showMenu && (
-        <>
-          <div 
-            className="mobile-menu-overlay"
-            onClick={() => setShowMenu(false)}
-          />
-          <div className="mobile-menu open">
-            <div className="swipe-indicator" />
-            
-            <h3 className="text-lg font-semibold mb-4">Menu</h3>
-            
-            <button
-              onClick={() => {
-                handlePreview();
-                setShowMenu(false);
-              }}
-              className="mobile-button flex items-center justify-start bg-gray-100 hover:bg-gray-200"
-            >
-              <svg className="button-icon-mobile" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              Preview Template
-            </button>
-            
-            <button
-              onClick={() => {
-                handleExport();
-                setShowMenu(false);
-              }}
-              className="mobile-button flex items-center justify-start bg-gray-100 hover:bg-gray-200"
-            >
-              <svg className="button-icon-mobile" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Export HTML
-            </button>
-            
-            <button
-              onClick={() => {
-                router.push('/templates');
-                setShowMenu(false);
-              }}
-              className="mobile-button flex items-center justify-start bg-gray-100 hover:bg-gray-200"
-            >
-              <svg className="button-icon-mobile" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
-              </svg>
-              Back to Templates
-            </button>
-            
-            <button
-              onClick={() => setShowMenu(false)}
-              className="mobile-button mt-4 bg-gray-200"
-            >
-              Cancel
-            </button>
-          </div>
-        </>
-      )}
-
-      {/* Save Success Toast */}
-      {showSaveSuccess && (
-        <div className="fixed bottom-20 left-4 right-4 lg:left-auto lg:right-4 lg:w-auto bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg flex items-center animate-fade-in">
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          Template saved successfully!
-        </div>
-      )}
       
-      {/* Load mobile enhancements */}
-      <Script src="/mobile-enhancements.js" strategy="afterInteractive" />
+      {/* Desktop editor */}
+      <div className="flex-1">
+        <EmailEditor
+          ref={emailEditorRef}
+          onReady={() => setEditorLoaded(true)}
+          minHeight="100%"
+          options={{
+            displayMode: 'email',
+            features: {
+              stockImages: true,
+            },
+            appearance: {
+              theme: 'light',
+              panels: {
+                tools: {
+                  dock: 'left',
+                }
+              }
+            }
+          }}
+        />
+      </div>
     </div>
   );
 }
