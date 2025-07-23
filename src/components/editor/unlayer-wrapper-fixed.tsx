@@ -328,6 +328,8 @@ export function UnlayerWrapperFixed({
           
           // Register Shopify blocks with proper error handling
           try {
+            let hasShopify = false;
+            
             if (window.unlayer && typeof window.unlayer.registerTool === 'function') {
               if (process.env.NODE_ENV === 'development') {
                 console.log('[UnlayerFixed] Registering Shopify blocks...');
@@ -335,7 +337,7 @@ export function UnlayerWrapperFixed({
               registerShopifyBlocks(window.unlayer);
               
               // Check if user has connection and products
-              const hasShopify = await hasShopifyConnection();
+              hasShopify = await hasShopifyConnection();
               if (process.env.NODE_ENV === 'development') {
                 console.log('[UnlayerFixed] Has Shopify connection:', hasShopify);
               }
