@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "npm run build:clean && npm run build:check && npm run build:next && npm run postbuild",
+    "build:production": "npm run build:clean && npm run type-check && npm run build:next && npm run postbuild",
     "build:clean": "rimraf .next out",
     "build:check": "npm run type-check && npm run lint",
     "build:next": "cross-env NODE_ENV=production next build",
