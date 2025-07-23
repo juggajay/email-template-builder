@@ -4,6 +4,7 @@ import { Toaster } from 'sonner';
 import './globals.css';
 import { AuthProvider } from '@/components/providers/auth-provider';
 import { WebVitalsReporter } from '@/components/monitoring/web-vitals';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -65,6 +66,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <GoogleAnalytics />
         <AuthProvider>
           <WebVitalsReporter />
           {children}
