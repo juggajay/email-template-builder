@@ -177,8 +177,8 @@ export function UnlayerWrapper({
             }
           },
           // ZebaMail Branded Styles
-          customCSS: [
-            `.blockbuilder-content-wrapper,
+          customCSS: `
+            .blockbuilder-content-wrapper,
             .blockbuilder-content,
             .u-row,
             .u-col {
@@ -240,8 +240,8 @@ export function UnlayerWrapper({
             [style*="border-color: rgb(51, 130, 206)"],
             [style*="border-color: #3382ce"] {
               border-color: #10b981 !important;
-            }`
-          ]
+            }
+          `
         });
 
         window.unlayer.addEventListener('editor:ready', () => {

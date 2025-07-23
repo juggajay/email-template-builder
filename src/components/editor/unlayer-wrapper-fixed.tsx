@@ -172,9 +172,9 @@ export function UnlayerWrapperFixed({
           // Comprehensive merge tags for e-commerce
           mergeTags: mergeTags,
           // ZebaMail Branded Styles
-          customCSS: [
+          customCSS: `
             /* Remove blue backgrounds and add green theme */
-            `.blockbuilder-content-wrapper,
+            .blockbuilder-content-wrapper,
             .blockbuilder-content,
             .u-row,
             .u-col {
@@ -273,7 +273,90 @@ export function UnlayerWrapperFixed({
             .u-col-dropzone {
               border: 2px dashed #10b981 !important;
               background-color: rgba(16, 185, 129, 0.05) !important;
-            }`
+            }
+          `,
+          customJS: [
+            // Inject styles after editor loads
+            `
+            console.log('[ZebaMail] Applying branded styles...');
+            
+            // Create and inject style element
+            var style = document.createElement('style');
+            style.innerHTML = \`
+              /* ZebaMail Branded Editor Styles */
+              .blockbuilder-content-wrapper,
+              .blockbuilder-content,
+              .u-row,
+              .u-col {
+                background-color: transparent !important;
+              }
+              
+              .blockbuilder-content {
+                border: 2px solid #e5e7eb !important;
+                border-radius: 8px !important;
+                background: #ffffff !important;
+              }
+              
+              .u-row.ui-droppable-hover,
+              .u-col.ui-droppable-hover {
+                background-color: rgba(16, 185, 129, 0.05) !important;
+                outline: 2px solid #10b981 !important;
+              }
+              
+              .u-row:hover,
+              .u-col:hover {
+                outline: 1px solid #10b981 !important;
+                background-color: rgba(16, 185, 129, 0.02) !important;
+              }
+              
+              .blockbuilder-layer-selected,
+              .u-row.selected,
+              .u-col.selected {
+                background-color: rgba(16, 185, 129, 0.05) !important;
+                outline: 2px solid #10b981 !important;
+                box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1) !important;
+              }
+              
+              .blockbuilder-row-add-button,
+              .blockbuilder-add-button,
+              button[class*="add"] {
+                background-color: #ffffff !important;
+                border: 2px solid #e5e7eb !important;
+                color: #10b981 !important;
+              }
+              
+              .blockbuilder-row-add-button:hover,
+              .blockbuilder-add-button:hover,
+              button[class*="add"]:hover {
+                background-color: #10b981 !important;
+                border-color: #10b981 !important;
+                color: #ffffff !important;
+              }
+              
+              /* Override any blue colors */
+              [style*="rgb(51, 130, 206)"],
+              [style*="#3382ce"],
+              [style*="rgb(51, 153, 255)"],
+              [style*="#3399ff"] {
+                background-color: #10b981 !important;
+                color: white !important;
+              }
+            \`;
+            document.head.appendChild(style);
+            
+            // Apply styles periodically to override any dynamic updates
+            setInterval(function() {
+              var blueElements = document.querySelectorAll('[style*="rgb(51, 130, 206)"], [style*="#3382ce"]');
+              blueElements.forEach(function(el) {
+                if (el.style.backgroundColor.includes('51, 130, 206') || el.style.backgroundColor.includes('3382ce')) {
+                  el.style.backgroundColor = '#10b981';
+                }
+                if (el.style.borderColor.includes('51, 130, 206') || el.style.borderColor.includes('3382ce')) {
+                  el.style.borderColor = '#10b981';
+                }
+              });
+            }, 1000);
+            `
           ]
         });
 
