@@ -2137,6 +2137,160 @@ export const seedTemplates: SeedTemplate[] = [
         }
       }
     }
+  },
+  {
+    name: 'Abandoned Cart Recovery - Simple',
+    description: 'Clean abandoned cart email with 15% discount. Simplified structure to avoid any undefined properties.',
+    category: 'abandoned-cart',
+    tags: ['abandoned-cart', 'discount', 'simple', 'clean'],
+    thumbnail: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=600&h=400&fit=crop',
+    is_premium: false,
+    usage_count: 0,
+    rating: 5.0,
+    design: {
+      "body": {
+        "id": "abandoned-cart-simple",
+        "rows": [
+          {
+            "id": "row-1",
+            "cells": [1],
+            "values": {
+              "backgroundColor": "#ffffff",
+              "columns": false,
+              "padding": "20px",
+              "columnsBackgroundColor": ""
+            },
+            "columns": [
+              {
+                "id": "column-1",
+                "values": {
+                  "backgroundColor": ""
+                },
+                "contents": [
+                  {
+                    "id": "logo",
+                    "type": "image",
+                    "values": {
+                      "src": {
+                        "url": "https://via.placeholder.com/180x60/000000/ffffff?text=LOGO",
+                        "width": 180,
+                        "height": 60
+                      },
+                      "textAlign": "center",
+                      "altText": "Logo"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "row-2",
+            "cells": [1],
+            "values": {
+              "backgroundColor": "#10b981",
+              "columns": false,
+              "padding": "40px 20px",
+              "columnsBackgroundColor": ""
+            },
+            "columns": [
+              {
+                "id": "column-2",
+                "values": {
+                  "backgroundColor": ""
+                },
+                "contents": [
+                  {
+                    "id": "heading",
+                    "type": "heading",
+                    "values": {
+                      "text": "You left something behind!",
+                      "level": "h1",
+                      "fontSize": "32px",
+                      "textAlign": "center",
+                      "color": "#ffffff",
+                      "containerPadding": "10px"
+                    }
+                  },
+                  {
+                    "id": "subtext",
+                    "type": "text",
+                    "values": {
+                      "text": "<p style='text-align: center; color: #ffffff; margin: 0;'>Complete your order and save 15% with code <strong>SAVE15</strong></p>",
+                      "containerPadding": "10px"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "row-3",
+            "cells": [1],
+            "values": {
+              "backgroundColor": "#ffffff",
+              "columns": false,
+              "padding": "40px 20px",
+              "columnsBackgroundColor": ""
+            },
+            "columns": [
+              {
+                "id": "column-3",
+                "values": {
+                  "backgroundColor": ""
+                },
+                "contents": [
+                  {
+                    "id": "cart-items",
+                    "type": "text",
+                    "values": {
+                      "text": "<h2 style='text-align: center;'>Your Cart Items</h2><p style='text-align: center;'>Your items are waiting for you!</p>",
+                      "containerPadding": "10px"
+                    }
+                  },
+                  {
+                    "id": "cta-button",
+                    "type": "button",
+                    "values": {
+                      "text": "Complete Order",
+                      "href": {
+                        "name": "web",
+                        "values": {
+                          "href": "#"
+                        }
+                      },
+                      "buttonColors": {
+                        "color": "#ffffff",
+                        "backgroundColor": "#10b981"
+                      },
+                      "size": {
+                        "autoWidth": true
+                      },
+                      "fontSize": "16px",
+                      "padding": "15px 30px",
+                      "borderRadius": "5px",
+                      "containerPadding": "20px",
+                      "textAlign": "center"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "values": {
+          "backgroundColor": "#f3f4f6",
+          "textColor": "#000000",
+          "fontFamily": {
+            "label": "Arial",
+            "value": "arial,helvetica,sans-serif"
+          },
+          "contentWidth": "600px",
+          "contentAlign": "center"
+        }
+      },
+      "schemaVersion": 21
+    }
   }
 ];
 
