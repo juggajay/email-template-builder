@@ -18,7 +18,7 @@ interface TemplateStats {
 
 export default function SeedTemplatesPage() {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<TemplateStats | null>(null);
   const [result, setResult] = useState<{
@@ -28,12 +28,14 @@ export default function SeedTemplatesPage() {
   }>({ type: null, message: '' });
   
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/login');
-    } else if (user) {
-      fetchStats();
+    if (!authLoading) {
+      if (!user) {
+        router.push('/login');
+      } else if (profile?.role === 'admin') {
+        fetchStats();
+      }
     }
-  }, [user, authLoading, router]);
+  }, [user, profile, authLoading, router]);
   
   const fetchStats = async () => {
     try {
@@ -141,6 +143,27 @@ export default function SeedTemplatesPage() {
   
   if (!user) {
     return null;
+  }
+  
+  // Check admin access
+  if (profile?.role !== 'admin') {
+    return (
+      <div className="container mx-auto py-8 px-4">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle>Access Denied</CardTitle>
+            <CardDescription>
+              This page is restricted to administrators only.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              If you believe you should have access to this page, please contact support.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
   
   return (

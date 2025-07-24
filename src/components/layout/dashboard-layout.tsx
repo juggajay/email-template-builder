@@ -21,7 +21,8 @@ import {
   Crown,
   FolderOpen,
   MessageSquarePlus,
-  Shield
+  Shield,
+  Database
 } from 'lucide-react';
 import { ZebCharacter, StripePattern } from '@/components/brand';
 import { TargetIcon } from '@/components/brand/GeometricIcons';
@@ -42,6 +43,13 @@ const getNavigation = (isAdmin: boolean) => {
     { name: 'Privacy Policy', href: '/privacy', icon: Shield },
   ];
 
+  // Add admin-only navigation items
+  if (isAdmin) {
+    baseNav.push(
+      { name: 'Admin: Beta Invites', href: '/admin/beta-invites', icon: Shield },
+      { name: 'Admin: Seed Templates', href: '/admin/seed-templates', icon: Database }
+    );
+  }
 
   return baseNav;
 };
