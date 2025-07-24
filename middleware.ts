@@ -4,6 +4,24 @@ import type { NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   const res = NextResponse.next();
+  
+  // Add CSP headers
+  res.headers.set(
+    'Content-Security-Policy',
+    `
+      default-src 'self';
+      script-src 'self' 'unsafe-eval' 'unsafe-inline' https://editor.unlayer.com https://*.stripe.com https://*.supabase.co https://www.googletagmanager.com https://www.google-analytics.com;
+      style-src 'self' 'unsafe-inline' https://editor.unlayer.com https://fonts.googleapis.com;
+      img-src 'self' data: blob: https: http:;
+      font-src 'self' https://fonts.gstatic.com https://editor.unlayer.com;
+      connect-src 'self' https://*.supabase.co https://*.stripe.com https://api.stripe.com https://editor.unlayer.com https://www.google-analytics.com https://analytics.google.com;
+      frame-src 'self' https://editor.unlayer.com https://*.stripe.com;
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+    `.replace(/\s+/g, ' ').trim()
+  );
+  
   const supabase = createMiddlewareClient({ req: request, res });
   
   // Get the current session

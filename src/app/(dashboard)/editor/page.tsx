@@ -124,12 +124,36 @@ function EditorContent() {
 
       const supabase = createClient();
       
-      // Load from email_templates (public templates)
-      const { data, error } = await supabase
-        .from('email_templates')
-        .select('*')
-        .eq('id', id)
-        .single();
+      // First try to load from user_templates (user's custom templates)
+      let data = null;
+      let error = null;
+      
+      if (user) {
+        const userResult = await supabase
+          .from('user_templates')
+          .select('*')
+          .eq('id', id)
+          .eq('user_id', user.id)
+          .single();
+        
+        if (userResult.data && !userResult.error) {
+          data = userResult.data;
+          console.log('[EditorPage] Loaded user template');
+        }
+      }
+      
+      // If no user template found, try loading from public templates
+      if (!data) {
+        const publicResult = await supabase
+          .from('email_templates')
+          .select('*')
+          .eq('id', id)
+          .single();
+        
+        data = publicResult.data;
+        error = publicResult.error;
+        console.log('[EditorPage] Loaded public template');
+      }
 
       if (data && !error) {
         setTemplateName(data.name);
@@ -233,25 +257,67 @@ function EditorContent() {
       };
       
       if (templateId && !templateId.startsWith('mock-')) {
-        // Update existing template
-        const { error } = await supabase
+        // First check if this is a user template (user created)
+        const { data: existingUserTemplate } = await supabase
           .from('user_templates')
-          .update({
-            json_design: enhancedDesign,
-            html_content: html,
-            last_modified: new Date().toISOString(),
-          })
-          .eq('id', templateId);
+          .select('id')
+          .eq('id', templateId)
+          .eq('user_id', user.id)
+          .single();
 
-        if (error) {
-          console.error('[EditorPage] Update error:', error);
-          throw error;
+        if (existingUserTemplate) {
+          // Update existing user template
+          const { error } = await supabase
+            .from('user_templates')
+            .update({
+              json_design: enhancedDesign,
+              html_content: html,
+              last_modified: new Date().toISOString(),
+            })
+            .eq('id', templateId);
+
+          if (error) {
+            console.error('[EditorPage] Update error:', error);
+            throw error;
+          }
+          console.log('[EditorPage] User template updated successfully', {
+            templateId,
+            enhancedDesign,
+            htmlLength: html.length
+          });
+        } else {
+          // This is a public template being customized - create a new user template
+          // Generate a thumbnail URL (placeholder for now)
+          const thumbnailUrl = `https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600&h=400&fit=crop&text=${encodeURIComponent(templateName)}`;
+          
+          const { data, error } = await supabase
+            .from('user_templates')
+            .insert({
+              user_id: user.id,
+              template_id: templateId, // Reference to the original public template
+              name: templateName,
+              json_design: enhancedDesign,
+              html_content: html,
+              thumbnail_url: thumbnailUrl,
+            })
+            .select()
+            .single();
+
+          if (error) {
+            console.error('[EditorPage] Insert error:', error);
+            throw error;
+          }
+          if (!data) {
+            throw new Error('No data returned after template creation');
+          }
+          setTemplateId(data.id);
+          console.log('[EditorPage] New user template created from public template', {
+            newTemplateId: data.id,
+            originalTemplateId: templateId,
+            templateName,
+            htmlLength: html.length
+          });
         }
-        console.log('[EditorPage] Template updated successfully', {
-          templateId,
-          enhancedDesign,
-          htmlLength: html.length
-        });
       } else {
         // Create new template
         // Generate a thumbnail URL (placeholder for now)
