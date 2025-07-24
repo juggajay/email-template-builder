@@ -2299,24 +2299,44 @@ export function generateHTMLFromDesign(design: any): string {
   // This is a simplified HTML generation - in production, you'd use Unlayer's export function
   let html = '<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">';
   
-  if (design.body && design.body.rows) {
+  if (design?.body?.rows) {
     design.body.rows.forEach((row: any) => {
       html += '<div style="padding: 10px 0;">';
-      row.columns.forEach((column: any) => {
-        column.contents.forEach((content: any) => {
+      row.columns?.forEach((column: any) => {
+        column.contents?.forEach((content: any) => {
           switch (content.type) {
             case 'text':
-              html += `<div style="padding: ${content.values.containerPadding}; text-align: ${content.values.textAlign}; font-size: ${content.values.fontSize}; line-height: ${content.values.lineHeight};">${content.values.text}</div>`;
+              html += `<div style="padding: ${content.values?.containerPadding || '10px'}; text-align: ${content.values?.textAlign || 'left'}; font-size: ${content.values?.fontSize || '14px'}; line-height: ${content.values?.lineHeight || '140%'};">${content.values?.text || ''}</div>`;
               break;
+              
             case 'button':
-              html += `<div style="padding: ${content.values.containerPadding}; text-align: center;"><a href="${content.values.href}" style="display: inline-block; padding: ${content.values.padding}; background-color: ${content.values.buttonColors.backgroundColor}; color: ${content.values.buttonColors.color}; text-decoration: none; border-radius: ${content.values.borderRadius}; font-size: ${content.values.fontSize}; font-weight: ${content.values.fontWeight};">${content.values.text}</a></div>`;
+              const href = content.values?.href?.values?.href || content.values?.href || '#';
+              html += `<div style="padding: ${content.values?.containerPadding || '10px'}; text-align: center;"><a href="${href}" style="display: inline-block; padding: ${content.values?.padding || '10px 20px'}; background-color: ${content.values?.buttonColors?.backgroundColor || '#007bff'}; color: ${content.values?.buttonColors?.color || '#ffffff'}; text-decoration: none; border-radius: ${content.values?.borderRadius || '4px'}; font-size: ${content.values?.fontSize || '16px'}; font-weight: ${content.values?.fontWeight || 'normal'};">${content.values?.text || 'Click Here'}</a></div>`;
               break;
+              
             case 'image':
-              html += `<div style="padding: ${content.values.containerPadding}; text-align: ${content.values.textAlign};"><img src="${content.values.src.url}" alt="${content.values.altText}" style="max-width: 100%; height: auto;" /></div>`;
+              const imgSrc = content.values?.src?.url || '';
+              const altText = content.values?.altText || '';
+              html += `<div style="padding: ${content.values?.containerPadding || '10px'}; text-align: ${content.values?.textAlign || 'center'};"><img src="${imgSrc}" alt="${altText}" style="max-width: 100%; height: auto;" /></div>`;
               break;
+              
             case 'divider':
-              html += `<div style="padding: ${content.values.containerPadding};"><hr style="border: none; border-top: ${content.values.borderWidth} ${content.values.borderStyle} ${content.values.borderColor};" /></div>`;
+              html += `<div style="padding: ${content.values?.containerPadding || '10px'};"><hr style="border: none; border-top: ${content.values?.borderWidth || '1px'} ${content.values?.borderStyle || 'solid'} ${content.values?.borderColor || '#cccccc'};" /></div>`;
               break;
+              
+            case 'html':
+              html += `<div style="padding: ${content.values?.containerPadding || '10px'};">${content.values?.html || ''}</div>`;
+              break;
+              
+            case 'heading':
+              const level = content.values?.level || 'h2';
+              const headingText = content.values?.text || '';
+              html += `<div style="padding: ${content.values?.containerPadding || '10px'}; text-align: ${content.values?.textAlign || 'left'};"><${level} style="font-size: ${content.values?.fontSize || '24px'}; color: ${content.values?.color || '#000000'}; margin: 0;">${headingText}</${level}></div>`;
+              break;
+              
+            default:
+              // Handle any unknown content types gracefully
+              console.warn(`Unknown content type: ${content.type}`);
           }
         });
       });
