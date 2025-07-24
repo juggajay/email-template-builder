@@ -1,0 +1,24 @@
+.printContainer {
+  /* Container styles if needed */
+}
+
+@media print {
+  .printContainer nav,
+  .printContainer aside,
+  .printContainer .noPrint,
+  .printContainer button {
+    display: none !important;
+  }
+  
+  .printContainer .prose {
+    max-width: 100% !important;
+  }
+  
+  .printContainer section {
+    page-break-inside: avoid;
+  }
+  
+  .printContainer h2 {
+    page-break-after: avoid;
+  }
+}
