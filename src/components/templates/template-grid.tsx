@@ -44,6 +44,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import type { EmailTemplate, TemplateCategory } from '@/types';
 import { getTemplatePreview } from '@/lib/template-previews';
+import { generateHTMLFromDesign } from '@/lib/email-templates';
 import { ZebCharacter, StripePattern } from '@/components/brand';
 import { TargetIcon } from '@/components/brand/GeometricIcons';
 import { cn } from '@/lib/utils';
@@ -156,13 +157,24 @@ export const TemplateCard = memo(({
               alt={template.name}
               className="w-full h-full object-cover"
             />
-          ) : showUserTemplates && template.html_content ? (
+          ) : template.html_content ? (
             <div 
               className="w-full h-full"
               dangerouslySetInnerHTML={{ 
                 __html: `
                   <div style="transform: scale(0.3); transform-origin: top left; width: 333.33%; height: 333.33%; position: absolute; top: 0; left: 0;">
                     ${template.html_content}
+                  </div>
+                ` 
+              }}
+            />
+          ) : template.json_design ? (
+            <div 
+              className="w-full h-full"
+              dangerouslySetInnerHTML={{ 
+                __html: `
+                  <div style="transform: scale(0.3); transform-origin: top left; width: 333.33%; height: 333.33%; position: absolute; top: 0; left: 0;">
+                    ${generateHTMLFromDesign(template.json_design)}
                   </div>
                 ` 
               }}
@@ -669,8 +681,10 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
             <div 
               dangerouslySetInnerHTML={{ 
                 __html: previewTemplate && (
-                  showUserTemplates && previewTemplate.html_content 
+                  previewTemplate.html_content 
                     ? previewTemplate.html_content 
+                    : previewTemplate.json_design
+                    ? generateHTMLFromDesign(previewTemplate.json_design)
                     : getTemplatePreview(previewTemplate.name, previewTemplate.category)
                 )
               }}

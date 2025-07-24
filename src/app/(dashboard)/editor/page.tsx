@@ -216,6 +216,9 @@ function EditorContent() {
         console.log('[EditorPage] Template updated successfully');
       } else {
         // Create new template
+        // Generate a thumbnail URL (placeholder for now)
+        const thumbnailUrl = `https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600&h=400&fit=crop&text=${encodeURIComponent(templateName)}`;
+        
         const { data, error } = await supabase
           .from('user_templates')
           .insert({
@@ -224,6 +227,7 @@ function EditorContent() {
             name: templateName,
             json_design: enhancedDesign,
             html_content: html,
+            thumbnail_url: thumbnailUrl,
           })
           .select()
           .single();
@@ -235,7 +239,7 @@ function EditorContent() {
 
       // If shouldExit is true, navigate back to templates
       if (shouldExit) {
-        router.push('/my-templates');
+        router.push('/templates?view=my-templates');
       } else {
         // Show success message
         alert('Template saved successfully!');
