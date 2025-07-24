@@ -157,6 +157,7 @@ export const seedTemplates: SeedTemplate[] = [
     description: 'Recover lost sales with this effective cart abandonment email',
     category: 'abandoned-cart',
     tags: ['ecommerce', 'recovery', 'sales'],
+    thumbnail: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&h=400&fit=crop',
     is_premium: false,
     rating: 4.8,
     usage_count: 1250,
@@ -177,6 +178,7 @@ export const seedTemplates: SeedTemplate[] = [
     description: 'Abandoned cart email with a special discount offer',
     category: 'abandoned-cart',
     tags: ['ecommerce', 'discount', 'recovery'],
+    thumbnail: 'https://images.unsplash.com/photo-1557821552-17105176677c?w=600&h=400&fit=crop',
     is_premium: true,
     rating: 4.9,
     usage_count: 850,
@@ -402,6 +404,7 @@ export const seedTemplates: SeedTemplate[] = [
     description: 'High-converting abandoned cart email with 20%+ recovery rate. Features urgency, social proof, and personalization.',
     category: 'abandoned-cart',
     tags: ['abandoned-cart', 'high-converting', 'discount', 'urgency', 'personalization', 'social-proof'],
+    thumbnail: 'https://images.unsplash.com/photo-1573855619003-97b4799dcd8b?w=600&h=400&fit=crop',
     is_premium: false,
     rating: 5.0,
     usage_count: 0,
@@ -1306,6 +1309,7 @@ export const seedTemplates: SeedTemplate[] = [
     description: 'High-converting abandoned cart template with dynamic discount, urgency messaging, and social proof. 25%+ recovery rate.',
     category: 'abandoned-cart',
     tags: ['abandoned-cart', 'high-converting', 'discount', 'urgency', 'social-proof', 'responsive'],
+    thumbnail: 'https://images.unsplash.com/photo-1586880244386-8b3e34c8382c?w=600&h=400&fit=crop',
     is_premium: false,
     rating: 5.0,
     usage_count: 0,
@@ -2348,8 +2352,12 @@ export function generateHTMLFromDesign(design: any): string {
   return html;
 }
 
-// Helper function to generate thumbnail URL (placeholder for now)
-export function generateThumbnailUrl(templateName: string): string {
-  // In production, this would generate or retrieve actual thumbnails
+// Helper function to generate thumbnail URL
+export function generateThumbnailUrl(templateName: string, thumbnail?: string): string {
+  // Use provided thumbnail if available
+  if (thumbnail) {
+    return thumbnail;
+  }
+  // Fallback to placeholder
   return getBase64Placeholder(300, 400, templateName);
 }

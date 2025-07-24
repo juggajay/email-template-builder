@@ -62,7 +62,7 @@ export class TemplateSeeder {
             tags: template.tags,
             html_content: generateHTMLFromDesign(template.design),
             json_design: template.design,
-            thumbnail_url: generateThumbnailUrl(template.name),
+            thumbnail_url: generateThumbnailUrl(template.name, template.thumbnail),
             is_public: true,
             is_premium: template.is_premium,
             created_by: user.id,
