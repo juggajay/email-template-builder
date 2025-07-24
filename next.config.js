@@ -58,7 +58,7 @@ const nextConfig = {
     // Tree shaking optimization
     config.optimization = {
       ...config.optimization,
-      usedExports: true,
+      // usedExports: true, // Commented out - conflicts with Next.js caching
       sideEffects: false,
     };
     

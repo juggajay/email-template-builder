@@ -33,29 +33,29 @@ export default function PrivacyPage() {
   };
 
   return (
-    <div className={`min-h-screen bg-white ${styles.printContainer}`}>
-      {/* Hero Section */}
-      <section className="bg-gradient-to-b from-systematic-grey to-white py-16 border-b">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-zebra-black mb-4">
+    <div className={`bg-white rounded-lg shadow-sm ${styles.printContainer}`}>
+      {/* Page Header */}
+      <div className="border-b">
+        <div className="px-6 py-8">
+          <div className="max-w-4xl">
+            <h1 className="text-3xl font-bold text-zebra-black mb-2">
               Privacy Policy
             </h1>
             <p className="text-lg text-gray-600">
               Last updated: {lastUpdated}
             </p>
-            <p className="mt-4 text-gray-700 max-w-2xl mx-auto">
+            <p className="mt-4 text-gray-700">
               At ZebaMail, we take your privacy seriously. This policy explains how we collect, 
               use, and protect your information when you use our email template builder for Shopify.
             </p>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* Main Content */}
-      <section className="py-12">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+      <section className="px-6 py-8">
+        <div className="max-w-7xl">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             {/* Table of Contents - Desktop Only */}
             <aside className="hidden lg:block">
               <div className="sticky top-8">
