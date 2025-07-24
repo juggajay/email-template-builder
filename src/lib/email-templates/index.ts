@@ -1300,6 +1300,843 @@ export const seedTemplates: SeedTemplate[] = [
       },
       "schemaVersion": 16
     }
+  },
+  {
+    name: 'Abandoned Cart - Premium Recovery',
+    description: 'High-converting abandoned cart template with dynamic discount, urgency messaging, and social proof. 25%+ recovery rate.',
+    category: 'abandoned-cart',
+    tags: ['abandoned-cart', 'high-converting', 'discount', 'urgency', 'social-proof', 'responsive'],
+    is_premium: false,
+    rating: 5.0,
+    usage_count: 0,
+    design: {
+      "body": {
+        "id": "abandoned-cart-v2",
+        "rows": [
+          {
+            "id": "header-row",
+            "cells": [1],
+            "values": {
+              "_meta": {
+                "htmlID": "u_row_1",
+                "htmlClassNames": "u_row"
+              },
+              "columns": false,
+              "padding": "0px",
+              "deletable": true,
+              "draggable": true,
+              "hideable": true,
+              "selectable": true,
+              "locked": false,
+              "hideDesktop": false,
+              "duplicatable": true,
+              "backgroundColor": "#ffffff",
+              "columnsBackgroundColor": "",
+              "backgroundImage": {
+                "url": "",
+                "fullWidth": true,
+                "repeat": "no-repeat",
+                "center": true,
+                "cover": false
+              },
+              "displayCondition": null
+            },
+            "columns": [
+              {
+                "id": "header-column",
+                "values": {
+                  "_meta": {
+                    "htmlID": "u_column_1",
+                    "htmlClassNames": "u_column"
+                  },
+                  "backgroundColor": "",
+                  "padding": "20px",
+                  "deletable": true
+                },
+                "contents": [
+                  {
+                    "id": "logo",
+                    "type": "image",
+                    "values": {
+                      "src": {
+                        "url": "https://via.placeholder.com/200x60/111827/ffffff?text=YOUR+LOGO",
+                        "width": 200,
+                        "height": 60
+                      },
+                      "textAlign": "center",
+                      "altText": "{{store.name}}",
+                      "_meta": {
+                        "htmlID": "u_content_image_1",
+                        "htmlClassNames": "u_content_image"
+                      },
+                      "selectable": true,
+                      "draggable": true,
+                      "duplicatable": true,
+                      "deletable": true,
+                      "hideable": true,
+                      "action": {
+                        "name": "web",
+                        "values": {
+                          "href": "{{store.website}}",
+                          "target": "_blank"
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "hero-row",
+            "cells": [1],
+            "values": {
+              "_meta": {
+                "htmlID": "u_row_2",
+                "htmlClassNames": "u_row"
+              },
+              "columns": false,
+              "padding": "0px",
+              "deletable": true,
+              "draggable": true,
+              "hideable": true,
+              "selectable": true,
+              "locked": false,
+              "hideDesktop": false,
+              "duplicatable": true,
+              "backgroundColor": "",
+              "columnsBackgroundColor": "",
+              "backgroundImage": {
+                "url": "",
+                "fullWidth": true,
+                "repeat": "no-repeat",
+                "center": true,
+                "cover": false
+              },
+              "displayCondition": null
+            },
+            "columns": [
+              {
+                "id": "hero-column",
+                "values": {
+                  "_meta": {
+                    "htmlID": "u_column_2",
+                    "htmlClassNames": "u_column"
+                  },
+                  "backgroundColor": "",
+                  "padding": "40px 20px",
+                  "deletable": true
+                },
+                "contents": [
+                  {
+                    "id": "hero-heading",
+                    "type": "heading",
+                    "values": {
+                      "text": "{{customer.first_name|Hey}}, you forgot something!",
+                      "_meta": {
+                        "htmlID": "u_content_heading_1",
+                        "htmlClassNames": "u_content_heading"
+                      },
+                      "level": "h1",
+                      "fontSize": "32px",
+                      "textAlign": "center",
+                      "lineHeight": "120%",
+                      "fontWeight": 700,
+                      "selectable": true,
+                      "draggable": true,
+                      "duplicatable": true,
+                      "deletable": true,
+                      "hideable": true,
+                      "containerPadding": "10px",
+                      "headingType": "h1",
+                      "fontFamily": {
+                        "label": "Arial",
+                        "value": "arial,helvetica,sans-serif"
+                      },
+                      "color": "#ffffff"
+                    }
+                  },
+                  {
+                    "id": "hero-text",
+                    "type": "text",
+                    "values": {
+                      "text": "<p style='text-align: center; margin: 0;'>Complete your purchase in the next <strong>48 hours</strong> and save <strong>15%</strong> on your entire order!</p>",
+                      "_meta": {
+                        "htmlID": "u_content_text_1",
+                        "htmlClassNames": "u_content_text"
+                      },
+                      "fontSize": "18px",
+                      "textAlign": "center",
+                      "lineHeight": "140%",
+                      "selectable": true,
+                      "draggable": true,
+                      "duplicatable": true,
+                      "deletable": true,
+                      "hideable": true,
+                      "containerPadding": "10px 20px 20px 20px",
+                      "color": "#e5e7eb"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "discount-row",
+            "cells": [1],
+            "values": {
+              "_meta": {
+                "htmlID": "u_row_3",
+                "htmlClassNames": "u_row"
+              },
+              "columns": false,
+              "padding": "0px",
+              "deletable": true,
+              "draggable": true,
+              "hideable": true,
+              "selectable": true,
+              "locked": false,
+              "hideDesktop": false,
+              "duplicatable": true,
+              "backgroundColor": "#ffffff",
+              "columnsBackgroundColor": "",
+              "backgroundImage": {
+                "url": "",
+                "fullWidth": true,
+                "repeat": "no-repeat",
+                "center": true,
+                "cover": false
+              },
+              "displayCondition": null
+            },
+            "columns": [
+              {
+                "id": "discount-column",
+                "values": {
+                  "_meta": {
+                    "htmlID": "u_column_3",
+                    "htmlClassNames": "u_column"
+                  },
+                  "backgroundColor": "",
+                  "padding": "30px 20px",
+                  "deletable": true
+                },
+                "contents": [
+                  {
+                    "id": "discount-box",
+                    "type": "html",
+                    "values": {
+                      "html": "<div style='background: #10b981; border-radius: 12px; padding: 30px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);'>\n  <p style='margin: 0; color: #ffffff; font-size: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;'>EXCLUSIVE OFFER</p>\n  <p style='margin: 15px 0 0 0; color: #ffffff; font-size: 48px; font-weight: 700; line-height: 1;'>15% OFF</p>\n  <p style='margin: 10px 0 0 0; color: #ffffff; font-size: 20px;'>Use code: <span style='background: rgba(255,255,255,0.3); padding: 5px 15px; border-radius: 6px; font-weight: 700;'>{{discount_code|CART15}}</span></p>\n  <p style='margin: 20px 0 0 0; color: #ffffff; font-size: 14px; opacity: 0.9;'>⏱️ Expires in 48 hours</p>\n</div>",
+                      "_meta": {
+                        "htmlID": "u_content_html_1",
+                        "htmlClassNames": "u_content_html"
+                      },
+                      "selectable": true,
+                      "draggable": true,
+                      "duplicatable": true,
+                      "deletable": true,
+                      "hideable": true,
+                      "containerPadding": "0px"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "cart-header-row",
+            "cells": [1],
+            "values": {
+              "_meta": {
+                "htmlID": "u_row_4",
+                "htmlClassNames": "u_row"
+              },
+              "columns": false,
+              "padding": "0px",
+              "deletable": true,
+              "draggable": true,
+              "hideable": true,
+              "selectable": true,
+              "locked": false,
+              "hideDesktop": false,
+              "duplicatable": true,
+              "backgroundColor": "#ffffff",
+              "columnsBackgroundColor": "",
+              "backgroundImage": {
+                "url": "",
+                "fullWidth": true,
+                "repeat": "no-repeat",
+                "center": true,
+                "cover": false
+              },
+              "displayCondition": null
+            },
+            "columns": [
+              {
+                "id": "cart-header-column",
+                "values": {
+                  "_meta": {
+                    "htmlID": "u_column_4",
+                    "htmlClassNames": "u_column"
+                  },
+                  "backgroundColor": "",
+                  "padding": "20px 20px 10px 20px",
+                  "deletable": true
+                },
+                "contents": [
+                  {
+                    "id": "cart-heading",
+                    "type": "heading",
+                    "values": {
+                      "text": "Your Cart ({{abandoned_cart.items|3}} items)",
+                      "_meta": {
+                        "htmlID": "u_content_heading_2",
+                        "htmlClassNames": "u_content_heading"
+                      },
+                      "level": "h2",
+                      "fontSize": "24px",
+                      "textAlign": "center",
+                      "lineHeight": "120%",
+                      "fontWeight": 600,
+                      "selectable": true,
+                      "draggable": true,
+                      "duplicatable": true,
+                      "deletable": true,
+                      "hideable": true,
+                      "containerPadding": "10px",
+                      "headingType": "h2",
+                      "fontFamily": {
+                        "label": "Arial",
+                        "value": "arial,helvetica,sans-serif"
+                      },
+                      "color": "#111827"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "product-row",
+            "cells": [1, 2],
+            "values": {
+              "_meta": {
+                "htmlID": "u_row_5",
+                "htmlClassNames": "u_row"
+              },
+              "columns": false,
+              "padding": "0px 20px",
+              "deletable": true,
+              "draggable": true,
+              "hideable": true,
+              "selectable": true,
+              "locked": false,
+              "hideDesktop": false,
+              "duplicatable": true,
+              "backgroundColor": "#ffffff",
+              "columnsBackgroundColor": "",
+              "backgroundImage": {
+                "url": "",
+                "fullWidth": true,
+                "repeat": "no-repeat",
+                "center": true,
+                "cover": false
+              },
+              "displayCondition": null
+            },
+            "columns": [
+              {
+                "id": "product-image-column",
+                "values": {
+                  "_meta": {
+                    "htmlID": "u_column_5",
+                    "htmlClassNames": "u_column"
+                  },
+                  "backgroundColor": "#f9fafb",
+                  "padding": "20px",
+                  "border": {
+                    "borderTopWidth": "1px",
+                    "borderTopStyle": "solid",
+                    "borderTopColor": "#e5e7eb",
+                    "borderLeftWidth": "1px",
+                    "borderLeftStyle": "solid",
+                    "borderLeftColor": "#e5e7eb",
+                    "borderRightWidth": "0px",
+                    "borderBottomWidth": "1px",
+                    "borderBottomStyle": "solid",
+                    "borderBottomColor": "#e5e7eb"
+                  },
+                  "borderRadius": "8px 0 0 8px",
+                  "deletable": true
+                },
+                "contents": [
+                  {
+                    "id": "product-image",
+                    "type": "image",
+                    "values": {
+                      "src": {
+                        "url": "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=180&h=180&fit=crop",
+                        "width": 180,
+                        "height": 180
+                      },
+                      "textAlign": "center",
+                      "altText": "{{product.name}}",
+                      "_meta": {
+                        "htmlID": "u_content_image_2",
+                        "htmlClassNames": "u_content_image"
+                      },
+                      "selectable": true,
+                      "draggable": true,
+                      "duplicatable": true,
+                      "deletable": true,
+                      "hideable": true,
+                      "action": {
+                        "name": "web",
+                        "values": {
+                          "href": "{{product.url}}",
+                          "target": "_blank"
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "product-details-column",
+                "values": {
+                  "_meta": {
+                    "htmlID": "u_column_6",
+                    "htmlClassNames": "u_column"
+                  },
+                  "backgroundColor": "#f9fafb",
+                  "padding": "20px",
+                  "border": {
+                    "borderTopWidth": "1px",
+                    "borderTopStyle": "solid",
+                    "borderTopColor": "#e5e7eb",
+                    "borderLeftWidth": "0px",
+                    "borderRightWidth": "1px",
+                    "borderRightStyle": "solid",
+                    "borderRightColor": "#e5e7eb",
+                    "borderBottomWidth": "1px",
+                    "borderBottomStyle": "solid",
+                    "borderBottomColor": "#e5e7eb"
+                  },
+                  "borderRadius": "0 8px 8px 0",
+                  "deletable": true
+                },
+                "contents": [
+                  {
+                    "id": "product-details",
+                    "type": "text",
+                    "values": {
+                      "text": "<h3 style='margin: 0 0 10px 0; color: #111827; font-size: 20px; font-weight: 600;'>{{product.name|Premium Sunglasses}}</h3>\n<p style='margin: 0 0 10px 0; color: #6b7280; font-size: 14px;'>Color: Black | UV Protection</p>\n<p style='margin: 0 0 15px 0;'><span style='color: #dc2626; font-size: 16px; text-decoration: line-through;'>{{product.original_price|$129.99}}</span> <span style='color: #059669; font-size: 22px; font-weight: 700;'>{{product.sale_price|$110.49}}</span></p>\n<p style='margin: 0; color: #6b7280; font-size: 14px;'>Quantity: 1</p>",
+                      "_meta": {
+                        "htmlID": "u_content_text_2",
+                        "htmlClassNames": "u_content_text"
+                      },
+                      "selectable": true,
+                      "draggable": true,
+                      "duplicatable": true,
+                      "deletable": true,
+                      "hideable": true,
+                      "containerPadding": "10px",
+                      "textAlign": "left"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "urgency-row",
+            "cells": [1],
+            "values": {
+              "_meta": {
+                "htmlID": "u_row_6",
+                "htmlClassNames": "u_row"
+              },
+              "columns": false,
+              "padding": "0px",
+              "deletable": true,
+              "draggable": true,
+              "hideable": true,
+              "selectable": true,
+              "locked": false,
+              "hideDesktop": false,
+              "duplicatable": true,
+              "backgroundColor": "#ffffff",
+              "columnsBackgroundColor": "",
+              "backgroundImage": {
+                "url": "",
+                "fullWidth": true,
+                "repeat": "no-repeat",
+                "center": true,
+                "cover": false
+              },
+              "displayCondition": null
+            },
+            "columns": [
+              {
+                "id": "urgency-column",
+                "values": {
+                  "_meta": {
+                    "htmlID": "u_column_7",
+                    "htmlClassNames": "u_column"
+                  },
+                  "backgroundColor": "",
+                  "padding": "20px",
+                  "deletable": true
+                },
+                "contents": [
+                  {
+                    "id": "urgency-message",
+                    "type": "html",
+                    "values": {
+                      "html": "<div style='background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 20px; text-align: center;'>\n  <p style='margin: 0; color: #92400e; font-size: 16px; font-weight: 600;'>🔥 High Demand Alert!</p>\n  <p style='margin: 10px 0 0 0; color: #78350f; font-size: 14px;'>23 other customers are viewing this item</p>\n  <p style='margin: 5px 0 0 0; color: #dc2626; font-size: 14px; font-weight: 600;'>Only 5 left in stock!</p>\n</div>",
+                      "_meta": {
+                        "htmlID": "u_content_html_2",
+                        "htmlClassNames": "u_content_html"
+                      },
+                      "selectable": true,
+                      "draggable": true,
+                      "duplicatable": true,
+                      "deletable": true,
+                      "hideable": true,
+                      "containerPadding": "0px"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "totals-row",
+            "cells": [1],
+            "values": {
+              "_meta": {
+                "htmlID": "u_row_7",
+                "htmlClassNames": "u_row"
+              },
+              "columns": false,
+              "padding": "0px",
+              "deletable": true,
+              "draggable": true,
+              "hideable": true,
+              "selectable": true,
+              "locked": false,
+              "hideDesktop": false,
+              "duplicatable": true,
+              "backgroundColor": "#ffffff",
+              "columnsBackgroundColor": "",
+              "backgroundImage": {
+                "url": "",
+                "fullWidth": true,
+                "repeat": "no-repeat",
+                "center": true,
+                "cover": false
+              },
+              "displayCondition": null
+            },
+            "columns": [
+              {
+                "id": "totals-column",
+                "values": {
+                  "_meta": {
+                    "htmlID": "u_column_8",
+                    "htmlClassNames": "u_column"
+                  },
+                  "backgroundColor": "",
+                  "padding": "20px",
+                  "deletable": true
+                },
+                "contents": [
+                  {
+                    "id": "divider",
+                    "type": "divider",
+                    "values": {
+                      "width": "100%",
+                      "border": {
+                        "borderTopWidth": "1px",
+                        "borderTopStyle": "solid",
+                        "borderTopColor": "#e5e7eb"
+                      },
+                      "textAlign": "center",
+                      "_meta": {
+                        "htmlID": "u_content_divider_1",
+                        "htmlClassNames": "u_content_divider"
+                      },
+                      "selectable": true,
+                      "draggable": true,
+                      "duplicatable": true,
+                      "deletable": true,
+                      "hideable": true
+                    }
+                  },
+                  {
+                    "id": "totals-text",
+                    "type": "html",
+                    "values": {
+                      "html": "<table style='width: 100%; max-width: 400px; margin: 20px auto 0 auto;'>\n  <tr>\n    <td style='padding: 5px 0; color: #6b7280; font-size: 16px;'>Subtotal:</td>\n    <td style='padding: 5px 0; color: #111827; font-size: 16px; text-align: right;'>{{abandoned_cart.subtotal|$129.99}}</td>\n  </tr>\n  <tr>\n    <td style='padding: 5px 0; color: #6b7280; font-size: 16px;'>Shipping:</td>\n    <td style='padding: 5px 0; color: #10b981; font-size: 16px; font-weight: 600; text-align: right;'>FREE</td>\n  </tr>\n  <tr>\n    <td style='padding: 5px 0; color: #10b981; font-size: 16px;'>Discount (15%):</td>\n    <td style='padding: 5px 0; color: #10b981; font-size: 16px; font-weight: 600; text-align: right;'>-{{discount_amount|$19.50}}</td>\n  </tr>\n  <tr>\n    <td colspan='2' style='padding-top: 10px; border-top: 2px solid #111827;'></td>\n  </tr>\n  <tr>\n    <td style='padding: 10px 0 0 0; color: #111827; font-size: 20px; font-weight: 700;'>Total:</td>\n    <td style='padding: 10px 0 0 0; color: #111827; font-size: 24px; font-weight: 700; text-align: right;'>{{abandoned_cart.total|$110.49}}</td>\n  </tr>\n</table>",
+                      "_meta": {
+                        "htmlID": "u_content_html_3",
+                        "htmlClassNames": "u_content_html"
+                      },
+                      "selectable": true,
+                      "draggable": true,
+                      "duplicatable": true,
+                      "deletable": true,
+                      "hideable": true,
+                      "containerPadding": "0px"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "cta-row",
+            "cells": [1],
+            "values": {
+              "_meta": {
+                "htmlID": "u_row_8",
+                "htmlClassNames": "u_row"
+              },
+              "columns": false,
+              "padding": "0px",
+              "deletable": true,
+              "draggable": true,
+              "hideable": true,
+              "selectable": true,
+              "locked": false,
+              "hideDesktop": false,
+              "duplicatable": true,
+              "backgroundColor": "#f9fafb",
+              "columnsBackgroundColor": "",
+              "backgroundImage": {
+                "url": "",
+                "fullWidth": true,
+                "repeat": "no-repeat",
+                "center": true,
+                "cover": false
+              },
+              "displayCondition": null
+            },
+            "columns": [
+              {
+                "id": "cta-column",
+                "values": {
+                  "_meta": {
+                    "htmlID": "u_column_9",
+                    "htmlClassNames": "u_column"
+                  },
+                  "backgroundColor": "",
+                  "padding": "40px 20px",
+                  "deletable": true
+                },
+                "contents": [
+                  {
+                    "id": "cta-button",
+                    "type": "button",
+                    "values": {
+                      "text": "Complete My Order →",
+                      "href": {
+                        "name": "web",
+                        "values": {
+                          "href": "{{abandoned_cart.link}}",
+                          "target": "_blank"
+                        }
+                      },
+                      "_meta": {
+                        "htmlID": "u_content_button_1",
+                        "htmlClassNames": "u_content_button"
+                      },
+                      "padding": "20px 40px",
+                      "fontSize": "18px",
+                      "textAlign": "center",
+                      "lineHeight": "120%",
+                      "fontWeight": 700,
+                      "borderRadius": "8px",
+                      "buttonColors": {
+                        "color": "#FFFFFF",
+                        "backgroundColor": "#10b981",
+                        "hoverColor": "#FFFFFF",
+                        "hoverBackgroundColor": "#059669"
+                      },
+                      "size": {
+                        "width": "100%",
+                        "autoWidth": true
+                      },
+                      "selectable": true,
+                      "draggable": true,
+                      "duplicatable": true,
+                      "deletable": true,
+                      "hideable": true,
+                      "containerPadding": "10px",
+                      "calculatedWidth": 231,
+                      "calculatedHeight": 62
+                    }
+                  },
+                  {
+                    "id": "security-badges",
+                    "type": "text",
+                    "values": {
+                      "text": "<p style='text-align: center; margin: 20px 0 0 0; color: #6b7280; font-size: 14px;'>🔒 Secure Checkout • 🚚 Free Shipping • ↩️ 30-Day Returns</p>",
+                      "_meta": {
+                        "htmlID": "u_content_text_3",
+                        "htmlClassNames": "u_content_text"
+                      },
+                      "selectable": true,
+                      "draggable": true,
+                      "duplicatable": true,
+                      "deletable": true,
+                      "hideable": true,
+                      "containerPadding": "10px"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "footer-row",
+            "cells": [1],
+            "values": {
+              "_meta": {
+                "htmlID": "u_row_9",
+                "htmlClassNames": "u_row"
+              },
+              "columns": false,
+              "padding": "0px",
+              "deletable": true,
+              "draggable": true,
+              "hideable": true,
+              "selectable": true,
+              "locked": false,
+              "hideDesktop": false,
+              "duplicatable": true,
+              "backgroundColor": "#ffffff",
+              "columnsBackgroundColor": "",
+              "backgroundImage": {
+                "url": "",
+                "fullWidth": true,
+                "repeat": "no-repeat",
+                "center": true,
+                "cover": false
+              },
+              "displayCondition": null
+            },
+            "columns": [
+              {
+                "id": "footer-column",
+                "values": {
+                  "_meta": {
+                    "htmlID": "u_column_10",
+                    "htmlClassNames": "u_column"
+                  },
+                  "backgroundColor": "",
+                  "padding": "30px 20px",
+                  "deletable": true
+                },
+                "contents": [
+                  {
+                    "id": "footer-text",
+                    "type": "text",
+                    "values": {
+                      "text": "<p style='text-align: center; margin: 0 0 10px 0; color: #6b7280; font-size: 14px;'>{{store.name}} | {{store.address}}</p>\n<p style='text-align: center; margin: 0 0 10px 0; color: #6b7280; font-size: 12px;'>You received this email because you left items in your cart at {{store.website}}</p>\n<p style='text-align: center; margin: 0; font-size: 12px;'><a href='{{unsubscribe_link}}' style='color: #6b7280; text-decoration: underline;'>Unsubscribe</a> | <a href='{{preferences_link}}' style='color: #6b7280; text-decoration: underline;'>Update Preferences</a></p>",
+                      "_meta": {
+                        "htmlID": "u_content_text_4",
+                        "htmlClassNames": "u_content_text"
+                      },
+                      "selectable": true,
+                      "draggable": true,
+                      "duplicatable": true,
+                      "deletable": true,
+                      "hideable": true,
+                      "containerPadding": "10px"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "values": {
+          "_meta": {
+            "htmlID": "u_body",
+            "htmlClassNames": "u_body"
+          },
+          "linkStyle": {
+            "body": true,
+            "linkColor": "#10b981",
+            "linkUnderline": true,
+            "linkHoverColor": "#059669",
+            "linkHoverUnderline": true
+          },
+          "textColor": "#000000",
+          "fontFamily": {
+            "label": "Arial",
+            "value": "arial,helvetica,sans-serif"
+          },
+          "popupWidth": "600px",
+          "popupHeight": "auto",
+          "borderRadius": "10px",
+          "contentAlign": "center",
+          "contentWidth": "600px",
+          "popupPosition": "center",
+          "backgroundColor": "#1f2937",
+          "backgroundImage": {
+            "url": "",
+            "size": "custom",
+            "repeat": "no-repeat",
+            "position": "center",
+            "fullWidth": true
+          },
+          "contentVerticalAlign": "center",
+          "popupBackgroundColor": "#FFFFFF",
+          "popupBackgroundImage": {
+            "url": "",
+            "size": "cover",
+            "repeat": "no-repeat",
+            "position": "center",
+            "fullWidth": true
+          },
+          "popupCloseButton_action": {
+            "name": "close_popup",
+            "attrs": {
+              "onClick": "document.querySelector('.u-popup-container').style.display = 'none';"
+            }
+          },
+          "popupCloseButton_margin": "0px",
+          "popupCloseButton_position": "top-right",
+          "popupCloseButton_iconColor": "#000000",
+          "popupOverlay_backgroundColor": "rgba(0, 0, 0, 0.1)",
+          "popupCloseButton_borderRadius": "0px",
+          "popupCloseButton_backgroundColor": "#DDDDDD"
+        }
+      },
+      "counters": {
+        "u_row": 9,
+        "u_column": 10,
+        "u_content_text": 4,
+        "u_content_button": 1,
+        "u_content_heading": 2,
+        "u_content_image": 2,
+        "u_content_html": 3,
+        "u_content_divider": 1
+      },
+      "schemaVersion": 21,
+      "conditionalBlocks": [],
+      "mergeTagsMetadata": {
+        "usedTags": [],
+        "validation": {
+          "totalTags": 0,
+          "uniqueTags": 0,
+          "conditionalBlocks": 0,
+          "tagsWithFallbacks": 0
+        }
+      }
+    }
   }
 ];
 
