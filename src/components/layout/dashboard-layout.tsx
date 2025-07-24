@@ -20,7 +20,8 @@ import {
   Zap,
   Crown,
   FolderOpen,
-  MessageSquarePlus
+  MessageSquarePlus,
+  Shield
 } from 'lucide-react';
 import { ZebCharacter, StripePattern } from '@/components/brand';
 import { TargetIcon } from '@/components/brand/GeometricIcons';
@@ -38,6 +39,7 @@ const getNavigation = (isAdmin: boolean) => {
     { name: 'Billing', href: '/billing', icon: CreditCard },
     { name: 'Community', href: '/community', icon: MessageSquarePlus },
     { name: 'Help', href: '/help', icon: HelpCircle },
+    { name: 'Privacy Policy', href: '/privacy', icon: Shield },
   ];
 
 
