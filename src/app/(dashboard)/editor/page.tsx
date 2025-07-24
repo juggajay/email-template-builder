@@ -50,7 +50,8 @@ import { findAllMergeTags } from '@/lib/merge-tags/parser';
 import { validateTemplate } from '@/lib/merge-tags/validator';
 import { getAllMergeTags } from '@/lib/merge-tags';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Eye, Filter, Save, ChevronDown, Copy } from 'lucide-react';
+import { Sparkles, Eye, Filter, Save, ChevronDown, Copy, CheckCircle, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { copyHTMLToClipboard } from '@/lib/email/export';
 import {
   DropdownMenu,
@@ -75,8 +76,10 @@ function EditorContent() {
   const [usedTags, setUsedTags] = useState<string[]>([]);
   const [templateHtml, setTemplateHtml] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [saveRetryCount, setSaveRetryCount] = useState(0);
   const [editorRef, setEditorRef] = useState<any>(null);
   const { user } = useAuth();
+  const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -159,12 +162,36 @@ function EditorContent() {
     }
   };
 
-  const handleSave = async (design: any, html: string, shouldExit: boolean = false) => {
+  const handleSave = async (design: any, html: string, shouldExit: boolean = false, retryCount: number = 0) => {
     if (!user) {
-      alert('Please sign in to save templates');
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to save templates.",
+        variant: "destructive"
+      });
       return;
     }
 
+    // Validate input data
+    if (!design || !html || html.trim() === '') {
+      toast({
+        title: "Invalid template data",
+        description: "Cannot save empty template. Please add some content first.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    console.log('[EditorPage] Starting save operation', {
+      shouldExit,
+      templateId,
+      templateName,
+      userId: user.id,
+      isNewTemplate: !templateId || templateId.startsWith('mock-'),
+      htmlLength: html?.length || 0,
+      designKeys: design ? Object.keys(design) : []
+    });
+    
     setIsSaving(true);
 
     // Update template HTML for preview
@@ -182,7 +209,11 @@ function EditorContent() {
     if (!validation.valid) {
       const errors = validation.issues.filter(i => i.type === 'error');
       if (errors.length > 0) {
-        alert(`Template validation failed:\n${errors.map(e => e.message).join('\n')}`);
+        toast({
+          title: "Template validation failed",
+          description: `${errors.map(e => e.message).join(', ')}`,
+          variant: "destructive"
+        });
         setIsSaving(false);
         return;
       }
@@ -212,8 +243,15 @@ function EditorContent() {
           })
           .eq('id', templateId);
 
-        if (error) throw error;
-        console.log('[EditorPage] Template updated successfully');
+        if (error) {
+          console.error('[EditorPage] Update error:', error);
+          throw error;
+        }
+        console.log('[EditorPage] Template updated successfully', {
+          templateId,
+          enhancedDesign,
+          htmlLength: html.length
+        });
       } else {
         // Create new template
         // Generate a thumbnail URL (placeholder for now)
@@ -232,21 +270,101 @@ function EditorContent() {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('[EditorPage] Insert error:', error);
+          throw error;
+        }
+        if (!data) {
+          throw new Error('No data returned after template creation');
+        }
         setTemplateId(data.id);
-        console.log('[EditorPage] New template created successfully');
+        console.log('[EditorPage] New template created successfully', {
+          newTemplateId: data.id,
+          templateName,
+          htmlLength: html.length
+        });
       }
 
+      // Show success message
+      toast({
+        title: "Template saved successfully!",
+        description: shouldExit ? "Redirecting to templates..." : "Your changes have been saved.",
+        variant: "default",
+      });
+      
       // If shouldExit is true, navigate back to templates
       if (shouldExit) {
-        router.push('/templates?view=my-templates');
-      } else {
-        // Show success message
-        alert('Template saved successfully!');
+        setTimeout(() => {
+          router.push('/templates?view=my-templates');
+        }, 1000);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('[EditorPage] Error saving template:', error);
-      alert('Failed to save template. Please try again.');
+      
+      // Check if this is a retryable error and we haven't exceeded retry limit
+      const isRetryableError = error?.message?.includes('network') || 
+                              error?.message?.includes('timeout') || 
+                              error?.code === 'PGRST301' ||
+                              error?.message?.includes('502') ||
+                              error?.message?.includes('503');
+      
+      if (isRetryableError && retryCount < 3) {
+        console.log('[EditorPage] Retrying save operation, attempt:', retryCount + 1);
+        setSaveRetryCount(retryCount + 1);
+        
+        toast({
+          title: "Save failed, retrying...",
+          description: `Attempt ${retryCount + 1} of 3`,
+          variant: "default",
+        });
+        
+        // Wait a moment before retrying with exponential backoff
+        setTimeout(() => {
+          handleSave(design, html, shouldExit, retryCount + 1);
+        }, Math.pow(2, retryCount) * 1000); // 1s, 2s, 4s delays
+        
+        return;
+      }
+      
+      // Reset retry count
+      setSaveRetryCount(0);
+      
+      // Provide more detailed error messages
+      let errorMessage = 'Failed to save template.';
+      
+      if (error?.message?.includes('auth')) {
+        errorMessage = 'Authentication error. Please sign in again.';
+      } else if (error?.message?.includes('network')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error?.code === '23505') {
+        errorMessage = 'A template with this name already exists.';
+      } else if (error?.code === 'PGRST301') {
+        errorMessage = 'Permission denied. Please sign in again.';
+      } else if (retryCount > 0) {
+        errorMessage = `Failed to save after ${retryCount + 1} attempts. ${error?.message || ''}`;
+      } else if (error?.message) {
+        errorMessage = `Error: ${error.message}`;
+      }
+      
+      toast({
+        title: "Failed to save template",
+        description: errorMessage,
+        variant: "destructive"
+      });
+      
+      // Log detailed error info for debugging
+      console.error('[EditorPage] Detailed error info:', {
+        error,
+        templateId,
+        templateName,
+        userId: user?.id,
+        isNewTemplate: !templateId || templateId.startsWith('mock-'),
+        errorCode: error?.code,
+        errorMessage: error?.message,
+        errorDetails: error?.details,
+        retryCount,
+        isRetryableError
+      });
     } finally {
       setIsSaving(false);
     }
@@ -304,20 +422,74 @@ function EditorContent() {
   }, []);
 
   // Handle save actions from the header
-  const handleSaveAndExit = () => {
-    if (editorRef && editorRef.exportHtml) {
-      editorRef.exportHtml((data: any) => {
-        const { design, html } = data;
-        handleSave(design, html, true);
+  const handleSaveAndExit = async () => {
+    if (!editorRef || !editorRef.exportHtml) {
+      toast({
+        title: "Editor not ready",
+        description: "Please wait for the editor to load and try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        editorRef.exportHtml((data: any) => {
+          try {
+            const { design, html } = data;
+            if (!design || !html) {
+              reject(new Error('Invalid template data'));
+              return;
+            }
+            handleSave(design, html, true);
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        });
+      });
+    } catch (error) {
+      console.error('[EditorPage] Error in handleSaveAndExit:', error);
+      toast({
+        title: "Failed to save",
+        description: "Please try again.",
+        variant: "destructive"
       });
     }
   };
 
-  const handleSaveAsTemplate = () => {
-    if (editorRef && editorRef.exportHtml) {
-      editorRef.exportHtml((data: any) => {
-        const { design, html } = data;
-        handleSave(design, html, false);
+  const handleSaveAsTemplate = async () => {
+    if (!editorRef || !editorRef.exportHtml) {
+      toast({
+        title: "Editor not ready",
+        description: "Please wait for the editor to load and try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        editorRef.exportHtml((data: any) => {
+          try {
+            const { design, html } = data;
+            if (!design || !html) {
+              reject(new Error('Invalid template data'));
+              return;
+            }
+            handleSave(design, html, false);
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        });
+      });
+    } catch (error) {
+      console.error('[EditorPage] Error in handleSaveAsTemplate:', error);
+      toast({
+        title: "Failed to save",
+        description: "Please try again.",
+        variant: "destructive"
       });
     }
   };
@@ -328,17 +500,45 @@ function EditorContent() {
     }
   };
 
-  const handleCopyHTML = () => {
-    if (editorRef && editorRef.exportHtml) {
-      editorRef.exportHtml(async (data: any) => {
-        const { html } = data;
-        try {
-          await copyHTMLToClipboard(html);
-          // Also update templateHtml for SendTestEmail
-          setTemplateHtml(html);
-        } catch (error) {
-          console.error('Failed to copy HTML:', error);
-        }
+  const handleCopyHTML = async () => {
+    if (!editorRef || !editorRef.exportHtml) {
+      toast({
+        title: "Editor not ready",
+        description: "Please wait for the editor to load and try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        editorRef.exportHtml(async (data: any) => {
+          try {
+            const { html } = data;
+            if (!html) {
+              reject(new Error('No HTML data'));
+              return;
+            }
+            await copyHTMLToClipboard(html);
+            // Also update templateHtml for SendTestEmail
+            setTemplateHtml(html);
+            toast({
+              title: "HTML copied!",
+              description: "The HTML has been copied to your clipboard.",
+              variant: "default"
+            });
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        });
+      });
+    } catch (error) {
+      console.error('[EditorPage] Error copying HTML:', error);
+      toast({
+        title: "Failed to copy HTML",
+        description: "Please try again.",
+        variant: "destructive"
       });
     }
   };
@@ -441,7 +641,14 @@ function EditorContent() {
                   disabled={isSaving}
                 >
                   <Save className="w-4 h-4" />
-                  {isSaving ? 'Saving...' : 'Save & Exit'}
+                  {isSaving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    'Save & Exit'
+                  )}
                   <ChevronDown className="w-4 h-4 ml-1" />
                 </Button>
               </DropdownMenuTrigger>

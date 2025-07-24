@@ -686,31 +686,49 @@ export function UnlayerWrapperFixed({
   }, []);
 
 
-  const handleExport = () => {
+  const handleExport = async () => {
     console.log('[UnlayerFixed] handleExport called');
     if (!editorRef.current) {
       console.error('[UnlayerFixed] No editor reference');
       return;
     }
 
-    console.log('[UnlayerFixed] Calling exportHtml...');
-    editorRef.current.exportHtml((data: any) => {
-      const { design, html } = data;
-      console.log('[UnlayerFixed] Exported:', { 
-        designSize: JSON.stringify(design).length,
-        htmlSize: html.length 
+    try {
+      console.log('[UnlayerFixed] Calling exportHtml...');
+      await new Promise<void>((resolve, reject) => {
+        editorRef.current.exportHtml((data: any) => {
+          try {
+            const { design, html } = data;
+            
+            if (!design || !html) {
+              reject(new Error('Invalid export data'));
+              return;
+            }
+            
+            console.log('[UnlayerFixed] Exported:', { 
+              designSize: JSON.stringify(design).length,
+              htmlSize: html.length 
+            });
+            
+            if (onSave) {
+              console.log('[UnlayerFixed] Calling onSave callback...');
+              onSave(design, html);
+            } else {
+              console.warn('[UnlayerFixed] No onSave callback provided');
+            }
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        });
       });
-      
-      if (onSave) {
-        console.log('[UnlayerFixed] Calling onSave callback...');
-        onSave(design, html);
-      } else {
-        console.warn('[UnlayerFixed] No onSave callback provided');
-      }
-    });
+    } catch (error) {
+      console.error('[UnlayerFixed] Error in handleExport:', error);
+      throw error; // Re-throw to be handled by caller
+    }
   };
 
-  const handleSaveDesign = () => {
+  const handleSaveDesign = async () => {
     console.log('[UnlayerFixed] Save button clicked');
     if (!editorRef.current) {
       console.error('[UnlayerFixed] No editor reference');
@@ -718,15 +736,28 @@ export function UnlayerWrapperFixed({
       return;
     }
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[UnlayerFixed] Getting design...');
-    }
-    editorRef.current.saveDesign((design: any) => {
+    try {
       if (process.env.NODE_ENV === 'development') {
-        console.log('[UnlayerFixed] Design obtained:', design);
+        console.log('[UnlayerFixed] Getting design...');
       }
-      handleExport();
-    });
+      
+      await new Promise<void>((resolve, reject) => {
+        editorRef.current.saveDesign((design: any) => {
+          try {
+            if (process.env.NODE_ENV === 'development') {
+              console.log('[UnlayerFixed] Design obtained:', design);
+            }
+            handleExport();
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        });
+      });
+    } catch (error) {
+      console.error('[UnlayerFixed] Error in handleSaveDesign:', error);
+      alert('Failed to save template. Please try again.');
+    }
   };
 
   return (
