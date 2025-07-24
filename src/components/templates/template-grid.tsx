@@ -446,6 +446,12 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
         throw error;
       }
 
+      console.log('[TemplateGrid] Fetched templates:', {
+        count: data?.length || 0,
+        category: selectedCategory,
+        showUserTemplates
+      });
+      
       setTemplates(data || []);
       setError(null);
     } catch (error: any) {
@@ -467,7 +473,7 @@ export function TemplateGrid({ category, showUserTemplates = false, onViewModeCh
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory, searchQuery, user, showUserTemplates, templates.length]);
+  }, [selectedCategory, searchQuery, user, showUserTemplates]);
 
   useEffect(() => {
     // Clear templates when switching between views

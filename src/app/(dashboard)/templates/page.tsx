@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { TemplateGrid } from '@/components/templates/template-grid';
-import { TemplateDebug } from '@/components/templates/template-grid-debug';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,9 +37,6 @@ function TemplatesContent() {
           onViewModeChange={setViewMode}
         />
       </div>
-      
-      {/* Temporary debug component */}
-      <TemplateDebug />
     </div>
   );
 }
