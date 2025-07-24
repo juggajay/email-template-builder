@@ -22,11 +22,11 @@ export async function POST(request: Request) {
     // In production, check user role or specific admin flag
     
     const body = await request.json();
-    const { action } = body;
+    const { action, templateIndices } = body;
     
     switch (action) {
       case 'seed':
-        return await handleSeed(supabase, user.id);
+        return await handleSeed(supabase, user.id, templateIndices);
       case 'clear':
         return await handleClear(supabase);
       case 'stats':
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
   }
 }
 
-async function handleSeed(supabase: any, userId: string) {
+async function handleSeed(supabase: any, userId: string, templateIndices?: number[]) {
   const result = {
     success: true,
     templatesCreated: 0,
@@ -64,8 +64,21 @@ async function handleSeed(supabase: any, userId: string) {
       throw new Error(`Failed to check existing templates: ${checkError.message}`);
     }
     
-    // Process each template
-    for (const template of seedTemplates) {
+    // Determine which templates to process
+    const templatesToSeed = templateIndices 
+      ? seedTemplates.filter((_, index) => templateIndices.includes(index))
+      : seedTemplates;
+    
+    if (templatesToSeed.length === 0) {
+      return NextResponse.json({
+        success: false,
+        templatesCreated: 0,
+        errors: ['No templates selected for seeding']
+      }, { status: 400 });
+    }
+    
+    // Process each selected template
+    for (const template of templatesToSeed) {
       try {
         const emailTemplate: Omit<EmailTemplate, 'id' | 'created_at' | 'updated_at'> = {
           name: template.name,

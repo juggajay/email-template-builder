@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Database, Trash2, BarChart3, CheckCircle2, XCircle } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Loader2, Database, Trash2, BarChart3, CheckCircle2, XCircle, CheckSquare, Square } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { seedTemplates } from '@/lib/email-templates';
 
@@ -21,6 +22,7 @@ export default function SeedTemplatesPage() {
   const { user, profile, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<TemplateStats | null>(null);
+  const [selectedTemplates, setSelectedTemplates] = useState<Set<number>>(new Set());
   const [result, setResult] = useState<{
     type: 'success' | 'error' | null;
     message: string;
@@ -55,6 +57,14 @@ export default function SeedTemplatesPage() {
   };
   
   const handleSeed = async () => {
+    if (selectedTemplates.size === 0) {
+      setResult({
+        type: 'error',
+        message: 'Please select at least one template to seed'
+      });
+      return;
+    }
+    
     setLoading(true);
     setResult({ type: null, message: '' });
     
@@ -62,7 +72,10 @@ export default function SeedTemplatesPage() {
       const response = await fetch('/api/seed-templates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'seed' })
+        body: JSON.stringify({ 
+          action: 'seed',
+          templateIndices: Array.from(selectedTemplates)
+        })
       });
       
       const data = await response.json();
@@ -131,6 +144,42 @@ export default function SeedTemplatesPage() {
     } finally {
       setLoading(false);
     }
+  };
+  
+  const toggleTemplate = (index: number) => {
+    const newSelected = new Set(selectedTemplates);
+    if (newSelected.has(index)) {
+      newSelected.delete(index);
+    } else {
+      newSelected.add(index);
+    }
+    setSelectedTemplates(newSelected);
+  };
+  
+  const selectAll = () => {
+    setSelectedTemplates(new Set(seedTemplates.map((_, index) => index)));
+  };
+  
+  const deselectAll = () => {
+    setSelectedTemplates(new Set());
+  };
+  
+  const toggleCategory = (category: string) => {
+    const categoryIndices = seedTemplates
+      .map((template, index) => ({ template, index }))
+      .filter(({ template }) => template.category === category)
+      .map(({ index }) => index);
+    
+    const allSelected = categoryIndices.every(index => selectedTemplates.has(index));
+    const newSelected = new Set(selectedTemplates);
+    
+    if (allSelected) {
+      categoryIndices.forEach(index => newSelected.delete(index));
+    } else {
+      categoryIndices.forEach(index => newSelected.add(index));
+    }
+    
+    setSelectedTemplates(newSelected);
   };
   
   if (authLoading) {
@@ -213,34 +262,116 @@ export default function SeedTemplatesPage() {
         {/* Available Templates */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Database className="h-5 w-5" />
-              Available Templates
-            </CardTitle>
-            <CardDescription>
-              {seedTemplates.length} templates ready to be seeded
-            </CardDescription>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5" />
+                  Available Templates
+                </CardTitle>
+                <CardDescription>
+                  Select templates to seed ({selectedTemplates.size} of {seedTemplates.length} selected)
+                </CardDescription>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={selectAll}
+                  disabled={selectedTemplates.size === seedTemplates.length}
+                >
+                  <CheckSquare className="h-4 w-4 mr-2" />
+                  Select All
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={deselectAll}
+                  disabled={selectedTemplates.size === 0}
+                >
+                  <Square className="h-4 w-4 mr-2" />
+                  Deselect All
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {Object.entries(
-                  seedTemplates.reduce((acc, template) => {
-                    acc[template.category] = (acc[template.category] || 0) + 1;
-                    return acc;
-                  }, {} as Record<string, number>)
-                ).map(([category, count]) => (
-                  <div key={category} className="flex justify-between items-center p-3 border rounded-lg">
-                    <span className="capitalize">{category.replace('-', ' ')}</span>
-                    <Badge>{count} templates</Badge>
+            <div className="space-y-6">
+              {/* Templates by Category */}
+              {Object.entries(
+                seedTemplates.reduce((acc, template, index) => {
+                  if (!acc[template.category]) {
+                    acc[template.category] = [];
+                  }
+                  acc[template.category].push({ template, index });
+                  return acc;
+                }, {} as Record<string, Array<{ template: typeof seedTemplates[0], index: number }>>)
+              ).map(([category, items]) => {
+                const categorySelected = items.filter(({ index }) => selectedTemplates.has(index)).length;
+                const allCategorySelected = categorySelected === items.length;
+                
+                return (
+                  <div key={category} className="space-y-2">
+                    <div 
+                      className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                      onClick={() => toggleCategory(category)}
+                    >
+                      <Checkbox 
+                        checked={allCategorySelected}
+                        className="mr-2"
+                      />
+                      <span className="font-medium capitalize">{category.replace('-', ' ')}</span>
+                      <Badge variant="secondary">{categorySelected}/{items.length}</Badge>
+                    </div>
+                    <div className="ml-8 space-y-2">
+                      {items.map(({ template, index }) => (
+                        <div 
+                          key={index}
+                          className="flex items-start gap-3 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                          onClick={() => toggleTemplate(index)}
+                        >
+                          <Checkbox 
+                            checked={selectedTemplates.has(index)}
+                            className="mt-1"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{template.name}</span>
+                              {template.is_premium && (
+                                <Badge variant="secondary">Premium</Badge>
+                              )}
+                              <Badge variant="outline">
+                                ⭐ {template.rating}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {template.description}
+                            </p>
+                            <div className="flex gap-2 mt-2">
+                              {template.tags.slice(0, 3).map((tag, i) => (
+                                <Badge key={i} variant="outline" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                              {template.tags.length > 3 && (
+                                <Badge variant="outline" className="text-xs">
+                                  +{template.tags.length - 3} more
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
               
-              <div className="flex gap-4">
+              {/* Action Buttons */}
+              <div className="flex gap-4 pt-4 border-t">
                 <Button
                   onClick={handleSeed}
-                  disabled={loading}
+                  disabled={loading || selectedTemplates.size === 0}
                   className="flex-1"
                 >
                   {loading ? (
@@ -251,7 +382,7 @@ export default function SeedTemplatesPage() {
                   ) : (
                     <>
                       <Database className="mr-2 h-4 w-4" />
-                      Seed Templates
+                      Seed {selectedTemplates.size} Template{selectedTemplates.size !== 1 ? 's' : ''}
                     </>
                   )}
                 </Button>
