@@ -21,9 +21,9 @@ function TemplatesContent() {
   }, [viewMode]);
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full">
       {/* Header */}
-      <div>
+      <div className="mb-6">
         <h1 className="text-3xl font-bold text-zebra-black">Templates Library</h1>
         <p className="text-gray-700 mt-2">
           Choose from our collection of email templates
@@ -31,10 +31,12 @@ function TemplatesContent() {
       </div>
 
       {/* Templates grid with integrated filters */}
-      <TemplateGrid 
-        showUserTemplates={viewMode === 'my-templates'}
-        onViewModeChange={setViewMode}
-      />
+      <div className="flex-1 overflow-y-auto">
+        <TemplateGrid 
+          showUserTemplates={viewMode === 'my-templates'}
+          onViewModeChange={setViewMode}
+        />
+      </div>
     </div>
   );
 }

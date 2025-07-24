@@ -118,7 +118,7 @@ export function VirtualTemplateGrid({
   );
 
   return (
-    <div className="h-full w-full min-h-[600px]">
+    <div className="h-full w-full">
       <AutoSizer>
         {({ height, width }) => (
           <Grid
@@ -143,27 +143,21 @@ export function VirtualTemplateGrid({
 export function OptimizedTemplateGrid(props: VirtualTemplateGridProps & { enableVirtualization?: boolean }) {
   const { enableVirtualization = true, ...gridProps } = props;
   
-  // Use virtual scrolling only for large lists
-  const shouldVirtualize = enableVirtualization && gridProps.templates.length > 20;
-  
-  if (!shouldVirtualize) {
-    // Render regular grid for small lists
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {gridProps.templates.map((template) => (
-          <TemplateCard
-            key={template.id}
-            template={template as any}
-            onSelect={gridProps.onSelect}
-            onPreview={gridProps.onPreview}
-            onDelete={gridProps.onDelete}
-            showUserTemplates={gridProps.showUserTemplates}
-            getCategoryColor={gridProps.getCategoryColor}
-          />
-        ))}
-      </div>
-    );
-  }
-  
-  return <VirtualTemplateGrid {...gridProps} />;
+  // Always use regular grid for better UX (no horizontal scrolling)
+  // Virtual scrolling can be re-enabled later if needed for very large lists
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {gridProps.templates.map((template) => (
+        <TemplateCard
+          key={template.id}
+          template={template as any}
+          onSelect={gridProps.onSelect}
+          onPreview={gridProps.onPreview}
+          onDelete={gridProps.onDelete}
+          showUserTemplates={gridProps.showUserTemplates}
+          getCategoryColor={gridProps.getCategoryColor}
+        />
+      ))}
+    </div>
+  );
 }

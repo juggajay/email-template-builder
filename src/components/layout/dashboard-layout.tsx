@@ -214,9 +214,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className="lg:pl-64 flex flex-col h-screen">
         {/* Top bar */}
-        <div className="flex items-center justify-between h-16 px-4 bg-white border-b border-gray-200 lg:px-6">
+        <div className="flex items-center justify-between h-16 px-4 bg-white border-b border-gray-200 lg:px-6 flex-shrink-0">
           <Button
             variant="ghost"
             size="sm"
@@ -255,7 +255,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         {/* Page content */}
-        <main className="flex-1 p-4 lg:p-6">
+        <main className="flex-1 p-4 lg:p-6 overflow-y-auto">
           {children}
         </main>
       </div>
