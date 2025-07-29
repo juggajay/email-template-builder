@@ -779,11 +779,20 @@ function EditorContent() {
                   onDesignLoad={() => {
                     console.log('[EditorPage] Design loaded');
                     // Export HTML when design loads
-                    if (editorRef && editorRef.exportHtml) {
-                      editorRef.exportHtml((data: any) => {
-                        setTemplateHtml(data.html);
-                      });
-                    }
+                    // Use a timeout to ensure editorRef is available
+                    setTimeout(() => {
+                      if (editorRef && editorRef.exportHtml) {
+                        console.log('[EditorPage] Exporting HTML after design load');
+                        editorRef.exportHtml((data: any) => {
+                          if (data && data.html) {
+                            console.log('[EditorPage] Setting templateHtml:', data.html.length, 'chars');
+                            setTemplateHtml(data.html);
+                          }
+                        });
+                      } else {
+                        console.warn('[EditorPage] No editorRef available on design load');
+                      }
+                    }, 1000);
                   }}
                   onSave={handleSave}
                   onDesignUpdate={(design, html) => {

@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { PreviewDataEditor } from '../editor/merge-tags-enhanced/preview-data';
 import { processEmailImages, validateEmailImages, addImageDimensions } from '@/lib/email/image-processor';
+import { safeProcessEmailImages, safeAddImageDimensions } from '@/lib/email/image-processor-safe';
 
 interface SendTestEmailProps {
   templateHtml?: string;
@@ -227,6 +228,13 @@ export function SendTestEmail({
       // Get the current HTML from the editor if available
       let htmlToSend = templateHtml;
       
+      console.log('[SendTestEmail] Starting email send:', {
+        hasTemplateHtml: !!templateHtml,
+        templateHtmlLength: templateHtml?.length || 0,
+        hasEditorRef: !!editorRef,
+        hasExportHtml: !!(editorRef && editorRef.exportHtml)
+      });
+      
       if (editorRef && editorRef.exportHtml) {
         console.log('[SendTestEmail] Exporting current HTML from editor...');
         try {
@@ -237,46 +245,44 @@ export function SendTestEmail({
               reject(new Error('Export timeout'));
             }, 5000);
             
-            // Export with options to ensure proper formatting
-            const exportOptions = {
-              cleanup: true,
-              minify: false
-            };
-            
-            editorRef.exportHtml(exportOptions, (data: any) => {
+            editorRef.exportHtml((data: any) => {
               clearTimeout(timeoutId); // Clear timeout if export succeeds
-              try {
-                if (data && data.html) {
-                  // Process HTML to ensure all images have absolute URLs
-                  const imageProcessingResult = processEmailImages(data.html, {
-                    logDetails: true
-                  });
+              
+              if (data && data.html) {
+                // Store the original HTML first
+                htmlToSend = data.html;
+                console.log('[SendTestEmail] Exported HTML length:', htmlToSend.length);
+                
+                // Try to process images using the safer version
+                try {
+                  console.log('[SendTestEmail] Processing images...');
+                  const safeResult = safeProcessEmailImages(htmlToSend);
                   
-                  // Add image dimensions for better email client support
-                  htmlToSend = addImageDimensions(imageProcessingResult.html);
-                  
-                  // Validate images
-                  const validation = validateEmailImages(htmlToSend);
-                  if (!validation.valid) {
-                    console.warn('[SendTestEmail] Image validation issues:', validation.issues);
+                  if (safeResult.errors.length > 0) {
+                    console.warn('[SendTestEmail] Image processing warnings:', safeResult.errors);
                   }
                   
-                  console.log('[SendTestEmail] Export complete:', {
-                    htmlLength: htmlToSend.length,
-                    imageCount: imageProcessingResult.imageCount,
-                    processedImages: imageProcessingResult.processedImages.length,
-                    validationIssues: validation.issues
-                  });
-                  
-                  resolve();
-                } else {
-                  console.error('[SendTestEmail] No HTML data from export');
-                  reject(new Error('Failed to export HTML'));
+                  // Only use processed HTML if it's valid and not corrupted
+                  if (safeResult.html && safeResult.html.length >= htmlToSend.length * 0.8) {
+                    htmlToSend = safeAddImageDimensions(safeResult.html);
+                    console.log('[SendTestEmail] Image processing complete:', {
+                      originalLength: data.html.length,
+                      processedLength: htmlToSend.length,
+                      imageCount: safeResult.imageCount
+                    });
+                  } else {
+                    console.warn('[SendTestEmail] Processed HTML seems corrupted, using original');
+                  }
+                } catch (imageError) {
+                  console.error('[SendTestEmail] Image processing error:', imageError);
+                  // Keep using the original HTML
                 }
-              } catch (error) {
-                console.error('[SendTestEmail] Error processing HTML:', error);
-                // Still use the original HTML if processing fails
-                htmlToSend = data?.html || templateHtml;
+                
+                resolve();
+              } else {
+                console.error('[SendTestEmail] No HTML data from export');
+                // Don't reject, try to use templateHtml instead
+                htmlToSend = templateHtml;
                 resolve();
               }
             });
@@ -290,30 +296,33 @@ export function SendTestEmail({
         console.log('[SendTestEmail] Using templateHtml prop, length:', htmlToSend.length);
         
         // Process templateHtml to ensure absolute URLs
-        if (htmlToSend) {
+        if (htmlToSend && htmlToSend.length > 0) {
           try {
-            const imageProcessingResult = processEmailImages(htmlToSend, {
-              logDetails: true
-            });
+            console.log('[SendTestEmail] Processing templateHtml images...');
+            const safeResult = safeProcessEmailImages(htmlToSend);
             
-            // Add image dimensions for better email client support
-            htmlToSend = addImageDimensions(imageProcessingResult.html);
-            
-            // Validate images
-            const validation = validateEmailImages(htmlToSend);
-            if (!validation.valid) {
-              console.warn('[SendTestEmail] Image validation issues:', validation.issues);
+            if (safeResult.errors.length > 0) {
+              console.warn('[SendTestEmail] Template image processing warnings:', safeResult.errors);
             }
             
-            console.log('[SendTestEmail] Template HTML processed:', {
-              imageCount: imageProcessingResult.imageCount,
-              processedImages: imageProcessingResult.processedImages.length,
-              validationIssues: validation.issues
-            });
+            // Only use processed HTML if it's valid
+            if (safeResult.html && safeResult.html.length >= htmlToSend.length * 0.8) {
+              const originalLength = htmlToSend.length;
+              htmlToSend = safeAddImageDimensions(safeResult.html);
+              console.log('[SendTestEmail] Template HTML processed:', {
+                originalLength,
+                processedLength: htmlToSend.length,
+                imageCount: safeResult.imageCount
+              });
+            } else {
+              console.warn('[SendTestEmail] Template processed HTML seems corrupted, using original');
+            }
           } catch (error) {
             console.error('[SendTestEmail] Error processing template HTML:', error);
             // Continue with original HTML if processing fails
           }
+        } else {
+          console.warn('[SendTestEmail] No templateHtml to process');
         }
       }
 
