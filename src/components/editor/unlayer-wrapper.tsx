@@ -275,7 +275,7 @@ export function UnlayerWrapper({
                 headers: [],
                 footers: [],
                 values: {
-                  backgroundColor: '',
+                  backgroundColor: '#f4f4f4',
                   backgroundImage: {
                     url: '',
                     fullWidth: true,

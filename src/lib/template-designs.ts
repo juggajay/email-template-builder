@@ -604,18 +604,58 @@ export function getTemplateDesign(templateName: string): any {
   const normalizedName = templateName.toLowerCase();
   
   // Try to find a matching category
+  let selectedDesign = null;
   for (const [key, category] of Object.entries(categoryMap)) {
     if (normalizedName.includes(key)) {
-      return templateDesigns[category];
+      selectedDesign = templateDesigns[category];
+      break;
     }
   }
 
   // If no specific match, return a default based on keywords
-  if (normalizedName.includes('cart')) return templateDesigns['abandoned-cart'];
-  if (normalizedName.includes('welcome')) return templateDesigns['welcome'];
-  if (normalizedName.includes('order') || normalizedName.includes('confirm')) return templateDesigns['order-confirmation'];
-  if (normalizedName.includes('launch') || normalizedName.includes('new')) return templateDesigns['product-launch'];
-  
-  // Default to promotional
-  return templateDesigns['promotional'];
+  if (!selectedDesign) {
+    if (normalizedName.includes('cart')) selectedDesign = templateDesigns['abandoned-cart'];
+    else if (normalizedName.includes('welcome')) selectedDesign = templateDesigns['welcome'];
+    else if (normalizedName.includes('order') || normalizedName.includes('confirm')) selectedDesign = templateDesigns['order-confirmation'];
+    else if (normalizedName.includes('launch') || normalizedName.includes('new')) selectedDesign = templateDesigns['product-launch'];
+    else selectedDesign = templateDesigns['promotional'];
+  }
+
+  // Ensure the design has proper body values structure with background color
+  const completeDesign = {
+    body: {
+      ...selectedDesign.body,
+      values: {
+        backgroundColor: '#f4f4f4', // Default light gray background
+        backgroundImage: {
+          url: '',
+          fullWidth: true,
+          repeat: false,
+          center: true,
+          cover: false
+        },
+        contentWidth: '600px',
+        contentAlign: 'center',
+        fontFamily: {
+          label: 'Arial',
+          value: 'arial,helvetica,sans-serif'
+        },
+        preheaderText: '',
+        linkStyle: {
+          body: true,
+          linkColor: '#0000ee',
+          linkHoverColor: '#0000ee',
+          linkUnderline: true,
+          linkHoverUnderline: true
+        },
+        _meta: {
+          htmlID: 'u_body',
+          htmlClassNames: 'u_body'
+        }
+      }
+    },
+    schemaVersion: 8
+  };
+
+  return completeDesign;
 }
