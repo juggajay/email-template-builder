@@ -690,6 +690,7 @@ function EditorContent() {
             </Button>
             <SendTestEmail 
               templateHtml={templateHtml}
+              editorRef={editorRef}
               templateSubject={`Preview: ${templateName}`}
               onEmailSent={(result) => {
                 console.log('Test email sent:', result);

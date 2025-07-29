@@ -41,6 +41,7 @@ import { PreviewDataEditor } from '../editor/merge-tags-enhanced/preview-data';
 interface SendTestEmailProps {
   templateHtml?: string;
   templateSubject?: string;
+  editorRef?: any;
   onEmailSent?: (result: any) => void;
 }
 
@@ -61,6 +62,7 @@ const commonTestEmails = [
 export function SendTestEmail({ 
   templateHtml = '', 
   templateSubject = '',
+  editorRef,
   onEmailSent 
 }: SendTestEmailProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -216,16 +218,38 @@ export function SendTestEmail({
       return;
     }
 
-    if (!templateHtml.trim()) {
-      alert('No template content to send');
-      return;
-    }
-
     setLoading(true);
     setResult(null);
     setRateLimitWarning(null);
 
     try {
+      // Get the current HTML from the editor if available
+      let htmlToSend = templateHtml;
+      
+      if (editorRef && editorRef.exportHtml) {
+        console.log('[SendTestEmail] Exporting current HTML from editor...');
+        await new Promise<void>((resolve, reject) => {
+          editorRef.exportHtml((data: any) => {
+            if (data && data.html) {
+              htmlToSend = data.html;
+              console.log('[SendTestEmail] Exported HTML length:', htmlToSend.length);
+              resolve();
+            } else {
+              console.error('[SendTestEmail] No HTML data from export');
+              reject(new Error('Failed to export HTML'));
+            }
+          });
+        });
+      } else {
+        console.log('[SendTestEmail] Using templateHtml prop, length:', htmlToSend.length);
+      }
+
+      if (!htmlToSend || htmlToSend.trim().length === 0) {
+        alert('No template content to send. Please add some content to your template.');
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch('/api/email/test', {
         method: 'POST',
         headers: {
@@ -233,7 +257,7 @@ export function SendTestEmail({
         },
         body: JSON.stringify({
           to: testEmail,
-          html: templateHtml,
+          html: htmlToSend,
           templateData: previewData,
           provider,
           subject
@@ -449,7 +473,7 @@ export function SendTestEmail({
           </Card>
 
           {/* Template Preview */}
-          {templateHtml && (
+          {(templateHtml || editorRef) && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -462,7 +486,7 @@ export function SendTestEmail({
                   <div 
                     className="bg-white p-4 rounded shadow-sm"
                     dangerouslySetInnerHTML={{ 
-                      __html: templateHtml 
+                      __html: templateHtml || '<p class="text-gray-500">Loading preview...</p>' 
                     }}
                   />
                 </div>
@@ -519,7 +543,7 @@ export function SendTestEmail({
             </Button>
             <Button
               onClick={sendTestEmail}
-              disabled={loading || !validateEmail(testEmail) || !templateHtml.trim()}
+              disabled={loading || !validateEmail(testEmail) || (!templateHtml?.trim() && !editorRef)}
               className="flex items-center gap-2"
             >
               {loading ? (
