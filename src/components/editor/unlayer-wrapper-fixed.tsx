@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState, memo } from 'react';
 import { mergeTags } from '@/lib/merge-tags';
 import { registerShopifyBlocks, hasShopifyConnection, loadShopifyProducts } from '@/lib/editor/shopify-blocks';
+import { processEmailImages, addImageDimensions } from '@/lib/email/image-processor';
 import './editor-styles.css';
 
 declare global {
@@ -163,14 +164,22 @@ export function UnlayerWrapperFixed({
             maxRows: null,
             autoSelectOnDrop: true
           },
-          // Ensure drag and drop is enabled
+          // Ensure drag and drop is enabled and configure export options
           options: {
             allowDragDrop: true,
             allowRowDragDrop: true,
-            allowContentDragDrop: true
+            allowContentDragDrop: true,
+            // Force absolute URLs for all assets
+            baseUrl: typeof window !== 'undefined' ? window.location.origin : 'https://app.zebamail.com',
+            assetsUrl: typeof window !== 'undefined' ? window.location.origin : 'https://app.zebamail.com'
           },
           // Comprehensive merge tags for e-commerce
           mergeTags: mergeTags,
+          // Configure export options for proper image handling
+          projectId: 1, // Required for some features
+          validator: {
+            enabled: true
+          },
           // ZebaMail Branded Styles
           customCSS: `
             /* Remove blue backgrounds and add green theme */
@@ -696,7 +705,13 @@ export function UnlayerWrapperFixed({
     try {
       console.log('[UnlayerFixed] Calling exportHtml...');
       await new Promise<void>((resolve, reject) => {
-        editorRef.current.exportHtml((data: any) => {
+        // Export with options to ensure absolute URLs
+        const exportOptions = {
+          cleanup: true,
+          minify: false
+        };
+        
+        editorRef.current.exportHtml(exportOptions, (data: any) => {
           try {
             const { design, html } = data;
             
@@ -705,14 +720,24 @@ export function UnlayerWrapperFixed({
               return;
             }
             
+            // Process HTML to ensure all image URLs are absolute
+            const imageProcessingResult = processEmailImages(html, {
+              logDetails: process.env.NODE_ENV === 'development'
+            });
+            
+            // Add image dimensions for better email client support
+            let processedHtml = addImageDimensions(imageProcessingResult.html);
+            
             console.log('[UnlayerFixed] Exported:', { 
               designSize: JSON.stringify(design).length,
-              htmlSize: html.length 
+              htmlSize: processedHtml.length,
+              imageCount: imageProcessingResult.imageCount,
+              processedImages: imageProcessingResult.processedImages.length
             });
             
             if (onSave) {
               console.log('[UnlayerFixed] Calling onSave callback...');
-              onSave(design, html);
+              onSave(design, processedHtml);
             } else {
               console.warn('[UnlayerFixed] No onSave callback provided');
             }

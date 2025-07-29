@@ -37,6 +37,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { PreviewDataEditor } from '../editor/merge-tags-enhanced/preview-data';
+import { processEmailImages, validateEmailImages, addImageDimensions } from '@/lib/email/image-processor';
 
 interface SendTestEmailProps {
   templateHtml?: string;
@@ -229,10 +230,35 @@ export function SendTestEmail({
       if (editorRef && editorRef.exportHtml) {
         console.log('[SendTestEmail] Exporting current HTML from editor...');
         await new Promise<void>((resolve, reject) => {
-          editorRef.exportHtml((data: any) => {
+          // Export with options to ensure proper formatting
+          const exportOptions = {
+            cleanup: true,
+            minify: false
+          };
+          
+          editorRef.exportHtml(exportOptions, (data: any) => {
             if (data && data.html) {
-              htmlToSend = data.html;
-              console.log('[SendTestEmail] Exported HTML length:', htmlToSend.length);
+              // Process HTML to ensure all images have absolute URLs
+              const imageProcessingResult = processEmailImages(data.html, {
+                logDetails: true
+              });
+              
+              // Add image dimensions for better email client support
+              htmlToSend = addImageDimensions(imageProcessingResult.html);
+              
+              // Validate images
+              const validation = validateEmailImages(htmlToSend);
+              if (!validation.valid) {
+                console.warn('[SendTestEmail] Image validation issues:', validation.issues);
+              }
+              
+              console.log('[SendTestEmail] Export complete:', {
+                htmlLength: htmlToSend.length,
+                imageCount: imageProcessingResult.imageCount,
+                processedImages: imageProcessingResult.processedImages.length,
+                validationIssues: validation.issues
+              });
+              
               resolve();
             } else {
               console.error('[SendTestEmail] No HTML data from export');
@@ -242,6 +268,28 @@ export function SendTestEmail({
         });
       } else {
         console.log('[SendTestEmail] Using templateHtml prop, length:', htmlToSend.length);
+        
+        // Process templateHtml to ensure absolute URLs
+        if (htmlToSend) {
+          const imageProcessingResult = processEmailImages(htmlToSend, {
+            logDetails: true
+          });
+          
+          // Add image dimensions for better email client support
+          htmlToSend = addImageDimensions(imageProcessingResult.html);
+          
+          // Validate images
+          const validation = validateEmailImages(htmlToSend);
+          if (!validation.valid) {
+            console.warn('[SendTestEmail] Image validation issues:', validation.issues);
+          }
+          
+          console.log('[SendTestEmail] Template HTML processed:', {
+            imageCount: imageProcessingResult.imageCount,
+            processedImages: imageProcessingResult.processedImages.length,
+            validationIssues: validation.issues
+          });
+        }
       }
 
       if (!htmlToSend || htmlToSend.trim().length === 0) {
