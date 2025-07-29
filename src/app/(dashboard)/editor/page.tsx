@@ -78,15 +78,21 @@ function EditorContent() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveRetryCount, setSaveRetryCount] = useState(0);
   const [editorRef, setEditorRef] = useState<any>(null);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    // Don't attempt to load templates until auth state is ready
+    if (authLoading) {
+      console.log('[EditorPage] Waiting for auth to load...');
+      return;
+    }
+
     // Get template ID from URL
     const templateParam = searchParams.get('template');
-    console.log('[EditorPage] Template param:', templateParam);
+    console.log('[EditorPage] Template param:', templateParam, 'User:', user?.id);
     
     if (templateParam) {
       setTemplateId(templateParam);
@@ -95,7 +101,7 @@ function EditorContent() {
       // No template specified, start with blank
       setIsReady(true);
     }
-  }, [searchParams]);
+  }, [searchParams, authLoading, user]);
 
   const loadTemplate = async (id: string) => {
     console.log('[EditorPage] Loading template:', id);
@@ -129,6 +135,7 @@ function EditorContent() {
       let error = null;
       
       if (user) {
+        console.log('[EditorPage] Checking user_templates for template:', id, 'user:', user.id);
         const userResult = await supabase
           .from('user_templates')
           .select('*')
@@ -138,12 +145,17 @@ function EditorContent() {
         
         if (userResult.data && !userResult.error) {
           data = userResult.data;
-          console.log('[EditorPage] Loaded user template');
+          console.log('[EditorPage] Successfully loaded user template:', data.name);
+        } else if (userResult.error) {
+          console.log('[EditorPage] User template not found or error:', userResult.error.message);
         }
+      } else {
+        console.log('[EditorPage] No user logged in, skipping user_templates check');
       }
       
       // If no user template found, try loading from public templates
       if (!data) {
+        console.log('[EditorPage] Checking email_templates for template:', id);
         const publicResult = await supabase
           .from('email_templates')
           .select('*')
@@ -152,7 +164,11 @@ function EditorContent() {
         
         data = publicResult.data;
         error = publicResult.error;
-        console.log('[EditorPage] Loaded public template');
+        if (data) {
+          console.log('[EditorPage] Successfully loaded public template:', data.name);
+        } else if (error) {
+          console.log('[EditorPage] Public template not found or error:', error.message);
+        }
       }
 
       if (data && !error) {
