@@ -229,66 +229,91 @@ export function SendTestEmail({
       
       if (editorRef && editorRef.exportHtml) {
         console.log('[SendTestEmail] Exporting current HTML from editor...');
-        await new Promise<void>((resolve, reject) => {
-          // Export with options to ensure proper formatting
-          const exportOptions = {
-            cleanup: true,
-            minify: false
-          };
-          
-          editorRef.exportHtml(exportOptions, (data: any) => {
-            if (data && data.html) {
-              // Process HTML to ensure all images have absolute URLs
-              const imageProcessingResult = processEmailImages(data.html, {
-                logDetails: true
-              });
-              
-              // Add image dimensions for better email client support
-              htmlToSend = addImageDimensions(imageProcessingResult.html);
-              
-              // Validate images
-              const validation = validateEmailImages(htmlToSend);
-              if (!validation.valid) {
-                console.warn('[SendTestEmail] Image validation issues:', validation.issues);
+        try {
+          await new Promise<void>((resolve, reject) => {
+            // Set a timeout to prevent hanging
+            const timeoutId = setTimeout(() => {
+              console.error('[SendTestEmail] Export timeout after 5 seconds');
+              reject(new Error('Export timeout'));
+            }, 5000);
+            
+            // Export with options to ensure proper formatting
+            const exportOptions = {
+              cleanup: true,
+              minify: false
+            };
+            
+            editorRef.exportHtml(exportOptions, (data: any) => {
+              clearTimeout(timeoutId); // Clear timeout if export succeeds
+              try {
+                if (data && data.html) {
+                  // Process HTML to ensure all images have absolute URLs
+                  const imageProcessingResult = processEmailImages(data.html, {
+                    logDetails: true
+                  });
+                  
+                  // Add image dimensions for better email client support
+                  htmlToSend = addImageDimensions(imageProcessingResult.html);
+                  
+                  // Validate images
+                  const validation = validateEmailImages(htmlToSend);
+                  if (!validation.valid) {
+                    console.warn('[SendTestEmail] Image validation issues:', validation.issues);
+                  }
+                  
+                  console.log('[SendTestEmail] Export complete:', {
+                    htmlLength: htmlToSend.length,
+                    imageCount: imageProcessingResult.imageCount,
+                    processedImages: imageProcessingResult.processedImages.length,
+                    validationIssues: validation.issues
+                  });
+                  
+                  resolve();
+                } else {
+                  console.error('[SendTestEmail] No HTML data from export');
+                  reject(new Error('Failed to export HTML'));
+                }
+              } catch (error) {
+                console.error('[SendTestEmail] Error processing HTML:', error);
+                // Still use the original HTML if processing fails
+                htmlToSend = data?.html || templateHtml;
+                resolve();
               }
-              
-              console.log('[SendTestEmail] Export complete:', {
-                htmlLength: htmlToSend.length,
-                imageCount: imageProcessingResult.imageCount,
-                processedImages: imageProcessingResult.processedImages.length,
-                validationIssues: validation.issues
-              });
-              
-              resolve();
-            } else {
-              console.error('[SendTestEmail] No HTML data from export');
-              reject(new Error('Failed to export HTML'));
-            }
+            });
           });
-        });
+        } catch (error) {
+          console.error('[SendTestEmail] Export failed:', error);
+          // Fall back to using templateHtml if export fails
+          htmlToSend = templateHtml;
+        }
       } else {
         console.log('[SendTestEmail] Using templateHtml prop, length:', htmlToSend.length);
         
         // Process templateHtml to ensure absolute URLs
         if (htmlToSend) {
-          const imageProcessingResult = processEmailImages(htmlToSend, {
-            logDetails: true
-          });
-          
-          // Add image dimensions for better email client support
-          htmlToSend = addImageDimensions(imageProcessingResult.html);
-          
-          // Validate images
-          const validation = validateEmailImages(htmlToSend);
-          if (!validation.valid) {
-            console.warn('[SendTestEmail] Image validation issues:', validation.issues);
+          try {
+            const imageProcessingResult = processEmailImages(htmlToSend, {
+              logDetails: true
+            });
+            
+            // Add image dimensions for better email client support
+            htmlToSend = addImageDimensions(imageProcessingResult.html);
+            
+            // Validate images
+            const validation = validateEmailImages(htmlToSend);
+            if (!validation.valid) {
+              console.warn('[SendTestEmail] Image validation issues:', validation.issues);
+            }
+            
+            console.log('[SendTestEmail] Template HTML processed:', {
+              imageCount: imageProcessingResult.imageCount,
+              processedImages: imageProcessingResult.processedImages.length,
+              validationIssues: validation.issues
+            });
+          } catch (error) {
+            console.error('[SendTestEmail] Error processing template HTML:', error);
+            // Continue with original HTML if processing fails
           }
-          
-          console.log('[SendTestEmail] Template HTML processed:', {
-            imageCount: imageProcessingResult.imageCount,
-            processedImages: imageProcessingResult.processedImages.length,
-            validationIssues: validation.issues
-          });
         }
       }
 

@@ -100,13 +100,22 @@ export function processEmailImages(
 
     // Replace the src in the img tag
     if (processedSrc !== originalSrc) {
-      const newImgTag = imgTag.replace(
-        /src\s*=\s*["']([^"']+)["']/i,
-        `src="${processedSrc}"`
-      ).replace(
-        /src\s*=\s*([^\s>]+)/i,
-        `src="${processedSrc}"`
-      );
+      let newImgTag = imgTag;
+      
+      // Try to replace quoted src first
+      if (imgTag.match(/src\s*=\s*["'][^"']+["']/i)) {
+        newImgTag = imgTag.replace(
+          /src\s*=\s*["']([^"']+)["']/i,
+          `src="${processedSrc}"`
+        );
+      }
+      // Otherwise try unquoted src
+      else if (imgTag.match(/src\s*=\s*[^\s>]+/i)) {
+        newImgTag = imgTag.replace(
+          /src\s*=\s*([^\s>]+)/i,
+          `src="${processedSrc}"`
+        );
+      }
       
       processedHtml = processedHtml.replace(imgTag, newImgTag);
     }
