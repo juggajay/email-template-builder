@@ -508,7 +508,8 @@ function EditorContent() {
 
     try {
       await new Promise<void>((resolve, reject) => {
-        editorRef.exportHtml((data: any) => {
+        const exportOptions = { cleanup: true, minify: false };
+        editorRef.exportHtml(exportOptions, (data: any) => {
           try {
             const { design, html } = data;
             if (!design || !html) {
@@ -544,7 +545,8 @@ function EditorContent() {
 
     try {
       await new Promise<void>((resolve, reject) => {
-        editorRef.exportHtml((data: any) => {
+        const exportOptions = { cleanup: true, minify: false };
+        editorRef.exportHtml(exportOptions, (data: any) => {
           try {
             const { design, html } = data;
             if (!design || !html) {
@@ -586,7 +588,8 @@ function EditorContent() {
 
     try {
       await new Promise<void>((resolve, reject) => {
-        editorRef.exportHtml(async (data: any) => {
+        const exportOptions = { cleanup: true, minify: false };
+        editorRef.exportHtml(exportOptions, async (data: any) => {
           try {
             const { html } = data;
             if (!html) {
@@ -771,7 +774,8 @@ function EditorContent() {
                     setEditorRef(editor);
                     // Export initial HTML for SendTestEmail
                     if (editor && editor.exportHtml) {
-                      editor.exportHtml((data: any) => {
+                      const exportOptions = { cleanup: true, minify: false };
+                      editor.exportHtml(exportOptions, (data: any) => {
                         setTemplateHtml(data.html);
                       });
                     }
@@ -783,7 +787,8 @@ function EditorContent() {
                     setTimeout(() => {
                       if (editorRef && editorRef.exportHtml) {
                         console.log('[EditorPage] Exporting HTML after design load');
-                        editorRef.exportHtml((data: any) => {
+                        const exportOptions = { cleanup: true, minify: false };
+        editorRef.exportHtml(exportOptions, (data: any) => {
                           if (data && data.html) {
                             console.log('[EditorPage] Setting templateHtml:', data.html.length, 'chars');
                             setTemplateHtml(data.html);

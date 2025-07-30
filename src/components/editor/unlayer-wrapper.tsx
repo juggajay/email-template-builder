@@ -350,9 +350,27 @@ export function UnlayerWrapper({
   const handleExport = () => {
     if (!editorRef.current) return;
 
-    editorRef.current.exportHtml((data: any) => {
+    // Export with proper options to ensure images are included
+    const exportOptions = {
+      cleanup: true,
+      minify: false // Keep false for debugging
+    };
+
+    editorRef.current.exportHtml(exportOptions, (data: any) => {
       const { design, html } = data;
-      console.log('[UnlayerWrapper] Exported:', { design, html });
+      console.log('[UnlayerWrapper] Export options used:', exportOptions);
+      console.log('[UnlayerWrapper] Exported HTML length:', html?.length);
+      console.log('[UnlayerWrapper] HTML contains <img>:', html?.includes('<img'));
+      console.log('[UnlayerWrapper] Image count:', (html?.match(/<img/g) || []).length);
+      
+      // Log first image tag if present
+      const imgMatch = html?.match(/<img[^>]*>/);
+      if (imgMatch) {
+        console.log('[UnlayerWrapper] First img tag:', imgMatch[0]);
+      } else {
+        console.log('[UnlayerWrapper] WARNING: No img tags found in exported HTML!');
+        console.log('[UnlayerWrapper] This means Unlayer is not exporting images!');
+      }
       
       if (onSave) {
         onSave(design, html);

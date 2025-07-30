@@ -54,8 +54,15 @@ export async function POST(request: NextRequest) {
 
     const { to, subject, html, templateData, provider, trackOpens, trackClicks } = validatedData!;
 
+    // Log original HTML details
+    console.log('[Email Send] Original HTML length:', html.length);
+    console.log('[Email Send] Original HTML contains <img>:', html.includes('<img'));
+    console.log('[Email Send] Original HTML img count:', (html.match(/<img/g) || []).length);
+    
     // Sanitize HTML content
     const sanitizedHtml = sanitizeHtml(html);
+    console.log('[Email Send] After sanitization - HTML length:', sanitizedHtml.length);
+    console.log('[Email Send] After sanitization - img count:', (sanitizedHtml.match(/<img/g) || []).length);
 
     // Process images to ensure they have absolute URLs
     const processedResult = await processEmailImages(sanitizedHtml, {
@@ -63,7 +70,17 @@ export async function POST(request: NextRequest) {
       logDetails: true
     });
 
-    console.log(`[Email Send] Processing images: ${processedResult.imageCount} images found`);
+    console.log(`[Email Send] After processing - images: ${processedResult.imageCount}`);
+    console.log('[Email Send] Final HTML length:', processedResult.html.length);
+    console.log('[Email Send] Final HTML img count:', (processedResult.html.match(/<img/g) || []).length);
+    
+    // Log a sample of the HTML to see if images are present
+    const imgMatch = processedResult.html.match(/<img[^>]*>/);
+    if (imgMatch) {
+      console.log('[Email Send] Sample img tag:', imgMatch[0]);
+    } else {
+      console.log('[Email Send] WARNING: No img tags found in final HTML!');
+    }
 
     const emailService = getEmailService();
     

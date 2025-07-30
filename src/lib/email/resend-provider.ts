@@ -48,6 +48,18 @@ export class ResendProvider extends EmailProvider {
         options.trackOpens, 
         options.trackClicks
       );
+      
+      // Debug log what we're about to send
+      console.log('[Resend] About to send email');
+      console.log('[Resend] HTML length:', trackedHtml.length);
+      console.log('[Resend] HTML contains <img>:', trackedHtml.includes('<img'));
+      console.log('[Resend] Image count:', (trackedHtml.match(/<img/g) || []).length);
+      
+      // Log sample of images if present
+      const imgMatches = trackedHtml.match(/<img[^>]*>/g);
+      if (imgMatches && imgMatches.length > 0) {
+        console.log('[Resend] First img tag:', imgMatches[0]);
+      }
 
       const payload = {
         from: `${options.from.name || ''} <${options.from.email}>`.trim(),

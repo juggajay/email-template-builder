@@ -60,6 +60,11 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    
+    // Log original HTML details
+    console.log('[Test Email] Original HTML length:', html.length);
+    console.log('[Test Email] Original HTML contains <img>:', html.includes('<img'));
+    console.log('[Test Email] Original HTML img count:', (html.match(/<img/g) || []).length);
 
     // Process images to ensure they have absolute URLs
     const processedResult = await processEmailImages(html, {
@@ -67,9 +72,16 @@ export async function POST(request: NextRequest) {
       logDetails: true
     });
 
-    console.log(`[Test Email] Processing images: ${processedResult.imageCount} images found`);
-    if (processedResult.processedImages.length > 0) {
-      console.log('[Test Email] Processed images:', processedResult.processedImages);
+    console.log(`[Test Email] After processing - images: ${processedResult.imageCount}`);
+    console.log('[Test Email] Final HTML length:', processedResult.html.length);
+    console.log('[Test Email] Final HTML img count:', (processedResult.html.match(/<img/g) || []).length);
+    
+    // Log a sample of the HTML to see if images are present
+    const imgMatch = processedResult.html.match(/<img[^>]*>/);
+    if (imgMatch) {
+      console.log('[Test Email] Sample img tag:', imgMatch[0]);
+    } else {
+      console.log('[Test Email] WARNING: No img tags found in final HTML!');
     }
 
     // Check if email service is properly configured

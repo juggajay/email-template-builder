@@ -48,6 +48,18 @@ export class SendGridProvider extends EmailProvider {
         options.trackOpens, 
         options.trackClicks
       );
+      
+      // Debug log what we're about to send
+      console.log('[SendGrid] About to send email');
+      console.log('[SendGrid] HTML length:', trackedHtml.length);
+      console.log('[SendGrid] HTML contains <img>:', trackedHtml.includes('<img'));
+      console.log('[SendGrid] Image count:', (trackedHtml.match(/<img/g) || []).length);
+      
+      // Log sample of images if present
+      const imgMatches = trackedHtml.match(/<img[^>]*>/g);
+      if (imgMatches && imgMatches.length > 0) {
+        console.log('[SendGrid] First img tag:', imgMatches[0]);
+      }
 
       const payload = {
         personalizations: [{
