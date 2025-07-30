@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getEmailService, validateEmailServiceConfig } from '@/lib/email/email-service';
 import { getMockEmailService } from '@/lib/email/mock-email-service';
 import { createClient } from '@/lib/supabase/server';
-import { processEmailImages } from '@/lib/email/image-processor';
+import { processEmailImages } from '@/lib/email/image-processor-simple';
 
 // Rate limiting constants
 const MAX_TEST_EMAILS_PER_HOUR = 10;
@@ -61,9 +61,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Process images to ensure they have absolute URLs
-    const processedResult = processEmailImages(html, {
+    // Process images to ensure they have absolute URLs or convert to base64
+    const processedResult = await processEmailImages(html, {
       baseUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://app.zebamail.com',
+      convertLocalToBase64: true,
       logDetails: true
     });
 
