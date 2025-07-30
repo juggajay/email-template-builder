@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { registerCustomImageUpload } from '@/lib/unlayer/custom-image-upload';
 import './editor-styles.css';
 
 declare global {
@@ -248,6 +249,10 @@ export function UnlayerWrapper({
           console.log('[UnlayerWrapper] Editor ready');
           setIsLoading(false);
           editorRef.current = window.unlayer;
+          
+          // Register custom image upload to avoid S3 blocking issues
+          console.log('[UnlayerWrapper] Registering custom image upload handler');
+          registerCustomImageUpload(window.unlayer);
           
           if (onReady) {
             onReady();
