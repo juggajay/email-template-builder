@@ -1,74 +1,79 @@
-# Email Image Fix Summary
+# Email Image Display Fix Summary
 
 ## Problem
-When sending test emails, images in the template were not displaying. The user reported: "the test email with everything correct except the image in the template didnt send".
+When users upload images in the Unlayer email editor and send test emails, the images don't display in the received emails. The user specifically said: "there shouldnt be a placeholder i am attaching an image i want to see on the email".
 
 ## Root Cause
-Images were using relative URLs (e.g., `/uploads/image.jpg`) which don't work in email clients. Email clients require absolute URLs (e.g., `https://app.zebamail.com/uploads/image.jpg`) to display images correctly.
+The `image-processor-simple.ts` was replacing ALL images (including Unlayer uploads) with placeholder images from `via.placeholder.com`. This was incorrect behavior.
 
 ## Solution Implemented
 
-### 1. Created Comprehensive Image Processor (`/src/lib/email/image-processor.ts`)
-- **`processEmailImages()`**: Converts all relative image URLs to absolute URLs
-  - Handles various URL formats: absolute, relative, root-relative, protocol-relative, data URLs
-  - Processes CSS background images
-  - Handles srcset attributes for responsive images
-  - Provides detailed logging for debugging
+### 1. Created Fixed Image Processor
+Created `/src/lib/email/image-processor-fixed.ts` that:
+- **PRESERVES** all external images (https://)
+- **PRESERVES** Unlayer CDN uploads (e.g., `https://cdn.tools.unlayer.com/...`)
+- **PRESERVES** images from other CDNs (Cloudinary, Unsplash, etc.)
+- Only converts relative URLs to absolute URLs
+- **DOES NOT** replace anything with placeholders
 
-- **`validateEmailImages()`**: Validates that images are email-compatible
-  - Checks for relative URLs
-  - Verifies image dimensions
-  - Warns about large base64 images
+### 2. Updated Email Routes
+Updated the following files to use the fixed processor:
+- `/src/app/api/email/send/route.ts`
+- `/src/app/api/email/test/route.ts`
+- `/src/app/api/email/debug-test/route.ts`
 
-- **`addImageDimensions()`**: Adds width/height attributes from CSS styles
-  - Improves email client rendering
-  - Prevents layout shifts
+Changed imports from:
+```typescript
+import { processEmailImages } from '@/lib/email/image-processor-simple';
+```
 
-### 2. Updated Components
+To:
+```typescript
+import { processEmailImages } from '@/lib/email/image-processor-fixed';
+```
 
-#### `SendTestEmail` Component (`/src/components/email/send-test-email.tsx`)
-- Integrated the image processor when exporting HTML from editor
-- Added image validation and logging
-- Ensures all images have absolute URLs before sending
+### 3. Key Changes in the Fixed Processor
 
-#### `UnlayerWrapperFixed` Component (`/src/components/editor/unlayer-wrapper-fixed.tsx`)
-- Updated export function to use image processor
-- Configured Unlayer with baseUrl and assetsUrl options
-- Ensures images are properly formatted when saving templates
+The fixed processor identifies external images and preserves them:
 
-### 3. Test Coverage
-- Created comprehensive unit tests that verify:
-  - All URL types are handled correctly
-  - Image dimensions are added properly
-  - CSS background images are processed
-  - Srcset attributes work correctly
-- All tests pass with 100% success rate
+```typescript
+// Handle absolute URLs - PRESERVE THESE
+else if (originalSrc.match(/^https?:\/\//i)) {
+  imageType = 'absolute';
+  action = 'preserved';
+  
+  // Log what we're preserving
+  if (logDetails) {
+    const url = new URL(originalSrc);
+    console.log(`[ImageProcessor] Image ${index + 1}: Preserving external image from ${url.hostname}`);
+    
+    // Common CDNs used by email builders
+    if (url.hostname.includes('unlayer.com')) {
+      console.log(`  ✓ Unlayer CDN image preserved`);
+    }
+  }
+  
+  // DO NOT modify external URLs - they should work in emails
+  processedSrc = originalSrc;
+}
+```
 
-## Results
-- ✅ Images now display correctly in test emails
-- ✅ Supports all image types (external URLs, uploads, base64)
-- ✅ Better email client compatibility with dimension attributes
-- ✅ Comprehensive logging for debugging
-- ✅ No breaking changes to existing functionality
+## Expected Behavior After Fix
 
-## Technical Details
+1. When a user uploads an image in Unlayer:
+   - Unlayer uploads it to their CDN
+   - The HTML contains the Unlayer CDN URL
+   - Our processor PRESERVES this URL (doesn't replace with placeholder)
+   - The image displays correctly in the sent email
 
-### Image URL Conversion Examples:
-- `/uploads/image.jpg` → `https://app.zebamail.com/uploads/image.jpg`
-- `uploads/image.jpg` → `https://app.zebamail.com/uploads/image.jpg`
-- `//cdn.example.com/image.jpg` → `https://cdn.example.com/image.jpg`
-- `https://example.com/image.jpg` → No change (already absolute)
-- `data:image/png;base64,...` → No change (data URLs work in emails)
+2. External images (from any https:// source) are preserved
+3. Only relative URLs (like `/images/logo.png`) are converted to absolute URLs
+4. NO placeholder images are inserted
 
-### Files Modified:
-1. `/src/lib/email/image-processor.ts` (new file)
-2. `/src/components/email/send-test-email.tsx`
-3. `/src/components/editor/unlayer-wrapper-fixed.tsx`
+## Testing
+Created test scripts to verify the fix:
+- `test-image-fix-verification.js` - Tests the API endpoints
+- `test-processor-directly.js` - Explains how the processor works
 
-### Testing:
-- Unit tests: `test-image-processor-unit.js`
-- Integration tests: `test-image-fix-comprehensive.js`
-- All tests pass successfully
-
-## Next Steps
-The fix has been implemented and tested. Images should now display correctly in all test emails sent from the template builder.
+## Result
+User-uploaded images from Unlayer will now display correctly in sent emails!

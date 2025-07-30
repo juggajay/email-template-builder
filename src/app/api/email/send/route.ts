@@ -5,7 +5,7 @@ import { withRateLimit, rateLimiters } from '@/lib/security/rate-limit';
 import { handleApiError, SafeError, SafeErrorType } from '@/lib/security/error-handling';
 import { validateRequestBody, schemas, sanitizeHtml } from '@/lib/security/validation';
 import { logSecurityEvent, SecurityEventType, extractRequestMetadata } from '@/lib/security/monitoring';
-import { processEmailImages } from '@/lib/email/image-processor-simple';
+import { processEmailImages } from '@/lib/email/image-processor-fixed';
 import { z } from 'zod';
 
 // Define email request schema
@@ -57,10 +57,9 @@ export async function POST(request: NextRequest) {
     // Sanitize HTML content
     const sanitizedHtml = sanitizeHtml(html);
 
-    // Process images to ensure they have absolute URLs or convert to base64
+    // Process images to ensure they have absolute URLs
     const processedResult = await processEmailImages(sanitizedHtml, {
       baseUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://app.zebamail.com',
-      convertLocalToBase64: true,
       logDetails: true
     });
 
