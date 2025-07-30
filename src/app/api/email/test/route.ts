@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getEmailService, validateEmailServiceConfig } from '@/lib/email/email-service';
 import { getMockEmailService } from '@/lib/email/mock-email-service';
 import { createClient } from '@/lib/supabase/server';
+import { processEmailImages } from '@/lib/email/image-processor';
 
 // Rate limiting constants
 const MAX_TEST_EMAILS_PER_HOUR = 10;
@@ -60,6 +61,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Process images to ensure they have absolute URLs
+    const processedResult = processEmailImages(html, {
+      baseUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://app.zebamail.com',
+      logDetails: true
+    });
+
+    console.log(`[Test Email] Processing images: ${processedResult.imageCount} images found`);
+    if (processedResult.processedImages.length > 0) {
+      console.log('[Test Email] Processed images:', processedResult.processedImages);
+    }
+
     // Check if email service is properly configured
     const { isValid } = validateEmailServiceConfig();
     
@@ -68,11 +80,11 @@ export async function POST(request: NextRequest) {
       // Use mock service when no real providers are configured
       console.log('Using mock email service - no real providers configured');
       const mockService = getMockEmailService();
-      result = await mockService.sendTestEmail(to, html, templateData, provider);
+      result = await mockService.sendTestEmail(to, processedResult.html, templateData, provider);
     } else {
       // Use real email service
       const emailService = getEmailService();
-      result = await emailService.sendTestEmail(to, html, templateData, provider);
+      result = await emailService.sendTestEmail(to, processedResult.html, templateData, provider);
     }
 
     // Store test email record

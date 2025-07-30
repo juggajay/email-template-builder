@@ -1,0 +1,74 @@
+# Node modules
+node_modules
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# Next.js build output
+.next
+out
+dist
+
+# Environment files
+.env
+.env.local
+.env.production.local
+.env.development.local
+.env.test.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*.swn
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage
+.nyc_output
+test-results
+playwright-report
+playwright/.cache
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+!README.md
+
+# Logs
+*.log
+logs
+
+# Temporary files
+tmp
+temp
+*.tmp
+
+# Build artifacts
+*.cache
+.turbo
+
+# Development files
+*.test.js
+*.spec.js
+debug-*.js
+test-*.js
+manual-*.html
+test-*.html
+
+# Docker files
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Scripts that shouldn't be in the container
+scripts/test-*.sh
+*.sh
