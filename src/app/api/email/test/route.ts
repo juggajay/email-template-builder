@@ -3,6 +3,7 @@ import { getEmailService, validateEmailServiceConfig } from '@/lib/email/email-s
 import { getMockEmailService } from '@/lib/email/mock-email-service';
 import { createClient } from '@/lib/supabase/server';
 import { processEmailImages } from '@/lib/email/image-processor-fixed';
+import { transformBlockedImageUrls } from '@/lib/email/image-proxy-transformer';
 
 // Rate limiting constants
 const MAX_TEST_EMAILS_PER_HOUR = 10;
@@ -76,8 +77,11 @@ export async function POST(request: NextRequest) {
     console.log('[Test Email] Final HTML length:', processedResult.html.length);
     console.log('[Test Email] Final HTML img count:', (processedResult.html.match(/<img/g) || []).length);
     
+    // Transform any S3 URLs to proxy URLs (for Unlayer free mode)
+    const finalHtml = transformBlockedImageUrls(processedResult.html);
+    
     // Log a sample of the HTML to see if images are present
-    const imgMatch = processedResult.html.match(/<img[^>]*>/);
+    const imgMatch = finalHtml.match(/<img[^>]*>/);
     if (imgMatch) {
       console.log('[Test Email] Sample img tag:', imgMatch[0]);
     } else {
@@ -92,11 +96,11 @@ export async function POST(request: NextRequest) {
       // Use mock service when no real providers are configured
       console.log('Using mock email service - no real providers configured');
       const mockService = getMockEmailService();
-      result = await mockService.sendTestEmail(to, processedResult.html, templateData, provider);
+      result = await mockService.sendTestEmail(to, finalHtml, templateData, provider);
     } else {
       // Use real email service
       const emailService = getEmailService();
-      result = await emailService.sendTestEmail(to, processedResult.html, templateData, provider);
+      result = await emailService.sendTestEmail(to, finalHtml, templateData, provider);
     }
 
     // Store test email record

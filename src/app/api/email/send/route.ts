@@ -6,6 +6,7 @@ import { handleApiError, SafeError, SafeErrorType } from '@/lib/security/error-h
 import { validateRequestBody, schemas, sanitizeHtml } from '@/lib/security/validation';
 import { logSecurityEvent, SecurityEventType, extractRequestMetadata } from '@/lib/security/monitoring';
 import { processEmailImages } from '@/lib/email/image-processor-fixed';
+import { transformBlockedImageUrls } from '@/lib/email/image-proxy-transformer';
 import { z } from 'zod';
 
 // Define email request schema
@@ -74,8 +75,11 @@ export async function POST(request: NextRequest) {
     console.log('[Email Send] Final HTML length:', processedResult.html.length);
     console.log('[Email Send] Final HTML img count:', (processedResult.html.match(/<img/g) || []).length);
     
+    // Transform any S3 URLs to proxy URLs (for Unlayer free mode)
+    const finalHtml = transformBlockedImageUrls(processedResult.html);
+    
     // Log a sample of the HTML to see if images are present
-    const imgMatch = processedResult.html.match(/<img[^>]*>/);
+    const imgMatch = finalHtml.match(/<img[^>]*>/);
     if (imgMatch) {
       console.log('[Email Send] Sample img tag:', imgMatch[0]);
     } else {
@@ -98,7 +102,7 @@ export async function POST(request: NextRequest) {
         : [{ email: to }],
       content: {
         subject,
-        html: processedResult.html
+        html: finalHtml
       },
       templateData,
       trackOpens,
