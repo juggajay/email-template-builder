@@ -175,8 +175,6 @@ export function UnlayerWrapperFixed({
           },
           // Comprehensive merge tags for e-commerce
           mergeTags: mergeTags,
-          // Configure export options for proper image handling
-          projectId: 1, // Required for some features
           validator: {
             enabled: true
           },
@@ -373,6 +371,34 @@ export function UnlayerWrapperFixed({
           console.log('[UnlayerFixed] Editor ready');
           setIsLoading(false);
           editorRef.current = window.unlayer;
+          
+          // Register custom image upload handler
+          window.unlayer.registerCallback('image', function(file: any, done: any) {
+            console.log('[UnlayerFixed] Custom image upload triggered:', file);
+            
+            const data = new FormData();
+            data.append('file', file.attachments[0]);
+            
+            fetch('/api/upload/image', {
+              method: 'POST',
+              body: data,
+              credentials: 'include' // Include cookies for auth
+            })
+            .then(response => response.json())
+            .then(result => {
+              if (result.error) {
+                console.error('[UnlayerFixed] Upload error:', result.error);
+                done({ progress: 100, error: result.error });
+              } else {
+                console.log('[UnlayerFixed] Upload success:', result.url);
+                done({ progress: 100, url: result.url });
+              }
+            })
+            .catch(error => {
+              console.error('[UnlayerFixed] Upload failed:', error);
+              done({ progress: 100, error: 'Failed to upload image' });
+            });
+          });
           
           // Create collapsible sidebar functionality
           setTimeout(() => {
@@ -705,10 +731,11 @@ export function UnlayerWrapperFixed({
     try {
       console.log('[UnlayerFixed] Calling exportHtml...');
       await new Promise<void>((resolve, reject) => {
-        // Export with options to ensure absolute URLs
+        // Export with options to ensure absolute URLs and preserve images
         const exportOptions = {
-          cleanup: true,
-          minify: false
+          cleanup: false, // Don't strip content
+          minify: false,
+          mergeTags: {} // Empty object to prevent tag replacement
         };
         
         editorRef.current.exportHtml(exportOptions, async (data: any) => {

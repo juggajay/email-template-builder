@@ -774,7 +774,7 @@ function EditorContent() {
                     setEditorRef(editor);
                     // Export initial HTML for SendTestEmail
                     if (editor && editor.exportHtml) {
-                      const exportOptions = { cleanup: true, minify: false };
+                      const exportOptions = { cleanup: false, minify: false, mergeTags: {} };
                       editor.exportHtml(exportOptions, (data: any) => {
                         setTemplateHtml(data.html);
                       });
@@ -787,8 +787,8 @@ function EditorContent() {
                     setTimeout(() => {
                       if (editorRef && editorRef.exportHtml) {
                         console.log('[EditorPage] Exporting HTML after design load');
-                        const exportOptions = { cleanup: true, minify: false };
-        editorRef.exportHtml(exportOptions, (data: any) => {
+                        const exportOptions = { cleanup: false, minify: false, mergeTags: {} };
+                        editorRef.exportHtml(exportOptions, (data: any) => {
                           if (data && data.html) {
                             console.log('[EditorPage] Setting templateHtml:', data.html.length, 'chars');
                             setTemplateHtml(data.html);

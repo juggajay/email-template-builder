@@ -3,7 +3,6 @@ import { getEmailService, validateEmailServiceConfig } from '@/lib/email/email-s
 import { getMockEmailService } from '@/lib/email/mock-email-service';
 import { createClient } from '@/lib/supabase/server';
 import { processEmailImages } from '@/lib/email/image-processor-fixed';
-import { transformBlockedImageUrls } from '@/lib/email/image-proxy-transformer';
 
 // Rate limiting constants
 const MAX_TEST_EMAILS_PER_HOUR = 10;
@@ -77,8 +76,8 @@ export async function POST(request: NextRequest) {
     console.log('[Test Email] Final HTML length:', processedResult.html.length);
     console.log('[Test Email] Final HTML img count:', (processedResult.html.match(/<img/g) || []).length);
     
-    // Transform any S3 URLs to proxy URLs (for Unlayer free mode)
-    const finalHtml = transformBlockedImageUrls(processedResult.html);
+    // Use the processed HTML directly (no proxy needed with custom upload)
+    const finalHtml = processedResult.html;
     
     // Log a sample of the HTML to see if images are present
     const imgMatch = finalHtml.match(/<img[^>]*>/);

@@ -249,6 +249,34 @@ export function UnlayerWrapper({
           setIsLoading(false);
           editorRef.current = window.unlayer;
           
+          // Register custom image upload handler
+          window.unlayer.registerCallback('image', function(file: any, done: any) {
+            console.log('[UnlayerWrapper] Custom image upload triggered:', file);
+            
+            const data = new FormData();
+            data.append('file', file.attachments[0]);
+            
+            fetch('/api/upload/image', {
+              method: 'POST',
+              body: data,
+              credentials: 'include' // Include cookies for auth
+            })
+            .then(response => response.json())
+            .then(result => {
+              if (result.error) {
+                console.error('[UnlayerWrapper] Upload error:', result.error);
+                done({ progress: 100, error: result.error });
+              } else {
+                console.log('[UnlayerWrapper] Upload success:', result.url);
+                done({ progress: 100, url: result.url });
+              }
+            })
+            .catch(error => {
+              console.error('[UnlayerWrapper] Upload failed:', error);
+              done({ progress: 100, error: 'Failed to upload image' });
+            });
+          });
+          
           if (onReady) {
             onReady();
           }
@@ -352,8 +380,9 @@ export function UnlayerWrapper({
 
     // Export with proper options to ensure images are included
     const exportOptions = {
-      cleanup: true,
-      minify: false // Keep false for debugging
+      cleanup: false, // Don't strip content to preserve images
+      minify: false, // Keep false for debugging
+      mergeTags: {} // Empty object to prevent tag replacement
     };
 
     editorRef.current.exportHtml(exportOptions, (data: any) => {
