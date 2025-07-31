@@ -3,7 +3,6 @@ import { getEmailService, validateEmailServiceConfig } from '@/lib/email/email-s
 import { getMockEmailService } from '@/lib/email/mock-email-service';
 import { createClient } from '@/lib/supabase/server';
 import { processEmailImages } from '@/lib/email/image-processor-fixed';
-import { transformImageUrls } from '@/lib/email/image-url-transformer';
 
 // Rate limiting constants
 const MAX_TEST_EMAILS_PER_HOUR = 10;
@@ -77,14 +76,10 @@ export async function POST(request: NextRequest) {
     console.log('[Test Email] Final HTML length:', processedResult.html.length);
     console.log('[Test Email] Final HTML img count:', (processedResult.html.match(/<img/g) || []).length);
     
-    // Transform S3 URLs to proxy URLs to avoid email client blocking
-    const finalHtml = transformImageUrls(processedResult.html);
-    console.log('[Test Email] After URL transformation - HTML length:', finalHtml.length);
-    
     // Log a sample of the HTML to see if images are present
-    const imgMatch = finalHtml.match(/<img[^>]*>/);
+    const imgMatch = processedResult.html.match(/<img[^>]*>/);
     if (imgMatch) {
-      console.log('[Test Email] Sample img tag after transform:', imgMatch[0]);
+      console.log('[Test Email] Sample img tag:', imgMatch[0]);
     } else {
       console.log('[Test Email] WARNING: No img tags found in final HTML!');
     }
@@ -97,11 +92,11 @@ export async function POST(request: NextRequest) {
       // Use mock service when no real providers are configured
       console.log('Using mock email service - no real providers configured');
       const mockService = getMockEmailService();
-      result = await mockService.sendTestEmail(to, finalHtml, templateData, provider);
+      result = await mockService.sendTestEmail(to, processedResult.html, templateData, provider);
     } else {
       // Use real email service
       const emailService = getEmailService();
-      result = await emailService.sendTestEmail(to, finalHtml, templateData, provider);
+      result = await emailService.sendTestEmail(to, processedResult.html, templateData, provider);
     }
 
     // Store test email record

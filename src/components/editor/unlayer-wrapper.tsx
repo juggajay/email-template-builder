@@ -95,6 +95,7 @@ export function UnlayerWrapper({
         
         window.unlayer.init({
           id: 'unlayer-editor',
+          projectId: process.env.NEXT_PUBLIC_UNLAYER_PROJECT_ID || process.env.UNLAYER_PROJECT_ID || undefined,
           displayMode: 'email',
           appearance: {
             theme: 'modern_light',

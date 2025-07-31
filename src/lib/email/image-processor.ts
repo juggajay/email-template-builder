@@ -1,11 +1,19 @@
 /**
  * Email Image Processor
  * Ensures all images in email HTML are properly formatted with absolute URLs
+ * Now with base64 conversion for local images
  */
+
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import * as https from 'https';
+import * as http from 'http';
 
 export interface ImageProcessingOptions {
   baseUrl?: string;
+  convertLocalToBase64?: boolean;
   logDetails?: boolean;
+  publicDir?: string;
 }
 
 export interface ImageProcessingResult {
@@ -15,19 +23,79 @@ export interface ImageProcessingResult {
     original: string;
     processed: string;
     type: 'relative' | 'absolute' | 'data' | 'protocol-relative';
+    converted?: boolean;
   }[];
 }
 
 /**
- * Process HTML to ensure all images have absolute URLs for email compatibility
+ * Fetch image from URL and convert to base64
  */
-export function processEmailImages(
+async function fetchImageAsBase64(imageUrl: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    try {
+      const protocol = imageUrl.startsWith('https') ? https : http;
+      
+      protocol.get(imageUrl, (response) => {
+        if (response.statusCode !== 200) {
+          console.warn(`[ImageProcessor] Failed to fetch image: ${imageUrl} (${response.statusCode})`);
+          resolve(null);
+          return;
+        }
+        
+        const chunks: Buffer[] = [];
+        response.on('data', (chunk: Buffer) => chunks.push(chunk));
+        response.on('end', () => {
+          const buffer = Buffer.concat(chunks);
+          const contentType = response.headers['content-type'] || 'image/png';
+          const base64 = buffer.toString('base64');
+          resolve(`data:${contentType};base64,${base64}`);
+        });
+      }).on('error', (err) => {
+        console.error(`[ImageProcessor] Error fetching image: ${imageUrl}`, err);
+        resolve(null);
+      });
+    } catch (error) {
+      console.error(`[ImageProcessor] Error in fetchImageAsBase64: ${imageUrl}`, error);
+      resolve(null);
+    }
+  });
+}
+
+/**
+ * Convert local file to base64
+ */
+async function fileToBase64(filePath: string): Promise<string | null> {
+  try {
+    const buffer = await fs.readFile(filePath);
+    const ext = path.extname(filePath).toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.gif': 'image/gif',
+      '.svg': 'image/svg+xml',
+      '.webp': 'image/webp'
+    };
+    const mimeType = mimeTypes[ext] || 'image/png';
+    return `data:${mimeType};base64,${buffer.toString('base64')}`;
+  } catch (error) {
+    console.error(`[ImageProcessor] Error reading file: ${filePath}`, error);
+    return null;
+  }
+}
+
+/**
+ * Process HTML to ensure all images work in emails (with base64 conversion for local images)
+ */
+export async function processEmailImages(
   html: string,
   options: ImageProcessingOptions = {}
-): ImageProcessingResult {
+): Promise<ImageProcessingResult> {
   const {
     baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://app.zebamail.com',
-    logDetails = true
+    convertLocalToBase64 = true,
+    logDetails = true,
+    publicDir = process.cwd() + '/public'
   } = options;
 
   const processedImages: ImageProcessingResult['processedImages'] = [];
@@ -41,7 +109,8 @@ export function processEmailImages(
     console.log(`[ImageProcessor] Found ${imgTags.length} images to process`);
   }
 
-  imgTags.forEach((imgTag, index) => {
+  for (let index = 0; index < imgTags.length; index++) {
+    const imgTag = imgTags[index];
     // Extract src attribute - handle various quote styles and formats
     const srcMatch = imgTag.match(/src\s*=\s*["']([^"']+)["']/i) ||
                      imgTag.match(/src\s*=\s*([^\s>]+)/i);
@@ -56,12 +125,13 @@ export function processEmailImages(
     const originalSrc = srcMatch[1];
     let processedSrc = originalSrc;
     let imageType: ImageProcessingResult['processedImages'][0]['type'] = 'absolute';
+    let converted = false;
 
     // Skip data URLs (base64 images)
     if (originalSrc.startsWith('data:')) {
       imageType = 'data';
       if (logDetails) {
-        console.log(`[ImageProcessor] Image ${index + 1}: Data URL (${originalSrc.length} chars)`);
+        console.log(`[ImageProcessor] Image ${index + 1}: Already base64`);
       }
     }
     // Handle protocol-relative URLs
@@ -75,26 +145,77 @@ export function processEmailImages(
     // Handle absolute URLs
     else if (originalSrc.match(/^https?:\/\//i)) {
       imageType = 'absolute';
-      if (logDetails) {
+      
+      // Check if it's a localhost URL and convert to base64
+      if (convertLocalToBase64 && (originalSrc.includes('localhost') || originalSrc.includes('127.0.0.1'))) {
+        if (logDetails) {
+          console.log(`[ImageProcessor] Image ${index + 1}: Converting localhost URL to base64`);
+        }
+        
+        const base64 = await fetchImageAsBase64(originalSrc);
+        if (base64) {
+          processedSrc = base64;
+          converted = true;
+          imageType = 'data';
+        } else {
+          console.warn(`[ImageProcessor] Failed to convert localhost image to base64: ${originalSrc}`);
+        }
+      } else if (logDetails) {
         console.log(`[ImageProcessor] Image ${index + 1}: Already absolute`);
       }
     }
-    // Handle root-relative URLs (/uploads/...)
-    else if (originalSrc.startsWith('/')) {
-      imageType = 'relative';
-      processedSrc = `${baseUrl}${originalSrc}`;
-      if (logDetails) {
-        console.log(`[ImageProcessor] Image ${index + 1}: Root-relative URL converted`);
-      }
-    }
-    // Handle relative URLs (uploads/..., ./uploads/..., ../uploads/...)
+    // Handle relative URLs
     else {
       imageType = 'relative';
-      // Remove ./ or ../ prefixes
-      const cleanPath = originalSrc.replace(/^(\.\.\/)+/, '').replace(/^\.?\//, '');
-      processedSrc = `${baseUrl}/${cleanPath}`;
-      if (logDetails) {
-        console.log(`[ImageProcessor] Image ${index + 1}: Relative URL converted`);
+      
+      if (convertLocalToBase64) {
+        // Try to load from file system first
+        const filePath = path.join(publicDir, originalSrc);
+        
+        if (logDetails) {
+          console.log(`[ImageProcessor] Image ${index + 1}: Attempting to convert local file to base64: ${filePath}`);
+        }
+        
+        const base64 = await fileToBase64(filePath);
+        if (base64) {
+          processedSrc = base64;
+          converted = true;
+          imageType = 'data';
+          if (logDetails) {
+            console.log(`[ImageProcessor] Image ${index + 1}: Successfully converted to base64`);
+          }
+        } else {
+          // If file doesn't exist locally, try fetching from URL
+          const fullUrl = originalSrc.startsWith('/') ? `${baseUrl}${originalSrc}` : `${baseUrl}/${originalSrc}`;
+          
+          if (baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1')) {
+            const fetchedBase64 = await fetchImageAsBase64(fullUrl);
+            
+            if (fetchedBase64) {
+              processedSrc = fetchedBase64;
+              converted = true;
+              imageType = 'data';
+              if (logDetails) {
+                console.log(`[ImageProcessor] Image ${index + 1}: Fetched and converted to base64 from localhost URL`);
+              }
+            } else {
+              console.warn(`[ImageProcessor] Failed to convert image to base64: ${fullUrl}`);
+              processedSrc = fullUrl;
+            }
+          } else {
+            // For non-localhost URLs, just use absolute URL
+            processedSrc = fullUrl;
+            if (logDetails) {
+              console.log(`[ImageProcessor] Image ${index + 1}: Using absolute URL`);
+            }
+          }
+        }
+      } else {
+        // Just convert to absolute URL
+        processedSrc = originalSrc.startsWith('/') ? `${baseUrl}${originalSrc}` : `${baseUrl}/${originalSrc}`;
+        if (logDetails) {
+          console.log(`[ImageProcessor] Image ${index + 1}: Converted to absolute URL`);
+        }
       }
     }
 
@@ -122,10 +243,11 @@ export function processEmailImages(
 
     processedImages.push({
       original: originalSrc,
-      processed: processedSrc,
-      type: imageType
+      processed: processedSrc.length > 100 ? processedSrc.substring(0, 100) + '...' : processedSrc,
+      type: imageType,
+      converted
     });
-  });
+  }
 
   // Also process CSS background images
   processedHtml = processedHtml.replace(
@@ -163,10 +285,10 @@ export function processEmailImages(
   if (logDetails) {
     console.log(`[ImageProcessor] Processing complete:`);
     console.log(`  - Total images: ${imgTags.length}`);
-    console.log(`  - Relative URLs converted: ${processedImages.filter(img => img.type === 'relative' && img.original !== img.processed).length}`);
-    console.log(`  - Protocol-relative URLs converted: ${processedImages.filter(img => img.type === 'protocol-relative').length}`);
-    console.log(`  - Already absolute: ${processedImages.filter(img => img.type === 'absolute').length}`);
-    console.log(`  - Data URLs: ${processedImages.filter(img => img.type === 'data').length}`);
+    console.log(`  - Converted to base64: ${processedImages.filter(img => img.converted).length}`);
+    console.log(`  - Already base64: ${processedImages.filter(img => img.type === 'data' && !img.converted).length}`);
+    console.log(`  - External absolute URLs: ${processedImages.filter(img => img.type === 'absolute' && !img.converted).length}`);
+    console.log(`  - Failed conversions: ${processedImages.filter(img => (img.type === 'relative' || (img.type === 'absolute' && (img.original.includes('localhost') || img.original.includes('127.0.0.1')))) && !img.converted).length}`);
   }
 
   return {
