@@ -711,7 +711,7 @@ export function UnlayerWrapperFixed({
           minify: false
         };
         
-        editorRef.current.exportHtml(exportOptions, (data: any) => {
+        editorRef.current.exportHtml(exportOptions, async (data: any) => {
           try {
             const { design, html } = data;
             
@@ -721,7 +721,7 @@ export function UnlayerWrapperFixed({
             }
             
             // Process HTML to ensure all image URLs are absolute
-            const imageProcessingResult = processEmailImages(html, {
+            const imageProcessingResult = await processEmailImages(html, {
               logDetails: process.env.NODE_ENV === 'development'
             });
             

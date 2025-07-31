@@ -119,7 +119,7 @@ export async function processEmailImages(
       if (logDetails) {
         console.warn(`[ImageProcessor] Image ${index + 1}: No src attribute found`);
       }
-      return;
+      continue;
     }
 
     const originalSrc = srcMatch[1];
