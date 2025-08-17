@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { v4 as uuidv4 } from 'uuid';
+import { withRateLimit, rateLimiters } from '@/lib/security/rate-limit';
+import path from 'path';
 
 export async function POST(request: NextRequest) {
+  // Apply rate limiting for file uploads
+  const rateLimitResult = await withRateLimit(request, rateLimiters.export);
+  if (rateLimitResult) return rateLimitResult;
+
   try {
     const supabase = createClient();
     
@@ -32,10 +38,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'File too large. Maximum size is 5MB' }, { status: 400 });
     }
 
-    // Generate unique filename
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${user.id}/${uuidv4()}.${fileExt}`;
-    const filePath = `email-images/${fileName}`;
+    // Safely extract and validate file extension
+    const filenameParts = file.name.split('.');
+    const rawExt = filenameParts.length > 1 ? filenameParts.pop() : '';
+    
+    // Sanitize extension - only allow alphanumeric characters
+    const fileExt = rawExt?.toLowerCase().replace(/[^a-z0-9]/g, '');
+    
+    // Map of allowed extensions to MIME types for validation
+    const allowedExtensions: Record<string, string> = {
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'png': 'image/png',
+      'gif': 'image/gif',
+      'webp': 'image/webp'
+    };
+    
+    // Validate extension matches MIME type
+    if (!fileExt || !allowedExtensions[fileExt] || allowedExtensions[fileExt] !== file.type) {
+      return NextResponse.json({ error: 'File extension does not match file type' }, { status: 400 });
+    }
+    
+    // Generate unique filename with sanitized extension
+    const safeFileName = `${uuidv4()}.${fileExt}`;
+    const filePath = `email-images/${user.id}/${safeFileName}`;
 
     // Convert file to buffer
     const buffer = Buffer.from(await file.arrayBuffer());

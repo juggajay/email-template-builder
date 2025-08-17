@@ -6,6 +6,7 @@ import { validateStripeWebhook } from '@/lib/security/webhook-validation';
 import { handleApiError } from '@/lib/security/error-handling';
 import { logSecurityEvent, SecurityEventType, extractRequestMetadata } from '@/lib/security/monitoring';
 import { withRateLimit, rateLimiters } from '@/lib/security/rate-limit';
+import { checkWebhookIdempotency, markWebhookProcessed } from '@/lib/security/webhook-idempotency';
 
 export async function POST(request: NextRequest) {
   // Check if Stripe is configured
@@ -42,7 +43,35 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Check for idempotency - prevent duplicate processing
+  const { isDuplicate, previousResult } = await checkWebhookIdempotency(
+    event.id,
+    event.type
+  );
+
+  if (isDuplicate) {
+    // Return the previous result to maintain idempotency
+    await logSecurityEvent({
+      type: SecurityEventType.DATA_EXPORT,
+      ...extractRequestMetadata(request),
+      action: 'stripe_webhook_duplicate',
+      result: 'success',
+      metadata: { 
+        event_type: event.type,
+        event_id: event.id,
+        reason: 'duplicate'
+      }
+    });
+
+    return NextResponse.json({ 
+      received: true,
+      duplicate: true,
+      previousResult 
+    });
+  }
+
   const supabase = createClient();
+  let processingResult: any = { success: true };
 
   try {
     switch (event.type) {
@@ -171,6 +200,9 @@ export async function POST(request: NextRequest) {
         console.log(`Unhandled event type: ${event.type}`);
     }
 
+    // Mark webhook as processed for idempotency
+    await markWebhookProcessed(event.id, event.type, processingResult);
+
     // Log successful webhook processing
     await logSecurityEvent({
       type: SecurityEventType.DATA_EXPORT,
@@ -183,7 +215,7 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    return NextResponse.json({ received: true });
+    return NextResponse.json({ received: true, ...processingResult });
   } catch (error) {
     // Log webhook processing error
     await logSecurityEvent({

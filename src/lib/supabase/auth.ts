@@ -39,24 +39,16 @@ export class AuthService {
 
       if (error) throw error;
 
-      // Log for debugging
-      console.log('[Auth Service] Sign up response:', {
-        user: data.user,
-        session: data.session,
-      });
-      
-      console.log('[Auth Service] Sign up successful:', {
-        userId: data.user?.id,
-        email: data.user?.email,
-        emailConfirmedAt: data.user?.email_confirmed_at,
-        confirmationSentAt: data.user?.confirmation_sent_at,
-        identities: data.user?.identities,
-        createdAt: data.user?.created_at,
-      });
+      // Log minimal info for debugging (no sensitive data)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Auth Service] Sign up successful for new user');
+      }
 
       // Check if user is in unconfirmed state
       if (data.user && !data.user.email_confirmed_at) {
-        console.log('[Auth Service] User created but email not confirmed. Check your email for verification link.');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Auth Service] Email verification required');
+        }
       }
 
       return { data, error: null };

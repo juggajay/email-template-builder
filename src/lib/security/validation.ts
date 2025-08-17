@@ -4,6 +4,7 @@
  */
 
 import { z } from 'zod';
+import DOMPurify from 'isomorphic-dompurify';
 
 // Email validation schema
 export const emailSchema = z.string().email('Invalid email address').min(3).max(255);
@@ -67,14 +68,47 @@ export const schemas = {
   })
 };
 
-// HTML Sanitization
-export function sanitizeHtml(html: string): string {
-  // Basic HTML sanitization - in production, use a library like DOMPurify
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+// HTML Sanitization with DOMPurify
+export function sanitizeHtml(html: string, options?: any): string {
+  // Configure DOMPurify for email template sanitization
+  const defaultConfig = {
+    ALLOWED_TAGS: [
+      'a', 'b', 'i', 'em', 'strong', 'p', 'br', 'div', 'span',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'ul', 'ol', 'li', 'table', 'thead', 'tbody', 'tr', 'td', 'th',
+      'img', 'blockquote', 'code', 'pre', 'hr',
+      // Email-specific tags
+      'center', 'font'
+    ],
+    ALLOWED_ATTR: [
+      'href', 'src', 'alt', 'title', 'width', 'height', 'align',
+      'style', 'class', 'id', 'target', 'rel',
+      // Email-specific attributes
+      'bgcolor', 'border', 'cellpadding', 'cellspacing', 'valign'
+    ],
+    ALLOW_DATA_ATTR: false,
+    FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form'],
+    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover'],
+    USE_PROFILES: { html: true },
+    SANITIZE_DOM: true,
+    KEEP_CONTENT: true,
+    ...options
+  };
+  
+  // Sanitize the HTML
+  const clean = DOMPurify.sanitize(html, defaultConfig);
+  
+  // Convert to string if needed
+  const cleanString = typeof clean === 'string' ? clean : clean.toString();
+  
+  // Additional cleanup for email templates
+  return cleanString
+    // Remove any remaining javascript: protocols
     .replace(/javascript:/gi, '')
-    .replace(/on\w+\s*=/gi, '');
+    // Remove any vbscript: protocols
+    .replace(/vbscript:/gi, '')
+    // Remove any data: protocols except for images
+    .replace(/data:(?!image\/(png|jpg|jpeg|gif|webp|svg\+xml))/gi, '');
 }
 
 // SQL injection prevention
