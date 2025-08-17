@@ -22,7 +22,8 @@ import {
   FolderOpen,
   MessageSquarePlus,
   Shield,
-  Database
+  Database,
+  Heart
 } from 'lucide-react';
 import { ZebCharacter, StripePattern } from '@/components/brand';
 import { TargetIcon } from '@/components/brand/GeometricIcons';
@@ -36,6 +37,7 @@ const getNavigation = (isAdmin: boolean) => {
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Templates', href: '/templates', icon: FileText },
     { name: 'Campaign Builder', href: '/editor', icon: Mail },
+    { name: 'Email Health', href: '/email-health', icon: Heart },
     { name: 'Settings', href: '/settings', icon: Settings },
     { name: 'Billing', href: '/billing', icon: CreditCard },
     { name: 'Community', href: '/community', icon: MessageSquarePlus },
