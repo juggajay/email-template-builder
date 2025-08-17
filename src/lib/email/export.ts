@@ -3,6 +3,7 @@ import JSZip from 'jszip';
 import { toast } from 'sonner';
 import type { EmailTemplate, ExportType } from '@/types';
 import { inliningStrategies, EnhancedEmailExportService } from './export-options';
+import { DeliverabilityOptimizer } from './deliverability-optimizer';
 
 export interface ExportOptions {
   inlineCSS?: boolean;
@@ -12,6 +13,8 @@ export interface ExportOptions {
   preserveKeyFrames?: boolean;
   preservePseudos?: boolean;
   strategy?: keyof typeof inliningStrategies;
+  optimizeDeliverability?: boolean;
+  validateEmail?: boolean;
 }
 
 export interface ExportResult {
@@ -56,26 +59,35 @@ export class EmailExportService {
   static async exportAsHTML(html: string, options: ExportOptions = {}): Promise<string> {
     let processedHtml = html;
     
-    // Use strategy-based inlining if specified
-    if (options.strategy) {
-      processedHtml = await EnhancedEmailExportService.exportWithStrategy(html, options.strategy);
-    } else if (options.inlineCSS !== false) {
-      // Use legacy inlining method
-      processedHtml = this.inlineCSS(html, options);
+    // Optimize for deliverability if requested (recommended)
+    if (options.optimizeDeliverability !== false) {
+      processedHtml = DeliverabilityOptimizer.optimizeForDeliverability(processedHtml);
+    } else {
+      // Use strategy-based inlining if specified
+      if (options.strategy) {
+        processedHtml = await EnhancedEmailExportService.exportWithStrategy(html, options.strategy);
+      } else if (options.inlineCSS !== false) {
+        // Use legacy inlining method
+        processedHtml = this.inlineCSS(html, options);
+      }
     }
     
     // Optionally minify
     if (options.minify) {
-      processedHtml = this.minifyHTML(processedHtml);
+      processedHtml = DeliverabilityOptimizer.minifyHTML(processedHtml);
     }
 
-    // Validate the output
-    const validation = EnhancedEmailExportService.validateInlinedHTML(processedHtml);
-    if (!validation.isValid) {
-      console.error('Email validation errors:', validation.errors);
-    }
-    if (validation.warnings.length > 0) {
-      console.warn('Email validation warnings:', validation.warnings);
+    // Validate the email
+    if (options.validateEmail !== false) {
+      const validation = DeliverabilityOptimizer.validateEmail(processedHtml);
+      if (!validation.valid) {
+        console.error('Email validation errors:', validation.errors);
+        toast.error('Email has validation errors. Check console for details.');
+      }
+      if (validation.warnings.length > 0) {
+        console.warn('Email validation warnings:', validation.warnings);
+        toast.warning(`Email has ${validation.warnings.length} warning(s). Check console.`);
+      }
     }
 
     return processedHtml;
