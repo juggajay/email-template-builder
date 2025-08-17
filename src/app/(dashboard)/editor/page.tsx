@@ -51,7 +51,7 @@ import { findAllMergeTags } from '@/lib/merge-tags/parser';
 import { validateTemplate } from '@/lib/merge-tags/validator';
 import { getAllMergeTags } from '@/lib/merge-tags';
 import { Button } from '@/components/ui/button';
-import { Sparkles, Eye, Filter, Save, ChevronDown, Copy, CheckCircle, AlertCircle } from 'lucide-react';
+import { Sparkles, Eye, Filter, Save, ChevronDown, Copy, CheckCircle, AlertCircle, BarChart3 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { copyHTMLToClipboard } from '@/lib/email/export';
 import {
@@ -72,6 +72,7 @@ function EditorContent() {
   const [showEnhancedPanel, setShowEnhancedPanel] = useState(false);
   const [showPreviewData, setShowPreviewData] = useState(false);
   const [showConditional, setShowConditional] = useState(false);
+  const [showDeliverability, setShowDeliverability] = useState(false);
   const [conditionalBlocks, setConditionalBlocks] = useState<ConditionalBlock[]>([]);
   const [previewData, setPreviewData] = useState<Record<string, any>>({});
   const [usedTags, setUsedTags] = useState<string[]>([]);
@@ -694,6 +695,19 @@ function EditorContent() {
               <Filter className="w-4 h-4" />
               Conditionals
             </Button>
+            <Button
+              variant={showDeliverability ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowDeliverability(!showDeliverability)}
+              className={`flex items-center gap-2 ${
+                currentScore < 70 && currentScore > 0 
+                  ? 'border-yellow-500 text-yellow-700' 
+                  : ''
+              }`}
+            >
+              <BarChart3 className="w-4 h-4" />
+              Deliverability {currentScore > 0 && `(${currentGrade})`}
+            </Button>
             <SendTestEmail 
               templateHtml={templateHtml}
               editorRef={editorRef}
@@ -826,32 +840,32 @@ function EditorContent() {
         </div>
 
         {/* Side panels */}
-        <div className="w-96 border-l bg-white p-4 overflow-y-auto">
-          {/* Deliverability Score - Always shown */}
-          <div className="mb-4">
-            <DeliverabilityScoreComponent
-              html={templateHtml}
-              plainText={templateHtml.replace(/<[^>]*>/g, '').trim()}
-              subject={templateName}
-              onScoreChange={(score, grade) => {
-                setCurrentScore(score);
-                setCurrentGrade(grade);
-              }}
-              autoCheck={true}
-            />
-          </div>
-          
-          {(showEnhancedPanel || showPreviewData || showConditional) && (
-            <>
-              {showEnhancedPanel && (
-                <div className="mb-4">
-                  <EnhancedMergeTagsPanel
-                    onTagSelect={(tag) => console.log('Tag selected:', tag)}
-                    onTagsUsedUpdate={setUsedTags}
-                    usedTags={usedTags}
-                  />
-                </div>
-              )}
+        {(showEnhancedPanel || showPreviewData || showConditional || showDeliverability) && (
+          <div className="w-96 border-l bg-white p-4 overflow-y-auto">
+            {showDeliverability && (
+              <div className="mb-4">
+                <DeliverabilityScoreComponent
+                  html={templateHtml}
+                  plainText={templateHtml.replace(/<[^>]*>/g, '').trim()}
+                  subject={templateName}
+                  onScoreChange={(score, grade) => {
+                    setCurrentScore(score);
+                    setCurrentGrade(grade);
+                  }}
+                  autoCheck={true}
+                />
+              </div>
+            )}
+
+            {showEnhancedPanel && (
+              <div className="mb-4">
+                <EnhancedMergeTagsPanel
+                  onTagSelect={(tag) => console.log('Tag selected:', tag)}
+                  onTagsUsedUpdate={setUsedTags}
+                  usedTags={usedTags}
+                />
+              </div>
+            )}
             
             {showPreviewData && (
               <div className="mb-4">
@@ -871,9 +885,24 @@ function EditorContent() {
                 />
               </div>
             )}
-            </>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* Hidden deliverability tracker - always runs but not visible */}
+        {!showDeliverability && (
+          <div style={{ display: 'none' }}>
+            <DeliverabilityScoreComponent
+              html={templateHtml}
+              plainText={templateHtml.replace(/<[^>]*>/g, '').trim()}
+              subject={templateName}
+              onScoreChange={(score, grade) => {
+                setCurrentScore(score);
+                setCurrentGrade(grade);
+              }}
+              autoCheck={true}
+            />
+          </div>
+        )}
       </div>
       
       {/* Performance optimization script */}
