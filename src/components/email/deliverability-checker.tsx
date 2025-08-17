@@ -24,9 +24,10 @@ interface DeliverabilityCheckerProps {
 
 export function DeliverabilityChecker({ html, onOptimize }: DeliverabilityCheckerProps) {
   const [validation, setValidation] = useState<{
-    valid: boolean;
+    isValid: boolean;
     warnings: string[];
     errors: string[];
+    score: number;
   } | null>(null);
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [score, setScore] = useState<number | null>(null);
@@ -51,11 +52,12 @@ export function DeliverabilityChecker({ html, onOptimize }: DeliverabilityChecke
     }
   };
 
-  const optimizeEmail = () => {
+  const optimizeEmail = async () => {
     setIsOptimizing(true);
     
     try {
-      const optimizedHtml = DeliverabilityOptimizer.optimizeForDeliverability(html);
+      const optimizationResult = await DeliverabilityOptimizer.optimizeForDeliverability(html);
+      const optimizedHtml = optimizationResult.html;
       
       // Re-validate after optimization
       const newValidation = DeliverabilityOptimizer.validateEmail(optimizedHtml);
@@ -177,7 +179,7 @@ export function DeliverabilityChecker({ html, onOptimize }: DeliverabilityChecke
             )}
 
             {/* Success */}
-            {validation.errors.length === 0 && validation.warnings.length === 0 && (
+            {validation.isValid && validation.warnings.length === 0 && (
               <Alert className="border-green-200 bg-green-50">
                 <CheckCircle className="w-4 h-4 text-green-600" />
                 <AlertDescription className="text-green-800">

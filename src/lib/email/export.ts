@@ -15,6 +15,8 @@ export interface ExportOptions {
   strategy?: keyof typeof inliningStrategies;
   optimizeDeliverability?: boolean;
   validateEmail?: boolean;
+  checkSpamScore?: boolean;
+  optimizeForOutlook?: boolean;
 }
 
 export interface ExportResult {
@@ -60,8 +62,35 @@ export class EmailExportService {
     let processedHtml = html;
     
     // Optimize for deliverability if requested (recommended)
-    if (options.optimizeDeliverability !== false) {
-      processedHtml = DeliverabilityOptimizer.optimizeForDeliverability(processedHtml);
+    if (options.optimizeDeliverability) {
+      const optimizationResult = await DeliverabilityOptimizer.optimizeForDeliverability(html, {
+        minifyHtml: options.minify,
+        optimizeForOutlook: options.optimizeForOutlook,
+        checkSpamScore: options.checkSpamScore,
+        validateLinks: true
+      });
+      
+      processedHtml = optimizationResult.html;
+      
+      // Show warnings if any
+      if (optimizationResult.warnings.length > 0) {
+        console.warn('Deliverability warnings:', optimizationResult.warnings);
+        optimizationResult.warnings.slice(0, 3).forEach(warning => {
+          toast.warning(warning);
+        });
+      }
+      
+      // Show spam score if calculated
+      if (optimizationResult.spamScore !== undefined) {
+        const scoreMsg = `Spam score: ${optimizationResult.spamScore}/10`;
+        if (optimizationResult.spamScore > 5) {
+          toast.error(scoreMsg + ' - High risk!');
+        } else if (optimizationResult.spamScore > 3) {
+          toast.warning(scoreMsg);
+        } else {
+          toast.success(scoreMsg + ' - Good!');
+        }
+      }
     } else {
       // Use strategy-based inlining if specified
       if (options.strategy) {
@@ -70,24 +99,24 @@ export class EmailExportService {
         // Use legacy inlining method
         processedHtml = this.inlineCSS(html, options);
       }
-    }
-    
-    // Optionally minify
-    if (options.minify) {
-      processedHtml = DeliverabilityOptimizer.minifyHTML(processedHtml);
+      
+      // Optionally minify
+      if (options.minify) {
+        processedHtml = await this.minifyHTML(processedHtml);
+      }
     }
 
     // Validate the email
-    if (options.validateEmail !== false) {
+    if (options.validateEmail) {
       const validation = DeliverabilityOptimizer.validateEmail(processedHtml);
-      if (!validation.valid) {
+      if (!validation.isValid) {
         console.error('Email validation errors:', validation.errors);
         toast.error('Email has validation errors. Check console for details.');
       }
       if (validation.warnings.length > 0) {
         console.warn('Email validation warnings:', validation.warnings);
-        toast.warning(`Email has ${validation.warnings.length} warning(s). Check console.`);
       }
+      toast.info(`Email validation score: ${validation.score}/100`);
     }
 
     return processedHtml;
@@ -197,11 +226,21 @@ export class EmailExportService {
   /**
    * Minify HTML
    */
-  private static minifyHTML(html: string): string {
-    return html
-      .replace(/\n\s+/g, ' ')
-      .replace(/>\s+</g, '><')
-      .trim();
+  private static async minifyHTML(html: string): Promise<string> {
+    // Use the same minification from DeliverabilityOptimizer for consistency
+    try {
+      const result = await DeliverabilityOptimizer.optimizeForDeliverability(html, {
+        minifyHtml: true,
+        inlineAllStyles: false
+      });
+      return result.html;
+    } catch (error) {
+      console.error('Minification failed, using simple minification:', error);
+      return html
+        .replace(/\n\s+/g, ' ')
+        .replace(/>\s+</g, '><')
+        .trim();
+    }
   }
 
   /**

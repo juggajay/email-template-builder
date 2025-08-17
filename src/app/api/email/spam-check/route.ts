@@ -22,6 +22,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error }, { status: 400 });
     }
 
+    if (!data) {
+      return NextResponse.json({ error: 'Invalid request data' }, { status: 400 });
+    }
+    
     const { html, optimize } = data;
 
     // Validate the email
@@ -38,13 +42,14 @@ export async function POST(request: NextRequest) {
     
     // Optimize if requested
     if (optimize) {
-      optimizedHtml = DeliverabilityOptimizer.optimizeForDeliverability(html);
+      const optimizationResult = await DeliverabilityOptimizer.optimizeForDeliverability(html);
+      optimizedHtml = optimizationResult.html;
       optimizedValidation = DeliverabilityOptimizer.validateEmail(optimizedHtml);
     }
 
     return NextResponse.json({
       original: {
-        valid: validation.valid,
+        isValid: validation.isValid,
         errors: validation.errors,
         warnings: validation.warnings,
         spamScore,
@@ -159,7 +164,7 @@ function getRecommendations(
     recommendations.push('High spam score detected. Consider removing promotional language.');
   }
   
-  if (!validation.valid) {
+  if (validation.errors.length > 0) {
     recommendations.push('Fix critical errors before sending.');
   }
   
