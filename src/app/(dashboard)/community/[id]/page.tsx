@@ -11,7 +11,8 @@ import {
   ChevronDown,
   MessageSquare, 
   ArrowLeft,
-  Send
+  Send,
+  Trash2
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
@@ -22,7 +23,8 @@ import { tagConfig } from '@/types/feedback-reddit';
 export default function PostDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const isAdmin = profile?.role === 'admin';
   const [post, setPost] = useState<FeedbackPost | null>(null);
   const [comments, setComments] = useState<FeedbackComment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -209,6 +211,57 @@ export default function PostDetailPage() {
     }
   };
 
+  const handleDeletePost = async () => {
+    if (!isAdmin || !post) return;
+    
+    if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('feedback_posts')
+        .delete()
+        .eq('id', post.id);
+      
+      if (error) throw error;
+      
+      // Redirect to community page after deletion
+      router.push('/community');
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('Failed to delete post. Please try again.');
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!isAdmin) return;
+    
+    if (!confirm('Are you sure you want to delete this comment?')) {
+      return;
+    }
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('feedback_comments')
+        .delete()
+        .eq('id', commentId);
+      
+      if (error) throw error;
+      
+      // Refresh comments
+      if (post) {
+        fetchComments(post.id);
+        fetchPost(post.id);
+      }
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+      alert('Failed to delete comment. Please try again.');
+    }
+  };
+
   const renderComment = (comment: FeedbackComment, depth: number = 0) => (
     <div key={comment.id} className={depth > 0 ? 'ml-4 border-l-2 border-gray-200 pl-4' : ''}>
       <div className="flex space-x-2 mb-2">
@@ -241,10 +294,21 @@ export default function PostDetailPage() {
 
         {/* Comment content */}
         <div className="flex-1">
-          <div className="text-xs text-gray-500 mb-1">
-            <span className="font-medium text-gray-700">{comment.author_first_name || 'Anonymous'}</span>
-            <span className="mx-1">•</span>
-            <span>{formatDistanceToNow(new Date(comment.created_at))} ago</span>
+          <div className="flex items-center justify-between mb-1">
+            <div className="text-xs text-gray-500">
+              <span className="font-medium text-gray-700">{comment.author_first_name || 'Anonymous'}</span>
+              <span className="mx-1">•</span>
+              <span>{formatDistanceToNow(new Date(comment.created_at))} ago</span>
+            </div>
+            {isAdmin && (
+              <button
+                className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                onClick={() => handleDeleteComment(comment.id)}
+                title="Delete comment"
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
+            )}
           </div>
           <p className="text-sm text-gray-800 mb-2 whitespace-pre-wrap">
             {comment.content}
@@ -358,18 +422,31 @@ export default function PostDetailPage() {
 
             {/* Content */}
             <div className="flex-1 p-4">
-              <div className="flex items-center space-x-2 mb-2">
-                <Badge 
-                  variant="outline" 
-                  className={`${tagConfig[post.tag].bg} ${tagConfig[post.tag].color} border-0 text-xs`}
-                >
-                  {tagConfig[post.tag].label}
-                </Badge>
-                <div className="flex items-center text-xs text-gray-500">
-                  <span>Posted by {post.author_first_name || 'Anonymous'}</span>
-                  <span className="mx-1">•</span>
-                  <span>{formatDistanceToNow(new Date(post.created_at))} ago</span>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center space-x-2">
+                  <Badge 
+                    variant="outline" 
+                    className={`${tagConfig[post.tag].bg} ${tagConfig[post.tag].color} border-0 text-xs`}
+                  >
+                    {tagConfig[post.tag].label}
+                  </Badge>
+                  <div className="flex items-center text-xs text-gray-500">
+                    <span>Posted by {post.author_first_name || 'Anonymous'}</span>
+                    <span className="mx-1">•</span>
+                    <span>{formatDistanceToNow(new Date(post.created_at))} ago</span>
+                  </div>
                 </div>
+                {isAdmin && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-400 hover:text-red-500"
+                    onClick={handleDeletePost}
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Delete
+                  </Button>
+                )}
               </div>
               
               <h1 className="text-xl font-semibold text-gray-900 mb-3">

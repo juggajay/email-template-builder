@@ -17,7 +17,8 @@ import {
   MessageSquare, 
   ChevronUp, 
   ChevronDown,
-  Plus
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
@@ -31,7 +32,8 @@ export default function CommunityPage() {
   const [filter, setFilter] = useState<'all' | FeedbackTag>('all');
   // Always sort by newest first
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const isAdmin = profile?.role === 'admin';
 
   // Form state
   const [title, setTitle] = useState('');
@@ -136,6 +138,30 @@ export default function CommunityPage() {
       fetchPosts();
     } catch (error) {
       console.error('Error voting:', error);
+    }
+  };
+
+  const handleDelete = async (postId: string) => {
+    if (!isAdmin) return;
+    
+    if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('feedback_posts')
+        .delete()
+        .eq('id', postId);
+      
+      if (error) throw error;
+      
+      // Refresh posts
+      fetchPosts();
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      alert('Failed to delete post. Please try again.');
     }
   };
 
@@ -303,18 +329,32 @@ export default function CommunityPage() {
 
                   {/* Content */}
                   <div className="flex-1 p-3">
-                    <div className="flex items-start space-x-2 mb-1">
-                      <Badge 
-                        variant="outline" 
-                        className={`${tagConfig[post.tag].bg} ${tagConfig[post.tag].color} border-0 text-xs`}
-                      >
-                        {tagConfig[post.tag].label}
-                      </Badge>
-                      <div className="flex items-center text-xs text-gray-500">
-                        <span>Posted by {post.author_first_name || 'Anonymous'}</span>
-                        <span className="mx-1">•</span>
-                        <span>{formatDistanceToNow(new Date(post.created_at))} ago</span>
+                    <div className="flex items-start justify-between mb-1">
+                      <div className="flex items-start space-x-2">
+                        <Badge 
+                          variant="outline" 
+                          className={`${tagConfig[post.tag].bg} ${tagConfig[post.tag].color} border-0 text-xs`}
+                        >
+                          {tagConfig[post.tag].label}
+                        </Badge>
+                        <div className="flex items-center text-xs text-gray-500">
+                          <span>Posted by {post.author_first_name || 'Anonymous'}</span>
+                          <span className="mx-1">•</span>
+                          <span>{formatDistanceToNow(new Date(post.created_at))} ago</span>
+                        </div>
                       </div>
+                      {isAdmin && (
+                        <button
+                          className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(post.id);
+                          }}
+                          title="Delete post"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                     
                     <h3 className="font-medium text-gray-900 mb-1">
