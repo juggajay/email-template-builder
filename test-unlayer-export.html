@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Unlayer Export</title>
+    <script src="https://editor.unlayer.com/embed.js"></script>
+</head>
+<body>
+    <div id="editor" style="height: 600px;"></div>
+    <button onclick="testExport()">Export HTML</button>
+    <button onclick="addImage()">Add Test Image</button>
+    <div id="output"></div>
+
+    <script>
+        let editor;
+        
+        // Initialize WITHOUT projectId
+        unlayer.init({
+            id: 'editor',
+            displayMode: 'email'
+        });
+
+        unlayer.addEventListener('editor:ready', () => {
+            console.log('Editor ready');
+            editor = unlayer;
+            
+            // Load a simple design with image
+            const testDesign = {
+                body: {
+                    rows: [{
+                        cells: [1],
+                        columns: [{
+                            contents: [{
+                                type: 'image',
+                                values: {
+                                    src: {
+                                        url: 'https://via.placeholder.com/600x400',
+                                        width: 600,
+                                        height: 400
+                                    }
+                                }
+                            }]
+                        }]
+                    }]
+                }
+            };
+            
+            editor.loadDesign(testDesign);
+        });
+
+        function testExport() {
+            editor.exportHtml((data) => {
+                console.log('Export data:', data);
+                document.getElementById('output').innerHTML = `
+                    <h3>HTML Length: ${data.html.length}</h3>
+                    <h3>Contains img tags: ${data.html.includes('<img')}</h3>
+                    <h3>Sample:</h3>
+                    <pre>${data.html.substring(0, 500)}...</pre>
+                `;
+                
+                // Check for images
+                const imgMatches = data.html.match(/<img[^>]*>/g);
+                if (imgMatches) {
+                    console.log('Found images:', imgMatches);
+                } else {
+                    console.log('NO IMAGES FOUND IN EXPORT!');
+                }
+            });
+        }
+        
+        function addImage() {
+            alert('Use the image tool from the left panel to add an image');
+        }
+    </script>
+</body>
+</html>

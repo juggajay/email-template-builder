@@ -179,16 +179,6 @@ export default function CommunityPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-4">
-      {/* Debug Info - Remove this after testing */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-xs">
-          <div>User ID: {user?.id || 'Not logged in'}</div>
-          <div>Email: {profile?.email || 'N/A'}</div>
-          <div>Role: <span className="font-bold">{profile?.role || 'user'}</span></div>
-          <div>Is Admin: <span className="font-bold">{isAdmin ? 'YES' : 'NO'}</span></div>
-        </div>
-      )}
-      
       {/* Header Bar */}
       <div className="bg-white rounded-lg shadow-sm p-4">
         <div className="flex items-center justify-between">
