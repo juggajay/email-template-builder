@@ -142,7 +142,11 @@ export default function CommunityPage() {
   };
 
   const handleDelete = async (postId: string) => {
-    if (!isAdmin) return;
+    if (!isAdmin) {
+      console.log('Not admin, cannot delete. Current role:', profile?.role);
+      alert('Only admins can delete posts.');
+      return;
+    }
     
     if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
       return;
@@ -155,18 +159,36 @@ export default function CommunityPage() {
         .delete()
         .eq('id', postId);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Delete error details:', error);
+        throw error;
+      }
       
       // Refresh posts
       fetchPosts();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting post:', error);
-      alert('Failed to delete post. Please try again.');
+      // More detailed error message
+      if (error?.message?.includes('policy')) {
+        alert('Permission denied. Please ensure you have admin privileges and the database policies are correctly configured.');
+      } else {
+        alert(`Failed to delete post: ${error?.message || 'Unknown error'}`);
+      }
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto space-y-4">
+      {/* Debug Info - Remove this after testing */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-xs">
+          <div>User ID: {user?.id || 'Not logged in'}</div>
+          <div>Email: {profile?.email || 'N/A'}</div>
+          <div>Role: <span className="font-bold">{profile?.role || 'user'}</span></div>
+          <div>Is Admin: <span className="font-bold">{isAdmin ? 'YES' : 'NO'}</span></div>
+        </div>
+      )}
+      
       {/* Header Bar */}
       <div className="bg-white rounded-lg shadow-sm p-4">
         <div className="flex items-center justify-between">
@@ -294,36 +316,38 @@ export default function CommunityPage() {
             >
               <CardContent className="p-0">
                 <div className="flex">
-                  {/* Vote Section */}
-                  <div className="flex flex-col items-center p-2 bg-gray-50">
+                  {/* Vote Section - Reddit Style */}
+                  <div className="flex flex-col items-center justify-center w-10 bg-gray-50 py-2">
                     <button
-                      className={`p-1 rounded hover:bg-gray-200 transition-colors ${
-                        post.user_vote_type === 1 ? 'text-orange-500' : 'text-gray-400'
+                      className={`p-0 rounded hover:bg-gray-200 transition-colors ${
+                        post.user_vote_type === 1 ? 'text-[#FF4500]' : 'text-gray-400 hover:text-[#FF4500]'
                       }`}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleVote(post.id, 1, post.user_vote_type || null);
                       }}
+                      aria-label="Upvote"
                     >
-                      <ChevronUp className="w-5 h-5" />
+                      <ChevronUp className="w-6 h-6" strokeWidth={2} />
                     </button>
-                    <span className={`text-sm font-bold ${
-                      post.score > 0 ? 'text-orange-500' : 
-                      post.score < 0 ? 'text-blue-500' : 
+                    <span className={`text-xs font-bold my-1 ${
+                      post.user_vote_type === 1 ? 'text-[#FF4500]' : 
+                      post.user_vote_type === -1 ? 'text-[#7193FF]' : 
                       'text-gray-700'
                     }`}>
                       {post.score}
                     </span>
                     <button
-                      className={`p-1 rounded hover:bg-gray-200 transition-colors ${
-                        post.user_vote_type === -1 ? 'text-blue-500' : 'text-gray-400'
+                      className={`p-0 rounded hover:bg-gray-200 transition-colors ${
+                        post.user_vote_type === -1 ? 'text-[#7193FF]' : 'text-gray-400 hover:text-[#7193FF]'
                       }`}
                       onClick={(e) => {
                         e.stopPropagation();
                         handleVote(post.id, -1, post.user_vote_type || null);
                       }}
+                      aria-label="Downvote"
                     >
-                      <ChevronDown className="w-5 h-5" />
+                      <ChevronDown className="w-6 h-6" strokeWidth={2} />
                     </button>
                   </div>
 

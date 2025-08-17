@@ -212,7 +212,11 @@ export default function PostDetailPage() {
   };
 
   const handleDeletePost = async () => {
-    if (!isAdmin || !post) return;
+    if (!isAdmin || !post) {
+      console.log('Not admin or no post. Admin status:', isAdmin, 'Role:', profile?.role);
+      alert('Only admins can delete posts.');
+      return;
+    }
     
     if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
       return;
@@ -225,13 +229,20 @@ export default function PostDetailPage() {
         .delete()
         .eq('id', post.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Delete error details:', error);
+        throw error;
+      }
       
       // Redirect to community page after deletion
       router.push('/community');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting post:', error);
-      alert('Failed to delete post. Please try again.');
+      if (error?.message?.includes('policy')) {
+        alert('Permission denied. Please ensure you have admin privileges and the database policies are correctly configured.');
+      } else {
+        alert(`Failed to delete post: ${error?.message || 'Unknown error'}`);
+      }
     }
   };
 
@@ -265,30 +276,32 @@ export default function PostDetailPage() {
   const renderComment = (comment: FeedbackComment, depth: number = 0) => (
     <div key={comment.id} className={depth > 0 ? 'ml-4 border-l-2 border-gray-200 pl-4' : ''}>
       <div className="flex space-x-2 mb-2">
-        {/* Vote buttons */}
-        <div className="flex flex-col items-center">
+        {/* Vote buttons - Reddit Style */}
+        <div className="flex flex-col items-center min-w-[24px]">
           <button
-            className={`p-0.5 rounded hover:bg-gray-200 transition-colors ${
-              comment.user_vote_type === 1 ? 'text-orange-500' : 'text-gray-400'
+            className={`p-0 rounded hover:bg-gray-100 transition-colors ${
+              comment.user_vote_type === 1 ? 'text-[#FF4500]' : 'text-gray-400 hover:text-[#FF4500]'
             }`}
             onClick={() => handleCommentVote(comment.id, 1, comment.user_vote_type || null)}
+            aria-label="Upvote"
           >
-            <ChevronUp className="w-4 h-4" />
+            <ChevronUp className="w-4 h-4" strokeWidth={2} />
           </button>
-          <span className={`text-xs font-medium ${
-            comment.score > 0 ? 'text-orange-500' : 
-            comment.score < 0 ? 'text-blue-500' : 
+          <span className={`text-[10px] font-bold leading-none my-0.5 ${
+            comment.user_vote_type === 1 ? 'text-[#FF4500]' : 
+            comment.user_vote_type === -1 ? 'text-[#7193FF]' : 
             'text-gray-600'
           }`}>
             {comment.score}
           </span>
           <button
-            className={`p-0.5 rounded hover:bg-gray-200 transition-colors ${
-              comment.user_vote_type === -1 ? 'text-blue-500' : 'text-gray-400'
+            className={`p-0 rounded hover:bg-gray-100 transition-colors ${
+              comment.user_vote_type === -1 ? 'text-[#7193FF]' : 'text-gray-400 hover:text-[#7193FF]'
             }`}
             onClick={() => handleCommentVote(comment.id, -1, comment.user_vote_type || null)}
+            aria-label="Downvote"
           >
-            <ChevronDown className="w-4 h-4" />
+            <ChevronDown className="w-4 h-4" strokeWidth={2} />
           </button>
         </div>
 
@@ -393,30 +406,32 @@ export default function PostDetailPage() {
       <Card>
         <CardContent className="p-0">
           <div className="flex">
-            {/* Vote Section */}
-            <div className="flex flex-col items-center p-3 bg-gray-50">
+            {/* Vote Section - Reddit Style */}
+            <div className="flex flex-col items-center justify-center w-12 bg-gray-50 py-3">
               <button
-                className={`p-1 rounded hover:bg-gray-200 transition-colors ${
-                  post.user_vote_type === 1 ? 'text-orange-500' : 'text-gray-400'
+                className={`p-0 rounded hover:bg-gray-200 transition-colors ${
+                  post.user_vote_type === 1 ? 'text-[#FF4500]' : 'text-gray-400 hover:text-[#FF4500]'
                 }`}
                 onClick={() => handlePostVote(1)}
+                aria-label="Upvote"
               >
-                <ChevronUp className="w-6 h-6" />
+                <ChevronUp className="w-7 h-7" strokeWidth={2} />
               </button>
-              <span className={`text-lg font-bold ${
-                post.score > 0 ? 'text-orange-500' : 
-                post.score < 0 ? 'text-blue-500' : 
+              <span className={`text-sm font-bold my-1 ${
+                post.user_vote_type === 1 ? 'text-[#FF4500]' : 
+                post.user_vote_type === -1 ? 'text-[#7193FF]' : 
                 'text-gray-700'
               }`}>
                 {post.score}
               </span>
               <button
-                className={`p-1 rounded hover:bg-gray-200 transition-colors ${
-                  post.user_vote_type === -1 ? 'text-blue-500' : 'text-gray-400'
+                className={`p-0 rounded hover:bg-gray-200 transition-colors ${
+                  post.user_vote_type === -1 ? 'text-[#7193FF]' : 'text-gray-400 hover:text-[#7193FF]'
                 }`}
                 onClick={() => handlePostVote(-1)}
+                aria-label="Downvote"
               >
-                <ChevronDown className="w-6 h-6" />
+                <ChevronDown className="w-7 h-7" strokeWidth={2} />
               </button>
             </div>
 
