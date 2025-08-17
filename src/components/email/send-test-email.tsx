@@ -45,6 +45,7 @@ interface SendTestEmailProps {
   templateSubject?: string;
   editorRef?: any;
   onEmailSent?: (result: any) => void;
+  deliverabilityScore?: number;
 }
 
 const RECENT_RECIPIENTS_KEY = 'test-email-recent-recipients';
@@ -65,7 +66,8 @@ export function SendTestEmail({
   templateHtml = '', 
   templateSubject = '',
   editorRef,
-  onEmailSent 
+  onEmailSent,
+  deliverabilityScore 
 }: SendTestEmailProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -208,7 +210,19 @@ export function SendTestEmail({
   };
 
   const sendTestEmail = async () => {
-    // Check rate limit first
+    // Check deliverability score first
+    if (deliverabilityScore !== undefined && deliverabilityScore < 70) {
+      const confirmSend = window.confirm(
+        `Warning: Your email has a low deliverability score (${deliverabilityScore}%).\n\n` +
+        'Emails with scores below 70% may be marked as spam.\n\n' +
+        'Do you still want to send the test email?'
+      );
+      if (!confirmSend) {
+        return;
+      }
+    }
+
+    // Check rate limit
     const rateLimit = checkRateLimit();
     if (!rateLimit.allowed) {
       setRateLimitWarning(`Test email limit reached. Try again in ${rateLimit.remainingTime} minutes.`);
@@ -420,7 +434,17 @@ export function SendTestEmail({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="flex items-center gap-2">
+        <Button 
+          className={`flex items-center gap-2 ${
+            deliverabilityScore !== undefined && deliverabilityScore < 70 
+              ? 'border-yellow-500' 
+              : ''
+          }`}
+          variant={deliverabilityScore !== undefined && deliverabilityScore < 70 ? 'outline' : 'default'}
+        >
+          {deliverabilityScore !== undefined && deliverabilityScore < 70 && (
+            <AlertTriangle className="w-4 h-4 text-yellow-500" />
+          )}
           <Mail className="w-4 h-4" />
           Send Test Email
         </Button>

@@ -42,6 +42,7 @@ import { PreviewDataEditor } from '@/components/editor/merge-tags-enhanced/previ
 import { ConditionalEditor } from '@/components/editor/merge-tags-enhanced/conditional-editor';
 import { MergeTagAutocomplete } from '@/components/editor/merge-tags-enhanced/autocomplete';
 import { SendTestEmail } from '@/components/email/send-test-email';
+import { DeliverabilityScoreComponent } from '@/components/email/deliverability-score';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { getTemplateDesign } from '@/lib/template-designs';
@@ -78,6 +79,8 @@ function EditorContent() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveRetryCount, setSaveRetryCount] = useState(0);
   const [editorRef, setEditorRef] = useState<any>(null);
+  const [currentScore, setCurrentScore] = useState(0);
+  const [currentGrade, setCurrentGrade] = useState('F');
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
@@ -695,6 +698,7 @@ function EditorContent() {
               templateHtml={templateHtml}
               editorRef={editorRef}
               templateSubject={`Preview: ${templateName}`}
+              deliverabilityScore={currentScore}
               onEmailSent={(result) => {
                 console.log('Test email sent:', result);
               }}
@@ -822,17 +826,32 @@ function EditorContent() {
         </div>
 
         {/* Side panels */}
-        {(showEnhancedPanel || showPreviewData || showConditional) && (
-          <div className="w-96 border-l bg-white p-4 overflow-y-auto">
-            {showEnhancedPanel && (
-              <div className="mb-4">
-                <EnhancedMergeTagsPanel
-                  onTagSelect={(tag) => console.log('Tag selected:', tag)}
-                  onTagsUsedUpdate={setUsedTags}
-                  usedTags={usedTags}
-                />
-              </div>
-            )}
+        <div className="w-96 border-l bg-white p-4 overflow-y-auto">
+          {/* Deliverability Score - Always shown */}
+          <div className="mb-4">
+            <DeliverabilityScoreComponent
+              html={templateHtml}
+              plainText={templateHtml.replace(/<[^>]*>/g, '').trim()}
+              subject={templateName}
+              onScoreChange={(score, grade) => {
+                setCurrentScore(score);
+                setCurrentGrade(grade);
+              }}
+              autoCheck={true}
+            />
+          </div>
+          
+          {(showEnhancedPanel || showPreviewData || showConditional) && (
+            <>
+              {showEnhancedPanel && (
+                <div className="mb-4">
+                  <EnhancedMergeTagsPanel
+                    onTagSelect={(tag) => console.log('Tag selected:', tag)}
+                    onTagsUsedUpdate={setUsedTags}
+                    usedTags={usedTags}
+                  />
+                </div>
+              )}
             
             {showPreviewData && (
               <div className="mb-4">
@@ -852,8 +871,9 @@ function EditorContent() {
                 />
               </div>
             )}
-          </div>
-        )}
+            </>
+          )}
+        </div>
       </div>
       
       {/* Performance optimization script */}
